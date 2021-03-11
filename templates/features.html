@@ -1,0 +1,19 @@
+{% extends "page.html" %}
+{% block content %}
+  <div>
+    <h1>Features in {{ collection.title }}</h1>
+  </div>
+  <div id="maincontent">
+    <h2>Items</h2>
+    {% if bbox %}
+      <h4>Filtered by {{ bbox[0] }}: <code>{{ bbox[1] }}</code></h4>
+    {% endif %}
+    <ul>
+    {% for feature in members %}
+      <li><a href="{{ feature[0] }}">{{ feature[1] }}</a></li>
+    {% endfor %}
+    </ul>
+    {{ pagination.links }}
+  </div>
+  {% include 'page_altprofiles.html' %}
+{% endblock %}

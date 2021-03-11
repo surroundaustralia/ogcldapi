@@ -1,0 +1,11 @@
+{% extends "page.html" %}
+{% block content %}
+  <div>
+    <h1 style="color:red;">ERROR</h1>
+  </div>
+  <div id="maincontent">
+    <h3>{{ title }}</h3>
+    <h4>Status: {{ status }}</h4>
+    <p>{{ message }}</p>
+  </div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "page.html" %}
+{% block content %}
+  <div>
+    <h1>Conformance</h1>
+  </div>
+  <div id="maincontent">
+    <p>This API conforms to the following conformance classes:</p>
+    <ul>
+      {% for ct in conformance_classes %}
+      <li><a href="{{ ct[0] }}">{{ ct[1] }}</a></li>
+      {% endfor %}
+    </ul>
+{#    <p>Not that this API does <em>not</em> conform to <a href="http://www.opengis.net/spec/ogcapi-features-1/1.0/req/geojson">OpenAPI GeoJSON</a> since the geometry of its spatial features doesn't use a WGS84 or related coordinate reference system, instead it uses the TB16Pix DGGS.</p>#}
+  </div>
+  {% include 'page_altprofiles.html' %}
+{% endblock %}

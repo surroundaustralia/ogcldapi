@@ -1,0 +1,33 @@
+{% extends "page.html" %}
+{% block content %}
+  <div>
+    {% if landing_page.title is not none %}
+    <h1>{{ landing_page.title }}</h1>
+    {% else %}
+    <h1>OGC API Landing Page</h1>
+    {% endif %}
+  </div>
+  <div id="maincontent">
+    {% if landing_page.description is not none %}
+      <div>{{ landing_page.description|safe }}</div>
+    {% endif %}
+
+    <h2>Links</h2>
+    <ul>
+      {% for link in landing_page.links %}
+      <li>
+          <a href="{{ link["href"] }}">{% if link["title"] is not none %}{{ link["title"] }}{% else %}{{ link["href"] }}{% endif %}</a>
+          {% if link["rel"] is not none or link["rel"] is not none or link["type"] is not none or link["hreflang"] is not none or link["length"] is not none %}
+            <ul>
+              {% if link["rel"] is not none %}<li>rel: {{ link["rel"].value }}</li>{% endif %}
+              {% if link["type"] is not none %}<li>type: {{ link["type"].value }}</li>{% endif %}
+              {% if link["hreflang"] is not none %}<li>hreflang: {{ link["hreflang"].value }}</li>{% endif %}
+              {% if link["length"] is not none %}<li>length: {{ link["length"].value }}</li>{% endif %}
+          {% endif %}
+          </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% include 'page_altprofiles.html' %}
+{% endblock %}

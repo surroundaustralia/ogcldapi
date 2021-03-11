@@ -1,0 +1,6 @@
+fastapi
+httpx
+uvicorn
+starlette
+jinja2
+aiofiles
