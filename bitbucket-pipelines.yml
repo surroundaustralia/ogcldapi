@@ -1,0 +1,36 @@
+image:
+  name: python:3.8
+
+options:
+  docker: true
+
+definitions:
+  steps:
+    - step: &Test-step
+        name: Run tests
+        caches:
+          - pip
+        script:
+          - apt install git
+          - pip3 install pytest
+          - pip3 install -r ./requirements.txt
+          - pytest ./tests
+
+pipelines:
+  default:
+    - step: *Test-step
+## awaiting AWS credentials - cannot build / push docker image to ECR without this
+#    - step:
+#        name:
+#          Building Docker Image and push it to ECR
+#        caches:
+#          - pip
+#        script:
+#          - pip3 install awscli
+#          - export BUILD_ID=latest-$BITBUCKET_COMMIT-$BITBUCKET_BUILD_NUMBER
+#          - echo $BUILD_ID
+#          - aws configure set aws_access_key_id "${AWS_KEY}"
+#          - aws configure set aws_secret_access_key "${AWS_SECRET}"
+#          - eval $(aws ecr get-login --no-include-email --region "${AWS_DEFAULT_REGION}" | sed 's;https://;;g')
+#          - docker build -t ${AWS_ECR_REPOSITORY}:$BUILD_ID . -f ${DOCKER_FILE}
+#          - docker push ${AWS_ECR_REPOSITORY}:$BUILD_ID
