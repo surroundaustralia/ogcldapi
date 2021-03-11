@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 import logging
-from views import home
+from views import home, collections
 from starlette.staticfiles import StaticFiles
 
 logging.basicConfig(
@@ -18,6 +18,7 @@ app = FastAPI()
 def configure():
     app.mount('/static', StaticFiles(directory='static'), name='static')
     app.include_router(home.router)
+    app.include_router(collections.router)
 
 
 if __name__ == '__main__':

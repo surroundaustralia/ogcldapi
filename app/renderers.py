@@ -112,4 +112,4 @@ def render(
                     return renderer().render(value, status_code=status_code, headers=headers, media_type=media_type)
     renderer = renderers[0]
     media_type = renderer.media_types[0]
-    return renderer.render(value, status_code=status_code, headers=headers, media_type=media_type)
+    return renderer().render(value, status_code=status_code, headers=headers, media_type=media_type)
