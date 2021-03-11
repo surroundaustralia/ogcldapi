@@ -91,7 +91,7 @@ class LandingPageRenderer(Renderer):
 
     def render(self):
         logging.debug("LandingPageRenderer.render()")
-        for v in self.request.values.items():
+        for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 

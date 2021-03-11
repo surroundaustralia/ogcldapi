@@ -218,7 +218,7 @@ class FeatureRenderer(Renderer):
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype"]
 
     def render(self):
-        for v in self.request.values.items():
+        for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 
