@@ -94,7 +94,6 @@ class HTMLRenderer(Renderer):
 #         value = Json2xml(value).to_xml()
 #         return PlainTextResponse(value, status_code=status_code, headers=headers, media_type=media_type)
 
-
 def render(
     value: Any,
     accept: Optional[str],
