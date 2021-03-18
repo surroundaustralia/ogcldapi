@@ -1,47 +1,13 @@
-import json
-from typing import Optional, List
-
-from fastapi import APIRouter, Header, Request, Response
 from pyldapi import ContainerRenderer
+from typing import List
+from api.model.profiles import *
+from api.config import *
+from api.model.link import *
+import json
+from flask import Response, render_template
+from flask_paginate import Pagination
 from rdflib import URIRef
 from rdflib.namespace import DCTERMS, RDF
-
-from app.config import *
-from app.renderers import render, HTMLRenderer
-from views.link import *
-from views.profiles import *
-
-router = APIRouter()
-
-
-@router.get("/collections")
-async def collections(request: Request, accept: Optional[str] = Header(default='text/html')):
-    # data = Collections().collections
-    data = CollectionsRenderer(request).render()
-    return render(
-        data, accept, status_code=200,
-        # renderers=[JSONRenderer, PlainTextRenderer, HTMLRenderer])
-        renderers=[HTMLRenderer])
-
-
-# @router.get("/collections/<string:collection_id>")
-# @router.get("/collections/{collection_id}")
-# class CollectionRoute(Resource):
-#     def get(self, collection_id):
-#         g = get_graph()
-#         # get the URI for the Collection using the ID
-#         collection_uri = None
-#         for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
-#             collection_uri = s
-#
-#         if collection_uri is None:
-#             return Response(
-#                 "You have entered an unknown Collection ID",
-#                 status=400,
-#                 mimetype="text/plain"
-#             )
-#
-#         return CollectionRenderer(request, collection_uri).render()
 
 
 class Collections:
@@ -84,15 +50,15 @@ class CollectionsRenderer(ContainerRenderer):
             self.links.extend(other_links)
 
         self.page = (
-            int(request.query_params.get("page")) if request.query_params.get("page") is not None else 1
+            int(request.values.get("page")) if request.values.get("page") is not None else 1
         )
         self.per_page = (
-            int(request.query_params.get("per_page"))
-            if request.query_params.get("per_page") is not None
+            int(request.values.get("per_page"))
+            if request.values.get("per_page") is not None
             else 20
         )
         # limit
-        limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
+        limit = int(request.values.get("limit")) if request.values.get("limit") is not None else None
 
         # if limit is set, ignore page & per_page
         if limit is not None:
@@ -123,7 +89,7 @@ class CollectionsRenderer(ContainerRenderer):
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format", "page", "per_page", "limit", "bbox"]
 
     def render(self):
-        for v in self.request.query_params.items():
+        for v in self.request.values.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 
@@ -132,8 +98,7 @@ class CollectionsRenderer(ContainerRenderer):
         if response is not None:
             return response
         elif self.profile == "oai":
-            if self.mediatype in ["application/json", "application/vnd.oai.openapi+json;version=3.0",
-                                  "application/geo+json"]:
+            if self.mediatype in ["application/json", "application/vnd.oai.openapi+json;version=3.0", "application/geo+json"]:
                 return self._render_oai_json()
             else:
                 return self._render_oai_html()

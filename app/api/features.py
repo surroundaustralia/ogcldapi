@@ -1,10 +1,10 @@
 from pyldapi import ContainerRenderer
 from typing import List
-from views.profiles import *
-from config import *
-from views.link import *
-from views.collection import Collection
-from views.feature import Feature
+from api.model.profiles import *
+from api.config import *
+from api.model.link import *
+from api.model.collection import Collection
+from api.model.feature import Feature
 import json
 from flask import Response, render_template
 from flask_paginate import Pagination
@@ -17,15 +17,15 @@ class FeaturesList:
     def __init__(self, request, collection_id):
         self.request = request
         self.page = (
-            int(request.query_params.get("page")) if request.query_params.get("page") is not None else 1
+            int(request.values.get("page")) if request.values.get("page") is not None else 1
         )
         self.per_page = (
-            int(request.query_params.get("per_page"))
-            if request.query_params.get("per_page") is not None
+            int(request.values.get("per_page"))
+            if request.values.get("per_page") is not None
             else 20
         )
         # limit
-        self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
+        self.limit = int(request.values.get("limit")) if request.values.get("limit") is not None else None
 
         # if limit is set, ignore page & per_page
         if self.limit is not None:
@@ -45,7 +45,7 @@ class FeaturesList:
         # get list of Features within this Collection
         features_uris = []
         # filter if we have a filtering param
-        if request.query_params.get("bbox") is not None:
+        if request.values.get("bbox") is not None:
             # work out what sort of BBOX filter it is and filter by that type
             features_uris = self.get_feature_uris_by_bbox()
         else:
@@ -81,7 +81,7 @@ class FeaturesList:
             "cell_ids": r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
         }
         for k, v in allowed_bbox_formats.items():
-            if re.match(v, self.request.query_params.get("bbox")):
+            if re.match(v, self.request.values.get("bbox")):
                 self.bbox_type = k
 
         if self.bbox_type is None:
@@ -94,7 +94,7 @@ class FeaturesList:
             pass
 
     def _get_filtered_features_list_bbox_wgs84(self):
-        parts = self.request.query_params.get("bbox").split(",")
+        parts = self.request.values.get("bbox").split(",")
 
         demo = """
             149.041411262992398 -35.292795884738389, 
@@ -158,7 +158,7 @@ class FeaturesList:
 
                 FILTER CONTAINS(STR(?dggs), "{}")
             }}
-            """.format(self.collection.uri, self.request.query_params.get("bbox"))
+            """.format(self.collection.uri, self.request.values.get("bbox"))
 
         # TODO: update as RDFlib updates
         # for r in get_graph().query(q):
@@ -195,7 +195,7 @@ class FeaturesList:
         # for r in ret:
         #     within = True
         #     for cell in r["coords"]["value"].split(" "):
-        #         if not str(cell).startswith(self.request.query_params.get("bbox")):
+        #         if not str(cell).startswith(self.request.values.get("bbox")):
         #             within = False
         #             break
         #     if within:
@@ -253,21 +253,21 @@ class FeaturesRenderer(ContainerRenderer):
             r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
         ]
 
-        for p in self.request.query_params.keys():
+        for p in self.request.values.keys():
             if p not in allowed_params:
                 return False, \
                        "The parameter {} you supplied is not allowed. " \
                        "For this API endpoint, you may only use one of '{}'".format(p, "', '".join(allowed_params)),
 
-        if self.request.query_params.get("limit") is not None:
+        if self.request.values.get("limit") is not None:
             try:
-                int(self.request.query_params.get("limit"))
+                int(self.request.values.get("limit"))
             except ValueError:
                 return False, "The parameter 'limit' you supplied is invalid. It must be an integer"
 
-        if self.request.query_params.get("bbox") is not None:
+        if self.request.values.get("bbox") is not None:
             for p in allowed_bbox_formats:
-                if re.match(p, self.request.query_params.get("bbox")):
+                if re.match(p, self.request.values.get("bbox")):
                     return True, None
             return False, "The parameter 'bbox' you supplied is invalid. Must be either two pairs of long/lat values, " \
                           "a DGGS Cell ID or a pair of DGGS Cell IDs"
@@ -338,8 +338,8 @@ class FeaturesRenderer(ContainerRenderer):
             "pagination": pagination
         }
 
-        if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid
-            _template_context["bbox"] = (self.feature_list.bbox_type, self.request.query_params.get("bbox"))
+        if self.request.values.get("bbox") is not None:  # it it exists at this point, it must be valid
+            _template_context["bbox"] = (self.feature_list.bbox_type, self.request.values.get("bbox"))
 
         return Response(
             render_template("features.html", **_template_context),

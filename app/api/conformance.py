@@ -1,7 +1,7 @@
-from views.link import *
+from api.model.link import *
 from flask import Response, render_template
-from views.profiles import *
-from config import *
+from api.model.profiles import *
+from api.config import *
 import json
 
 
@@ -18,7 +18,7 @@ class ConformanceRenderer(Renderer):
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format"]
 
     def render(self):
-        for v in self.request.query_params.items():
+        for v in self.request.values.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 

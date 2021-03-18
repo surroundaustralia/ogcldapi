@@ -1,7 +1,7 @@
 from typing import List
-from views.profiles import *
-from config import *
-from views.link import *
+from api.model.profiles import *
+from api.config import *
+from api.model.link import *
 import json
 from flask import Response, render_template
 from rdflib import URIRef, Literal, BNode
@@ -218,7 +218,7 @@ class FeatureRenderer(Renderer):
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype"]
 
     def render(self):
-        for v in self.request.query_params.items():
+        for v in self.request.values.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 

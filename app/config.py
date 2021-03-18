@@ -1,5 +1,5 @@
 import os
-from rdflib import Graph, Namespace
+from rdflib import Namespace
 __version__ = "1.2"
 GEO = Namespace("http://www.opengis.net/ont/geosparql#")
 GEOX = Namespace("https://linked.data.gov.au/def/geox#")
@@ -20,13 +20,4 @@ VERSION = os.getenv("VERSION", __version__)
 API_TITLE = os.getenv("API_TITLE", "OGC LD API")
 LANDING_PAGE_URL = os.getenv("LANDING_PAGE_URL", "http://localhost:5000")
 DATASET_URI = os.getenv("DATASET_URI", "https://example.org/dataset/x")
-SPARQL_ENDPOINT = os.getenv("SPARQL_ENDPOINT", "http://example.org/service/sparql")
-
-
-def get_graph():
-    import logging
-    logging.debug("get_graph() for {}".format(SPARQL_ENDPOINT))
-    g = Graph("SPARQLStore")
-    g.open(SPARQL_ENDPOINT)
-
-    return g
+SPARQL_ENDPOINT = os.getenv("SPARQL_ENDPOINT", "http://asgs.surroundaustralia.com:7200/repositories/asgs2016_dggs")

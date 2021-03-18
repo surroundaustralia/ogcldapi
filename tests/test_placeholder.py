@@ -9,10 +9,10 @@ Keep adding tests!
 CHANGELOG:
 - 2021-03-09:   David Habgood (DH): Initial version
 """
-import unittest
-
-
-class ConversionTestCase(unittest.TestCase):
-
-    def test(self):
-        assert 1+1 == 2
+# import unittest
+#
+#
+# class ConversionTestCase(unittest.TestCase):
+#
+#     def test(self):
+#         assert 1+1 == 2

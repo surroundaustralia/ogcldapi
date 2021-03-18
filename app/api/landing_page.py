@@ -1,10 +1,17 @@
 from typing import List
-from views.link import *
-from flask import Response, render_template
-from rdflib import URIRef, Literal
-from rdflib.namespace import DCAT, DCTERMS, RDF
-from views.profiles import *
+
 from config import *
+from api.link import *
+from api.profiles import *
+from utils.utils import get_graph
+
+# from flask import Response, render_template
+from fastapi import Response
+from fastapi.templating import Jinja2Templates
+
+from rdflib import URIRef, Literal, Graph
+from rdflib.namespace import DCAT, DCTERMS, RDF
+
 import json
 import markdown
 import logging
@@ -17,9 +24,12 @@ class LandingPage:
     ):
         logging.debug("LandingPage()")
         self.uri = LANDING_PAGE_URL
+        self.templates = Jinja2Templates(directory="templates")
 
         # make dummy Landing Page data
         g = get_graph()
+        print("graph", g)
+        print(len(g))
         self.description = None
         for s in g.subjects(predicate=RDF.type, object=DCAT.Dataset):
             for p, o in g.predicate_objects(subject=s):
@@ -91,9 +101,9 @@ class LandingPageRenderer(Renderer):
 
     def render(self):
         logging.debug("LandingPageRenderer.render()")
-        for v in self.request.query_params.items():
+        for v in self.request.values.items():
             if v[0] not in self.ALLOWED_PARAMS:
-                return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
+                return Response("The parameter {} you supplied is not allowed".format(v[0]), status_code=400)
 
         # try returning alt profile
         response = super().render()
@@ -141,7 +151,7 @@ class LandingPageRenderer(Renderer):
 
         return Response(
             json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
+            media_type=str(MediaType.JSON.value),
             headers=self.headers,
         )
 
@@ -153,7 +163,10 @@ class LandingPageRenderer(Renderer):
         }
 
         return Response(
-            render_template("landing_page_oai.html", **_template_context),
+            self.templates.TemplateResponse(
+                "landing_page_oai.html",
+                **_template_context
+            ),
             headers=self.headers,
         )
 
@@ -178,9 +191,9 @@ class LandingPageRenderer(Renderer):
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return Response(g.serialize(format="json-ld"), mimetype=self.mediatype)
+            return Response(g.serialize(format="json-ld"), media_type=self.mediatype)
         else:
-            return Response(g.serialize(format=self.mediatype), mimetype=self.mediatype)
+            return Response(g.serialize(format=self.mediatype), media_type=self.mediatype)
 
     def _render_dcat_html(self):
         _template_context = {
@@ -192,6 +205,9 @@ class LandingPageRenderer(Renderer):
         }
 
         return Response(
-            render_template("dataset.html", **_template_context),
+            self.templates.TemplateResponse(
+                "dataset.html",
+                **_template_context
+            ),
             headers=self.headers,
         )
