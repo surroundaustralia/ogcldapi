@@ -1,20 +1,41 @@
+from typing import Optional
+
 import fastapi
-from fastapi import Request
+from fastapi import Request, Response
+
+from rdflib import Literal
+from rdflib.namespace import DCTERMS, RDF
+
 from api.collections import CollectionsRenderer
-from api.collection import CollectionRender
+from api.collection import CollectionRenderer
+from utils import utils
+
 
 router = fastapi.APIRouter()
+g = utils.g
 
 
 @router.get("/collections")
-def collection(request: Request):
+def collection(request: Request,
+               _view: Optional[str] = None,
+               _profile: Optional[str] = None,
+               _format: Optional[str] = None,
+               _mediatype: Optional[str] = None,
+               page: Optional[str] = None,
+               per_page: Optional[str] = None,
+               limit: Optional[str] = None,
+               bbox: Optional[str] = None):
+    print("asa")
     return CollectionsRenderer(request).render()
 
 
-@router.get("/collections/<string:collection_id>")
-@api.param("collection_id", "The ID of a Collection delivered by this API. See /collections for the list.")
-def collection_id(self, collection_id):
-    g = get_graph()
+@router.get("/collections/<collection_id>")
+# @api.param("collection_id", "The ID of a Collection delivered by this API. See /collections for the list.")
+def collection_id(request: Request, collection_id: str = None,
+                  _profile: Optional[str] = None,
+                  _mediatype: Optional[str] = None):
+
+    # g = get_graph()
     # get the URI for the Collection using the ID
     collection_uri = None
     for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
@@ -23,13 +44,13 @@ def collection_id(self, collection_id):
     if collection_uri is None:
         return Response(
             "You have entered an unknown Collection ID",
-            status=400,
-            mimetype="text/plain"
+            status_code=400,
+            media_type="text/plain"
         )
 
     return CollectionRenderer(request, collection_uri).render()
-#
-#
+
+
 # @api.route("/collections/<string:collection_id>/items")
 # @api.param("collection_id", "The ID of a Collection delivered by this API. See /collections for the list.")
 # class FeaturesRoute(Resource):

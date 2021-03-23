@@ -3,25 +3,24 @@ from typing import List
 
 from api.link import *
 from api.profiles import *
-from utils.utils import get_graph
+from utils import utils
 
 from config import *
 from fastapi import Response
 from fastapi.templating import Jinja2Templates
-from fastapi_pagination import Pagination
+# from fastapi_pagination import Pagination
 
 from rdflib import URIRef
 from rdflib.namespace import DCTERMS, RDF
 
 templates = Jinja2Templates(directory="templates")
-
-g = get_graph()
+g = utils.g
 
 
 class Collections:
     def __init__(self):
         self.collections = []
-        g = get_graph()
+        # g = get_graph()
         for s in g.subjects(predicate=RDF.type, object=OGCAPI.Collection):
             if (s, DCTERMS.isPartOf, URIRef(DATASET_URI)) in g:
                 identifier = None
@@ -138,7 +137,7 @@ class CollectionsRenderer(ContainerRenderer):
         _template_context = {
             "links": self.links,
             "collections": self.members,
-            "pagination": pagination,
+            # "pagination": pagination,
             "request": self.request
         }
 

@@ -1,12 +1,19 @@
 from typing import List
-from api.model.profiles import *
-from api.config import *
-from api.model.link import *
-import json
-from flask import Response, render_template
+from api.profiles import *
+from config import *
+from api.link import *
+
+# from flask import Response, render_template
+from fastapi import Response
+from fastapi.templating import Jinja2Templates
+
 import markdown
-from rdflib import URIRef, Literal
+from utils import utils
+from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCTERMS, RDF
+
+templates = Jinja2Templates(directory="templates")
+g = utils.g
 
 
 class Collection(object):
@@ -16,7 +23,6 @@ class Collection(object):
             other_links: List[Link] = None,
     ):
         self.uri = uri
-        g = get_graph()
         # Feature properties
         self.description = None
         for p, o in g.predicate_objects(subject=URIRef(self.uri)):
@@ -114,13 +120,14 @@ class CollectionRenderer(Renderer):
             request,
             LANDING_PAGE_URL + "/collection/" + self.collection.identifier,
             profiles={"oai": profile_openapi},
-            default_profile_token="oai"
+            default_profile_token="oai",
+            MEDIATYPE_NAMES=MEDIATYPE_NAMES
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_mediatype"]
 
     def render(self):
-        for v in self.request.values.items():
+        for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 
@@ -141,8 +148,8 @@ class CollectionRenderer(Renderer):
         }
 
         return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
+            page_json,
+            media_type=str(MediaType.JSON.value),
             headers=self.headers,
         )
 
@@ -152,7 +159,6 @@ class CollectionRenderer(Renderer):
             "collection": self.collection
         }
 
-        return Response(
-            render_template("collection.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="collection.html",
+                                          context=_template_context,
+                                          headers=self.headers)

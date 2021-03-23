@@ -3,7 +3,7 @@ from typing import List
 from config import *
 from api.link import *
 from api.profiles import *
-from utils.utils import get_graph
+from utils import utils
 
 from fastapi import Response
 from fastapi.templating import Jinja2Templates
@@ -17,10 +17,7 @@ import logging
 
 
 templates = Jinja2Templates(directory="templates")
-
-
-# make dummy Landing Page data
-g = get_graph()
+g = utils.g
 
 
 class LandingPage:
@@ -31,6 +28,7 @@ class LandingPage:
         logging.debug("LandingPage()")
         self.uri = LANDING_PAGE_URL
 
+        print(len(g))
         self.description = None
         for s in g.subjects(predicate=RDF.type, object=DCAT.Dataset):
             for p, o in g.predicate_objects(subject=s):
@@ -57,7 +55,7 @@ class LandingPage:
                 title="API definition"
             ),
             Link(
-                LANDING_PAGE_URL + "/doc/",
+                LANDING_PAGE_URL + "/docs",
                 rel=RelType.SERVICE_DOC,
                 type=MediaType.HTML,
                 hreflang=HrefLang.EN,
@@ -93,7 +91,11 @@ class LandingPageRenderer(Renderer):
         logging.debug("LandingPageRenderer()")
         self.landing_page = LandingPage(other_links=other_links)
 
-        super().__init__(request, self.landing_page.uri, {"oai": profile_openapi, "dcat": profile_dcat}, "oai")
+        super().__init__(request,
+                         self.landing_page.uri,
+                         {"oai": profile_openapi, "dcat": profile_dcat},
+                         "oai",
+                         MEDIATYPE_NAMES=MEDIATYPE_NAMES)
 
         # add OGC API Link headers to pyLDAPI Link headers
         self.headers["Link"] = self.headers["Link"] + ", ".join([link.render_as_http_header() for link in self.landing_page.links])
