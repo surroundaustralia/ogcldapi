@@ -133,7 +133,7 @@ class CollectionsRenderer(ContainerRenderer):
         )
 
     def _render_oai_html(self):
-        pagination = Pagination(page=self.page, per_page=self.per_page, total=self.collections_count)
+        # pagination = Pagination(page=self.page, per_page=self.per_page, total=self.collections_count)
 
         _template_context = {
             "links": self.links,
