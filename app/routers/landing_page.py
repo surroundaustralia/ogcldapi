@@ -1,36 +1,25 @@
+from typing import Optional
+
 import fastapi
 from fastapi import Request
-from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from api.landing_page import LandingPageRenderer
 
 router = fastapi.APIRouter()
-
 templates = Jinja2Templates(directory="templates")
 
-# @router.get("/")
-# def landing_page():
-#     try:
-#         return LandingPageRenderer(request).render()
-#     except Exception as e:
-#         logging.debug(e)
-#         return Response(
-#             "ERROR: " + str(e),
-#             status=500,
-#             mimetype="text/plain"
-#         )
 
+@router.get("/")
+async def home(request: Request,
+               _view: Optional[str] = None,
+               _profile: Optional[str] = None,
+               _format: Optional[str] = None,
+               _mediatype: Optional[str] = None):
 
-@router.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    # return templates.TemplateResponse("page.html", {"request": request,
-    #                                                 "collections_route": "/collections",
-    #                                                 "conformance_route": "conformance"})
-    # print("request", request.json())
-    # test = await request.body()
-    # print(test)
-    # body = await request.body()
-    # print(body)
-    # return await request.json()
-    LandingPageRenderer(request).render()
+    print("A", request.query_params)
+    print("B", request.query_params.values())
+    print("C", request.query_params.get('_view'))
+    print(type(LandingPageRenderer(request).render()))
+    render_content = LandingPageRenderer(request).render()
+    return render_content

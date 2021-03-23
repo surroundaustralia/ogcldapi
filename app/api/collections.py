@@ -1,13 +1,21 @@
 from pyldapi import ContainerRenderer
 from typing import List
-from api.model.profiles import *
-from api.config import *
-from api.model.link import *
-import json
-from flask import Response, render_template
-from flask_paginate import Pagination
+
+from api.link import *
+from api.profiles import *
+from utils.utils import get_graph
+
+from config import *
+from fastapi import Response
+from fastapi.templating import Jinja2Templates
+from fastapi_pagination import Pagination
+
 from rdflib import URIRef
 from rdflib.namespace import DCTERMS, RDF
+
+templates = Jinja2Templates(directory="templates")
+
+g = get_graph()
 
 
 class Collections:
@@ -50,15 +58,15 @@ class CollectionsRenderer(ContainerRenderer):
             self.links.extend(other_links)
 
         self.page = (
-            int(request.values.get("page")) if request.values.get("page") is not None else 1
+            int(request.query_params.get("page")) if request.query_params.get("page") is not None else 1
         )
         self.per_page = (
-            int(request.values.get("per_page"))
-            if request.values.get("per_page") is not None
+            int(request.query_params.get("per_page"))
+            if request.query_params.get("per_page") is not None
             else 20
         )
         # limit
-        limit = int(request.values.get("limit")) if request.values.get("limit") is not None else None
+        limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
 
         # if limit is set, ignore page & per_page
         if limit is not None:
@@ -89,7 +97,7 @@ class CollectionsRenderer(ContainerRenderer):
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format", "page", "per_page", "limit", "bbox"]
 
     def render(self):
-        for v in self.request.values.items():
+        for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 
@@ -119,8 +127,8 @@ class CollectionsRenderer(ContainerRenderer):
         }
 
         return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
+            page_json,
+            media_type=str(MediaType.JSON.value),
             headers=self.headers,
         )
 
@@ -130,10 +138,10 @@ class CollectionsRenderer(ContainerRenderer):
         _template_context = {
             "links": self.links,
             "collections": self.members,
-            "pagination": pagination
+            "pagination": pagination,
+            "request": self.request
         }
 
-        return Response(
-            render_template("collections_oai.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="collections_oai.html",
+                                          context=_template_context,
+                                          headers=self.headers)
