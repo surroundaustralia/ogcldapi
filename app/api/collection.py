@@ -118,16 +118,16 @@ class CollectionRenderer(Renderer):
         if other_links is not None:
             self.links.extend(other_links)
 
-        print("HERE", LANDING_PAGE_URL + "/collection/" + self.collection.identifier)
+        print("HERE", LANDING_PAGE_URL + "/collections/" + self.collection.identifier)
         super().__init__(
             request,
-            LANDING_PAGE_URL + "/collection/" + self.collection.identifier,
+            LANDING_PAGE_URL + "/collections/" + self.collection.identifier,
             profiles={"oai": profile_openapi},
             default_profile_token="oai",
             MEDIATYPE_NAMES=MEDIATYPE_NAMES
         )
 
-        self.ALLOWED_PARAMS = ["_profile", "_mediatype"]
+        self.ALLOWED_PARAMS = ["_profile", "_mediatype", "version"]
 
     def render(self):
         for v in self.request.query_params.items():
@@ -158,15 +158,12 @@ class CollectionRenderer(Renderer):
 
     def _render_oai_html(self):
         _template_context = {
+            'uri': self.instance_uri,
             "links": self.links,
             "collection": self.collection,
             "request": self.request
         }
 
-        print("a", self.links)
-        print("b", self.instance_uri)
-        print("c", self.request.uri)
-        print("ABC", _template_context)
         return templates.TemplateResponse(name="collection.html",
                                           context=_template_context,
                                           headers=self.headers)

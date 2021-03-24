@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 import uvicorn
+import json
 from config import *
 from utils import utils
 
@@ -15,6 +17,12 @@ app = FastAPI(docs_url='/docs',
               version='1.0',
               title='OGC LD API',
               description=f"Open API Documentation for this {API_TITLE}")
+
+
+@app.get("/spec", summary="API Description Page")
+def spec():
+    openapi_json = app.openapi()
+    return JSONResponse(openapi_json)
 
 
 def configure():

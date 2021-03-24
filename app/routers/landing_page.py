@@ -10,7 +10,12 @@ router = fastapi.APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-@router.get("/")
+@router.get("/",
+            summary="Landing Page",
+            responses={
+                200: {"description": "Landing page correctly loaded."},
+                400: {"description": "Parameter not found or not valid."},
+            })
 async def home(request: Request,
                _view: Optional[str] = None,
                _profile: Optional[str] = None,

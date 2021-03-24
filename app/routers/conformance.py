@@ -12,7 +12,12 @@ router = fastapi.APIRouter()
 g = utils.g
 
 
-@router.get("/conformance")
+@router.get("/conformance",
+            summary="Conformance Page",
+            responses={
+                200: {"description": "Conformance page correctly loaded."},
+                400: {"description": "Parameter not found or not valid."},
+            })
 def conformance(request: Request,
                 _view: Optional[str] = None,
                 _profile: Optional[str] = None,

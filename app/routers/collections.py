@@ -9,6 +9,7 @@ from rdflib.namespace import DCTERMS, RDF
 from api.collections import CollectionsRenderer
 from api.collection import CollectionRenderer
 from api.features import FeaturesRenderer
+from api.feature import FeatureRenderer
 from utils import utils
 
 
@@ -16,7 +17,12 @@ router = fastapi.APIRouter()
 g = utils.g
 
 
-@router.get("/collections")
+@router.get("/collections",
+            summary="Collections Page",
+            responses={
+                200: {"description": "Collections page correctly loaded."},
+                400: {"description": "Parameter not found or not valid."},
+            })
 def collection(request: Request,
                _view: Optional[str] = None,
                _profile: Optional[str] = None,
@@ -30,7 +36,12 @@ def collection(request: Request,
     return CollectionsRenderer(request).render()
 
 
-@router.get("/collections/{collection_id}")
+@router.get("/collections/{collection_id}",
+            summary="Collection Id Page",
+            responses={
+                200: {"description": "Collection Id page correctly loaded."},
+                400: {"description": "Parameter not found or not valid."},
+            })
 def collection_id(request: Request,
                   collection_id: str = None,
                   _profile: Optional[str] = None,
@@ -52,7 +63,12 @@ def collection_id(request: Request,
     return CollectionRenderer(request, collection_uri).render()
 
 
-@router.get("/collections/{collection_id}/items")
+@router.get("/collections/{collection_id}/items",
+            summary="Collection Id Items Page",
+            responses={
+                200: {"description": "Collection Id Items page correctly loaded."},
+                400: {"description": "Parameter not found or not valid."},
+            })
 def collection_id_items(request: Request,
                         collection_id: str = None,
                         _profile: Optional[str] = None,
@@ -61,32 +77,41 @@ def collection_id_items(request: Request,
     return FeaturesRenderer(request, collection_id).render()
 
 
-# @api.route("/collections/<string:collection_id>/items/<string:item_id>")
-# @api.param("collection_id", "The ID of a Collection delivered by this API. See /collections for the list.")
-# @api.param("item_id", "The ID of a Feature in this Collection's list of Items")
-# class FeatureRoute(Resource):
-#     def get(self, collection_id, item_id):
-#         g = get_graph()
-#         # get the URI for the Collection using the ID
-#         collection_uri = None
-#         for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
-#             collection_uri = s
-#
-#         if collection_uri is None:
-#             return Response(
-#                 "You have entered an unknown Collection ID",
-#                 status=400,
-#                 mimetype="text/plain"
-#             )
-#
-#         # get URIs for things with this ID  - IDs may not be unique across Collections
-#         for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(item_id)):
-#             # if this Feature is in this Collection, return it
-#             if (s, DCTERMS.isPartOf, collection_uri) in g:
-#                 return FeatureRenderer(request, str(s)).render()
-#
-#         return Response(
-#             "The Feature you have entered the ID for is not part of the Collection you entered the ID for",
-#             status=400,
-#             mimetype="text/plain"
-#         )
+@router.get("/collections/{collection_id}/items/{item_id}",
+            summary="Item per Collection Page",
+            responses={
+                200: {"description": "Item per Collection page correctly loaded."},
+                400: {"description": "Parameter not found or not valid."},
+            })
+def collection_id_items_id(request: Request,
+                           collection_id: str = None,
+                           item_id: str = None,
+                           _profile: Optional[str] = None,
+                           _mediatype: Optional[str] = None):
+
+    print("ITEM_ID")
+    # get the URI for the Collection using the ID
+    collection_uri = None
+    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
+        collection_uri = s
+
+    if collection_uri is None:
+        return Response(
+            "You have entered an unknown Collection ID",
+            status_code=400,
+            media_type="text/plain"
+        )
+
+    # get URIs for things with this ID  - IDs may not be unique across Collections
+    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(item_id)):
+        # if this Feature is in this Collection, return it
+        if (s, DCTERMS.isPartOf, collection_uri) in g:
+            return FeatureRenderer(request=request,
+                                   feature_uri=str(s),
+                                   collection_id=collection_id).render()
+
+    return Response(
+        "The Feature you have entered the ID for is not part of the Collection you entered the ID for",
+        status_code=400,
+        media_type="text/plain"
+    )

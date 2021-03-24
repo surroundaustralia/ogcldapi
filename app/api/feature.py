@@ -212,21 +212,22 @@ class Feature(object):
 
 
 class FeatureRenderer(Renderer):
-    def __init__(self, request, feature_uri: str, other_links: List[Link] = None):
+    def __init__(self, request, feature_uri: str, collection_id: str, other_links: List[Link] = None):
         self.feature = Feature(feature_uri)
         self.links = []
         if other_links is not None:
             self.links.extend(other_links)
 
+        # print("ABC", LANDING_PAGE_URL + "/collections/" + self.feature.isPartOf + "/item/" + self.feature.identifier)
         super().__init__(
-            request,
-            LANDING_PAGE_URL + "/collections/" + self.feature.isPartOf + "/item/" + self.feature.identifier,
+            request=request,
+            instance_uri=LANDING_PAGE_URL + "/collections/" + collection_id + "/items/" + self.feature.identifier,
             profiles={"oai": profile_openapi, "geosp": profile_geosparql},
             default_profile_token="oai",
             MEDIATYPE_NAMES=MEDIATYPE_NAMES
         )
 
-        self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype"]
+        self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "version"]
 
     def render(self):
         for v in self.request.query_params.items():
@@ -277,6 +278,7 @@ class FeatureRenderer(Renderer):
             "request": self.request
         }
 
+        print("TEMPLATE", _template_context)
         return templates.TemplateResponse(name="feature.html",
                                           context=_template_context,
                                           headers=self.headers)
@@ -288,7 +290,7 @@ class FeatureRenderer(Renderer):
         if self.mediatype in ["application/rdf+json", "application/json"]:
             return JSONResponse(g.serialize(format="json-ld").decode(), media_type=self.mediatype, headers=self.headers)
         elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
-            return Response(g.serialize(format=self.mediatype).decode(), media_type=self.mediatype, headers=self.headers)
+            return JSONResponse(g.serialize(format=self.mediatype).decode(), media_type=self.mediatype, headers=self.headers)
         else:
             return Response(
                 "The Media Type you requested cannot be serialized to",
