@@ -1,15 +1,26 @@
 from typing import List
-from api.model.profiles import *
-from api.config import *
-from api.model.link import *
+from api.profiles import *
+from api.link import *
 import json
-from flask import Response, render_template
+
+from config import *
+from utils import utils
+
+from fastapi import Response
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+
+from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS, XSD
 from enum import Enum
 from geomet import wkt
 from geojson_rewind import rewind
 import markdown
+
+
+templates = Jinja2Templates(directory="templates")
+g = utils.g
 
 
 class GeometryRole(Enum):
@@ -54,8 +65,7 @@ class Feature(object):
     def __init__(
             self,
             uri: str,
-            other_links: List[Link] = None,
-    ):
+            other_links: List[Link] = None):
         self.uri = uri
 
         q = """
@@ -71,7 +81,7 @@ class Feature(object):
                    OPTIONAL {{?uri dcterms:description ?description}}
             }}
             """  # .format(collection_id)
-        g = get_graph()
+        # g = get_graph()
         # Feature properties
         self.description = None
         for p, o in g.predicate_objects(subject=URIRef(self.uri)):
@@ -96,7 +106,7 @@ class Feature(object):
                     geo:hasGeometry/geox:asDGGS ?g2 .
             }}
             """.format(self.uri)
-        from SPARQLWrapper import SPARQLWrapper, JSON
+
         sparql = SPARQLWrapper(SPARQL_ENDPOINT)
         sparql.setQuery(q)
         sparql.setReturnFormat(JSON)
@@ -153,7 +163,7 @@ class Feature(object):
         }
 
     def to_geosp_graph(self):
-        g = Graph()
+        # g = Graph()
         g.bind("geo", GEO)
         g.bind("geox", GEOX)
 
@@ -212,13 +222,14 @@ class FeatureRenderer(Renderer):
             request,
             LANDING_PAGE_URL + "/collections/" + self.feature.isPartOf + "/item/" + self.feature.identifier,
             profiles={"oai": profile_openapi, "geosp": profile_geosparql},
-            default_profile_token="oai"
+            default_profile_token="oai",
+            MEDIATYPE_NAMES=MEDIATYPE_NAMES
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype"]
 
     def render(self):
-        for v in self.request.values.items():
+        for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
 
@@ -242,9 +253,9 @@ class FeatureRenderer(Renderer):
             "feature": self.feature.to_geo_json_dict()
         }
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.JSON.value),
             headers=self.headers,
         )
 
@@ -253,34 +264,34 @@ class FeatureRenderer(Renderer):
         if len(self.links) > 0:
             page_json["links"] = [x.__dict__ for x in self.links]
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.GEOJSON.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.GEOJSON.value),
             headers=self.headers,
         )
 
     def _render_oai_html(self):
         _template_context = {
             "links": self.links,
-            "feature": self.feature
+            "feature": self.feature,
+            "request": self.request
         }
 
-        return Response(
-            render_template("feature.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="feature.html",
+                                          context=_template_context,
+                                          headers=self.headers)
 
     def _render_geosp_rdf(self):
         g = self.feature.to_geosp_graph()
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return Response(g.serialize(format="json-ld").decode(), mimetype=self.mediatype, headers=self.headers)
+            return JSONResponse(g.serialize(format="json-ld").decode(), media_type=self.mediatype, headers=self.headers)
         elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
-            return Response(g.serialize(format=self.mediatype).decode(), mimetype=self.mediatype, headers=self.headers)
+            return Response(g.serialize(format=self.mediatype).decode(), media_type=self.mediatype, headers=self.headers)
         else:
             return Response(
                 "The Media Type you requested cannot be serialized to",
-                status=400,
-                mimetype="text/plain"
+                status_code=400,
+                media_type="text/plain"
             )

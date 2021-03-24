@@ -17,9 +17,5 @@ async def home(request: Request,
                _format: Optional[str] = None,
                _mediatype: Optional[str] = None):
 
-    # print("A", request.query_params)
-    # print("B", request.query_params.values())
-    # print("C", request.query_params.get('_view'))
-    # print(type(LandingPageRenderer(request).render()))
     render_content = LandingPageRenderer(request).render()
     return render_content

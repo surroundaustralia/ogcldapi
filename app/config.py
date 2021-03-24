@@ -20,7 +20,7 @@ LOCAL_URIS = os.getenv("LOCAL_URIS", True)
 VERSION = os.getenv("VERSION", __version__)
 API_TITLE = os.getenv("API_TITLE", "OGC LD API")
 LANDING_PAGE_URL = os.getenv("LANDING_PAGE_URL", f"http://{HOST}:{PORT}")
-DATASET_URI = os.getenv("DATASET_URI", "https://example.org/dataset/x")
+DATASET_URI = os.getenv("DATASET_URI", "https://w3id.org/dggs/asgs2016")
 SPARQL_ENDPOINT = os.getenv("SPARQL_ENDPOINT", "http://asgs.surroundaustralia.com:7200/repositories/asgs2016_dggs")
 
 MEDIATYPE_NAMES = {

@@ -3,8 +3,8 @@ from api.profiles import *
 from config import *
 from api.link import *
 
-# from flask import Response, render_template
 from fastapi import Response
+from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 
 import markdown
@@ -98,7 +98,9 @@ class Collection(object):
 
 class CollectionRenderer(Renderer):
     def __init__(self, request, collection_uri: str, other_links: List[Link] = None):
+        print("COLLECTIONURI", collection_uri)
         self.collection = Collection(collection_uri)
+        print("Collecti", self.collection)
         self.links = [
             Link(
                 LANDING_PAGE_URL + "/collections.json",
@@ -116,6 +118,7 @@ class CollectionRenderer(Renderer):
         if other_links is not None:
             self.links.extend(other_links)
 
+        print("HERE", LANDING_PAGE_URL + "/collection/" + self.collection.identifier)
         super().__init__(
             request,
             LANDING_PAGE_URL + "/collection/" + self.collection.identifier,
@@ -147,7 +150,7 @@ class CollectionRenderer(Renderer):
             "collection": self.collection.to_dict()
         }
 
-        return Response(
+        return JSONResponse(
             page_json,
             media_type=str(MediaType.JSON.value),
             headers=self.headers,
@@ -156,9 +159,14 @@ class CollectionRenderer(Renderer):
     def _render_oai_html(self):
         _template_context = {
             "links": self.links,
-            "collection": self.collection
+            "collection": self.collection,
+            "request": self.request
         }
 
+        print("a", self.links)
+        print("b", self.instance_uri)
+        print("c", self.request.uri)
+        print("ABC", _template_context)
         return templates.TemplateResponse(name="collection.html",
                                           context=_template_context,
                                           headers=self.headers)

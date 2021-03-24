@@ -8,6 +8,7 @@ from rdflib.namespace import DCTERMS, RDF
 
 from api.collections import CollectionsRenderer
 from api.collection import CollectionRenderer
+from api.features import FeaturesRenderer
 from utils import utils
 
 
@@ -29,13 +30,13 @@ def collection(request: Request,
     return CollectionsRenderer(request).render()
 
 
-@router.get("/collections/<collection_id>")
-# @api.param("collection_id", "The ID of a Collection delivered by this API. See /collections for the list.")
-def collection_id(request: Request, collection_id: str = None,
+@router.get("/collections/{collection_id}")
+def collection_id(request: Request,
+                  collection_id: str = None,
                   _profile: Optional[str] = None,
                   _mediatype: Optional[str] = None):
 
-    # g = get_graph()
+    print("collection_ID")
     # get the URI for the Collection using the ID
     collection_uri = None
     for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
@@ -51,13 +52,15 @@ def collection_id(request: Request, collection_id: str = None,
     return CollectionRenderer(request, collection_uri).render()
 
 
-# @api.route("/collections/<string:collection_id>/items")
-# @api.param("collection_id", "The ID of a Collection delivered by this API. See /collections for the list.")
-# class FeaturesRoute(Resource):
-#     def get(self, collection_id):
-#         return FeaturesRenderer(request, collection_id).render()
-#
-#
+@router.get("/collections/{collection_id}/items")
+def collection_id_items(request: Request,
+                        collection_id: str = None,
+                        _profile: Optional[str] = None,
+                        _mediatype: Optional[str] = None):
+    print("ITEMS")
+    return FeaturesRenderer(request, collection_id).render()
+
+
 # @api.route("/collections/<string:collection_id>/items/<string:item_id>")
 # @api.param("collection_id", "The ID of a Collection delivered by this API. See /collections for the list.")
 # @api.param("item_id", "The ID of a Feature in this Collection's list of Items")

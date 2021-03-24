@@ -6,7 +6,8 @@
       <dt>Instance</dt>
       <dd><a href="{% if LOCAL_URIS %}{{ url_for("object_route") }}?uri={% endif %}{{ uri }}">{{ uri }}</a></dd>
       <dt>Default Profile</dt>
-      <dd><a href="{{ request.base_url }}?uri={{ uri }}&_profile={{ default_profile_token }}">{{ default_profile_token }}</a></dd>
+{#      <dd><a href="{{ request.base_url }}?uri={{ uri }}&_profile={{ default_profile_token }}">{{ default_profile_token }}</a></dd>#}
+      <dd><a href="{{ uri }}?_profile={{ default_profile_token }}">{{ default_profile_token }}</a></dd>
     </dl>
     <div class="overflow" style="margin-bottom:20px;">
         <table class="layout">
@@ -21,21 +22,21 @@
         {% for token, profile in profiles.items() %}
             <tr>
                 <td style="padding-right: 30px;">
-                  <a href="{{ request.base_url }}?_profile={{ token }}&_mediatype={{ profile['default_mediatype'] }}">{{ token }}</a>
+                  <a href="{{ uri }}?_profile={{ token }}&_mediatype={{ profile['default_mediatype'] }}">{{ token }}</a>
                 </td>
                 <td>{{ profile['label'] }}</td>
                 <td>
                 {% for f in profile['mediatypes']|sort() %}
                   {% if "cell" in uri %}
-                    <a href="{{ request.base_url }}?uri={{ uri }}?_profile={{ token }}&_mediatype={{ f }}">{{ MEDIATYPE_NAMES[f] if MEDIATYPE_NAMES.get(f) is not none else f }}</a><br />
+                    <a href="{{ uri }}?_profile={{ token }}&_mediatype={{ f }}">{{ MEDIATYPE_NAMES[f] if MEDIATYPE_NAMES.get(f) is not none else f }}</a><br />
                   {% else %}
-                    <a href="{{ request.base_url }}?_profile={{ token }}&_mediatype={{ f }}">{{ MEDIATYPE_NAMES[f] if MEDIATYPE_NAMES.get(f) is not none else f }}</a><br />
+                    <a href="{{ uri }}?_profile={{ token }}&_mediatype={{ f }}">{{ MEDIATYPE_NAMES[f] if MEDIATYPE_NAMES.get(f) is not none else f }}</a><br />
                   {% endif %}
                 {% endfor %}
                 </td>
                 <td style="text-align: center;">
                 {% for l in profile['languages'] %}
-                    <a href="{{ request.base_url }}?_profile={{ token }}&_lang={{ l }}">{{ l }}</a><br />
+                    <a href="{{ uri }}?_profile={{ token }}&_lang={{ l }}">{{ l }}</a><br />
                 {% endfor %}
                 </td>
                 <td>{{ profile['comment'] }}</td>

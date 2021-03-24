@@ -7,6 +7,7 @@ from utils import utils
 
 from config import *
 from fastapi import Response
+from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 # from fastapi_pagination import Pagination
 
@@ -20,7 +21,6 @@ g = utils.g
 class Collections:
     def __init__(self):
         self.collections = []
-        # g = get_graph()
         for s in g.subjects(predicate=RDF.type, object=OGCAPI.Collection):
             if (s, DCTERMS.isPartOf, URIRef(DATASET_URI)) in g:
                 identifier = None
@@ -77,7 +77,9 @@ class CollectionsRenderer(ContainerRenderer):
             self.end = self.start + self.per_page
 
         self.collections = Collections().collections
+        print("Collections", self.collections)
         self.collections_count = len(self.collections)
+        print("len collections count", self.collections_count)
         requested_collections = self.collections[self.start:self.end]
 
         super().__init__(
@@ -90,12 +92,23 @@ class CollectionsRenderer(ContainerRenderer):
             [(LANDING_PAGE_URL + "/collections/" + x[1], x[2]) for x in requested_collections],
             self.collections_count,
             profiles={"oai": profile_openapi},
-            default_profile_token="oai"
+            default_profile_token="oai",
+            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
+            LOCAL_URIS=LOCAL_URIS
         )
 
-        self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format", "page", "per_page", "limit", "bbox"]
+        self.ALLOWED_PARAMS = ["_profile",
+                               "_view",
+                               "_mediatype",
+                               "_format",
+                               "page",
+                               "per_page",
+                               "limit",
+                               "bbox",
+                               "version"]
 
     def render(self):
+        print("self.request.query_params.items()", self.request.query_params.items())
         for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
@@ -125,7 +138,8 @@ class CollectionsRenderer(ContainerRenderer):
             "collections": collection_dicts
         }
 
-        return Response(
+        print(page_json)
+        return JSONResponse(
             page_json,
             media_type=str(MediaType.JSON.value),
             headers=self.headers,

@@ -6,6 +6,7 @@ from api.profiles import *
 from utils import utils
 
 from fastapi import Response
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 from rdflib import URIRef, Literal, Graph
@@ -95,7 +96,8 @@ class LandingPageRenderer(Renderer):
                          self.landing_page.uri,
                          {"oai": profile_openapi, "dcat": profile_dcat},
                          "oai",
-                         MEDIATYPE_NAMES=MEDIATYPE_NAMES)
+                         MEDIATYPE_NAMES=MEDIATYPE_NAMES,
+                         LOCAL_URIS=LOCAL_URIS)
 
         # add OGC API Link headers to pyLDAPI Link headers
         self.headers["Link"] = self.headers["Link"] + ", ".join([link.render_as_http_header() for link in self.landing_page.links])
@@ -159,6 +161,7 @@ class LandingPageRenderer(Renderer):
             headers=self.headers)
 
     def _render_oai_html(self):
+        print("HERE")
         _template_context = {
             "uri": self.landing_page.uri,
             "title": self.landing_page.title,
@@ -171,6 +174,7 @@ class LandingPageRenderer(Renderer):
                                           headers=self.headers)
 
     def _render_dcat_rdf(self):
+        print("dcat")
         g = Graph()
         g.bind("dcat", DCAT)
         g.add((
@@ -191,11 +195,12 @@ class LandingPageRenderer(Renderer):
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return Response(g.serialize(format="json-ld"), media_type=self.mediatype), None
+            return HTMLResponse(g.serialize(format="json-ld"), media_type=self.mediatype)
         else:
-            return Response(g.serialize(format=self.mediatype), media_type=self.mediatype), None
+            return Response(g.serialize(format=self.mediatype), media_type=self.mediatype)
 
     def _render_dcat_html(self):
+        print("hasa")
         _template_context = {
             "uri": self.dataset.uri,
             "label": self.dataset.label,

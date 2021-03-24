@@ -1,31 +1,40 @@
 from pyldapi import ContainerRenderer
 from typing import List
-from api.model.profiles import *
-from api.config import *
-from api.model.link import *
-from api.model.collection import Collection
-from api.model.feature import Feature
-import json
-from flask import Response, render_template
-from flask_paginate import Pagination
+from config import *
+
+from utils import utils
+from api.profiles import *
+from api.link import *
+from api.collection import Collection
+from api.feature import Feature
+
+from fastapi import Response
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+
+from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD, RDF
 import re
+
+
+templates = Jinja2Templates(directory="templates")
+g = utils.g
 
 
 class FeaturesList:
     def __init__(self, request, collection_id):
         self.request = request
         self.page = (
-            int(request.values.get("page")) if request.values.get("page") is not None else 1
+            int(request.query_params.get("page")) if request.query_params.get("page") is not None else 1
         )
         self.per_page = (
-            int(request.values.get("per_page"))
-            if request.values.get("per_page") is not None
+            int(request.query_params.get("per_page"))
+            if request.query_params.get("per_page") is not None
             else 20
         )
         # limit
-        self.limit = int(request.values.get("limit")) if request.values.get("limit") is not None else None
+        self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
 
         # if limit is set, ignore page & per_page
         if self.limit is not None:
@@ -36,22 +45,25 @@ class FeaturesList:
             self.start = (self.page - 1) * self.per_page
             self.end = self.start + self.per_page
 
-        g = get_graph()
+        # g = get_graph()
 
         # get Collection
         for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
             self.collection = Collection(str(s))
 
+        print("COLLECTION", self.collection)
         # get list of Features within this Collection
         features_uris = []
         # filter if we have a filtering param
-        if request.values.get("bbox") is not None:
+        if request.query_params.get("bbox") is not None:
             # work out what sort of BBOX filter it is and filter by that type
             features_uris = self.get_feature_uris_by_bbox()
         else:
             # all features in list
             for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.collection.uri)):
                 features_uris.append(s)
+
+        print("FEATURES_URI", features_uris)
 
         self.feature_count = len(features_uris)
         # truncate the list of Features to this page
@@ -81,7 +93,7 @@ class FeaturesList:
             "cell_ids": r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
         }
         for k, v in allowed_bbox_formats.items():
-            if re.match(v, self.request.values.get("bbox")):
+            if re.match(v, self.request.query_params.get("bbox")):
                 self.bbox_type = k
 
         if self.bbox_type is None:
@@ -94,7 +106,7 @@ class FeaturesList:
             pass
 
     def _get_filtered_features_list_bbox_wgs84(self):
-        parts = self.request.values.get("bbox").split(",")
+        parts = self.request.query_params.get("bbox").split(",")
 
         demo = """
             149.041411262992398 -35.292795884738389, 
@@ -136,6 +148,7 @@ class FeaturesList:
             "br_lon": parts[2],
             "br_lat": parts[3]
         })
+        # TODO FILTER
         features_uris = []
         for r in get_graph().query(q):
             features_uris.append(r["f"])
@@ -158,12 +171,12 @@ class FeaturesList:
 
                 FILTER CONTAINS(STR(?dggs), "{}")
             }}
-            """.format(self.collection.uri, self.request.values.get("bbox"))
+            """.format(self.collection.uri, self.request.query_params.get("bbox"))
 
         # TODO: update as RDFlib updates
         # for r in get_graph().query(q):
         #     features_uris.append((r["f"], r["prefLabel"]))
-        from SPARQLWrapper import SPARQLWrapper, JSON
+
         sparql = SPARQLWrapper(SPARQL_ENDPOINT)
         sparql.setQuery(q)
         sparql.setReturnFormat(JSON)
@@ -195,7 +208,7 @@ class FeaturesList:
         # for r in ret:
         #     within = True
         #     for cell in r["coords"]["value"].split(" "):
-        #         if not str(cell).startswith(self.request.values.get("bbox")):
+        #         if not str(cell).startswith(self.request.query_params.get("bbox")):
         #             within = False
         #             break
         #     if within:
@@ -253,21 +266,21 @@ class FeaturesRenderer(ContainerRenderer):
             r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
         ]
 
-        for p in self.request.values.keys():
+        for p in self.request.query_params.keys():
             if p not in allowed_params:
                 return False, \
                        "The parameter {} you supplied is not allowed. " \
                        "For this API endpoint, you may only use one of '{}'".format(p, "', '".join(allowed_params)),
 
-        if self.request.values.get("limit") is not None:
+        if self.request.query_params.get("limit") is not None:
             try:
-                int(self.request.values.get("limit"))
+                int(self.request.query_params.get("limit"))
             except ValueError:
                 return False, "The parameter 'limit' you supplied is invalid. It must be an integer"
 
-        if self.request.values.get("bbox") is not None:
+        if self.request.query_params.get("bbox") is not None:
             for p in allowed_bbox_formats:
-                if re.match(p, self.request.values.get("bbox")):
+                if re.match(p, self.request.query_params.get("bbox")):
                     return True, None
             return False, "The parameter 'bbox' you supplied is invalid. Must be either two pairs of long/lat values, " \
                           "a DGGS Cell ID or a pair of DGGS Cell IDs"
@@ -309,9 +322,9 @@ class FeaturesRenderer(ContainerRenderer):
             "items": self.members,
         }
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.JSON.value),
             headers=self.headers,
         )
 
@@ -322,29 +335,29 @@ class FeaturesRenderer(ContainerRenderer):
             "items": self.members,
         }
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.GEOJSON.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.GEOJSON.value),
             headers=self.headers,
         )
 
     def _render_oai_html(self):
-        pagination = Pagination(page=self.page, per_page=self.per_page, total=self.feature_list.feature_count)
+        # pagination = Pagination(page=self.page, per_page=self.per_page, total=self.feature_list.feature_count)
 
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
             "members": self.members,
-            "pagination": pagination
+            "request": self.request
+            # "pagination": pagination
         }
 
-        if self.request.values.get("bbox") is not None:  # it it exists at this point, it must be valid
-            _template_context["bbox"] = (self.feature_list.bbox_type, self.request.values.get("bbox"))
+        if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid
+            _template_context["bbox"] = (self.feature_list.bbox_type, self.request.query_params.get("bbox"))
 
-        return Response(
-            render_template("features.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="features.html",
+                                          context=_template_context,
+                                          headers=self.headers)
 
     def _render_geosp_rdf(self):
         g = Graph()
@@ -355,8 +368,8 @@ class FeaturesRenderer(ContainerRenderer):
         XHV = Namespace('https://www.w3.org/1999/xhtml/vocab#')
         g.bind('xhv', XHV)
 
-        page_uri_str = self.request.base_url + '?per_page=' + str(self.per_page) + '&page=' + str(self.page)
-        page_uri_str_nonum = self.request.base_url + '?per_page=' + str(self.per_page) + '&page='
+        page_uri_str = self.request.uri + '?per_page=' + str(self.per_page) + '&page=' + str(self.page)
+        page_uri_str_nonum = self.request.uri + '?per_page=' + str(self.per_page) + '&page='
         page_uri = URIRef(page_uri_str)
 
         # pagination
@@ -387,12 +400,12 @@ class FeaturesRenderer(ContainerRenderer):
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return Response(g.serialize(format="json-ld"), mimetype=self.mediatype, headers=self.headers)
+            return JSONResponse(g.serialize(format="json-ld"), media_type=self.mediatype, headers=self.headers)
         elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
-            return Response(g.serialize(format=self.mediatype), mimetype=self.mediatype, headers=self.headers)
+            return Response(g.serialize(format=self.mediatype), media_type=self.mediatype, headers=self.headers)
         else:
             return Response(
                 "The Media Type you requested cannot be serialized to",
-                status=400,
-                mimetype="text/plain"
+                status_code=400,
+                media_type="text/plain"
             )
