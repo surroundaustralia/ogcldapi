@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
 from config import *
@@ -22,6 +22,16 @@ app = FastAPI(docs_url='/docs',
 def spec():
     openapi_json = app.openapi()
     return JSONResponse(openapi_json)
+
+
+@app.get("/reload-data", summary="Endpoint to reload data from graph")
+def reload():
+    try:
+        utils.get_graph()
+        configure_data()
+        return JSONResponse(content="Data reloaded.", status_code=200)
+    except Exception as e:
+        return HTTPException(content=e, status_code=500)
 
 
 def configure():

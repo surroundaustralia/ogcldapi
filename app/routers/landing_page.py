@@ -1,7 +1,7 @@
 from typing import Optional
 
 import fastapi
-from fastapi import Request
+from fastapi import Request, HTTPException
 from fastapi.templating import Jinja2Templates
 
 from api.landing_page import LandingPageRenderer
@@ -21,6 +21,8 @@ async def home(request: Request,
                _profile: Optional[str] = None,
                _format: Optional[str] = None,
                _mediatype: Optional[str] = None):
-
-    render_content = LandingPageRenderer(request).render()
-    return render_content
+    try:
+        render_content = LandingPageRenderer(request).render()
+        return render_content
+    except Exception as e:
+        return HTTPException(content=e, status_code=500)
