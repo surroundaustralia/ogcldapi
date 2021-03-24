@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 import uvicorn
-import json
 from config import *
 from utils import utils
 
