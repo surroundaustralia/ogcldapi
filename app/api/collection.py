@@ -1,12 +1,19 @@
 from typing import List
-from views.profiles import *
+from api.profiles import *
 from config import *
-from views.link import *
-import json
-from flask import Response, render_template
+from api.link import *
+
+from fastapi import Response
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+
 import markdown
-from rdflib import URIRef, Literal
+from utils import utils
+from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCTERMS, RDF
+
+templates = Jinja2Templates(directory="templates")
+g = utils.g
 
 
 class Collection(object):
@@ -16,7 +23,6 @@ class Collection(object):
             other_links: List[Link] = None,
     ):
         self.uri = uri
-        g = get_graph()
         # Feature properties
         self.description = None
         for p, o in g.predicate_objects(subject=URIRef(self.uri)):
@@ -92,7 +98,9 @@ class Collection(object):
 
 class CollectionRenderer(Renderer):
     def __init__(self, request, collection_uri: str, other_links: List[Link] = None):
+        print("COLLECTIONURI", collection_uri)
         self.collection = Collection(collection_uri)
+        print("Collecti", self.collection)
         self.links = [
             Link(
                 LANDING_PAGE_URL + "/collections.json",
@@ -110,14 +118,16 @@ class CollectionRenderer(Renderer):
         if other_links is not None:
             self.links.extend(other_links)
 
+        print("HERE", LANDING_PAGE_URL + "/collections/" + self.collection.identifier)
         super().__init__(
             request,
-            LANDING_PAGE_URL + "/collection/" + self.collection.identifier,
+            LANDING_PAGE_URL + "/collections/" + self.collection.identifier,
             profiles={"oai": profile_openapi},
-            default_profile_token="oai"
+            default_profile_token="oai",
+            MEDIATYPE_NAMES=MEDIATYPE_NAMES
         )
 
-        self.ALLOWED_PARAMS = ["_profile", "_mediatype"]
+        self.ALLOWED_PARAMS = ["_profile", "_mediatype", "version"]
 
     def render(self):
         for v in self.request.query_params.items():
@@ -140,19 +150,20 @@ class CollectionRenderer(Renderer):
             "collection": self.collection.to_dict()
         }
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.JSON.value),
             headers=self.headers,
         )
 
     def _render_oai_html(self):
         _template_context = {
+            'uri': self.instance_uri,
             "links": self.links,
-            "collection": self.collection
+            "collection": self.collection,
+            "request": self.request
         }
 
-        return Response(
-            render_template("collection.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="collection.html",
+                                          context=_template_context,
+                                          headers=self.headers)

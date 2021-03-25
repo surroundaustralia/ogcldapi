@@ -1,16 +1,25 @@
 from pyldapi import ContainerRenderer
 from typing import List
-from views.profiles import *
 from config import *
-from views.link import *
-from views.collection import Collection
-from views.feature import Feature
-import json
-from flask import Response, render_template
-from flask_paginate import Pagination
+
+from utils import utils
+from api.profiles import *
+from api.link import *
+from api.collection import Collection
+from api.feature import Feature
+
+from fastapi import Response
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+
+from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD, RDF
 import re
+
+
+templates = Jinja2Templates(directory="templates")
+g = utils.g
 
 
 class FeaturesList:
@@ -36,12 +45,13 @@ class FeaturesList:
             self.start = (self.page - 1) * self.per_page
             self.end = self.start + self.per_page
 
-        g = get_graph()
+        # g = get_graph()
 
         # get Collection
         for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
             self.collection = Collection(str(s))
 
+        print("COLLECTION", self.collection)
         # get list of Features within this Collection
         features_uris = []
         # filter if we have a filtering param
@@ -52,6 +62,8 @@ class FeaturesList:
             # all features in list
             for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.collection.uri)):
                 features_uris.append(s)
+
+        print("FEATURES_URI", features_uris)
 
         self.feature_count = len(features_uris)
         # truncate the list of Features to this page
@@ -136,6 +148,7 @@ class FeaturesList:
             "br_lon": parts[2],
             "br_lat": parts[3]
         })
+        # TODO FILTER
         features_uris = []
         for r in get_graph().query(q):
             features_uris.append(r["f"])
@@ -163,7 +176,7 @@ class FeaturesList:
         # TODO: update as RDFlib updates
         # for r in get_graph().query(q):
         #     features_uris.append((r["f"], r["prefLabel"]))
-        from SPARQLWrapper import SPARQLWrapper, JSON
+
         sparql = SPARQLWrapper(SPARQL_ENDPOINT)
         sparql.setQuery(q)
         sparql.setReturnFormat(JSON)
@@ -309,9 +322,9 @@ class FeaturesRenderer(ContainerRenderer):
             "items": self.members,
         }
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.JSON.value),
             headers=self.headers,
         )
 
@@ -322,29 +335,29 @@ class FeaturesRenderer(ContainerRenderer):
             "items": self.members,
         }
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.GEOJSON.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.GEOJSON.value),
             headers=self.headers,
         )
 
     def _render_oai_html(self):
-        pagination = Pagination(page=self.page, per_page=self.per_page, total=self.feature_list.feature_count)
+        # pagination = Pagination(page=self.page, per_page=self.per_page, total=self.feature_list.feature_count)
 
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
             "members": self.members,
-            "pagination": pagination
+            "request": self.request
+            # "pagination": pagination
         }
 
         if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid
             _template_context["bbox"] = (self.feature_list.bbox_type, self.request.query_params.get("bbox"))
 
-        return Response(
-            render_template("features.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="features.html",
+                                          context=_template_context,
+                                          headers=self.headers)
 
     def _render_geosp_rdf(self):
         g = Graph()
@@ -355,8 +368,8 @@ class FeaturesRenderer(ContainerRenderer):
         XHV = Namespace('https://www.w3.org/1999/xhtml/vocab#')
         g.bind('xhv', XHV)
 
-        page_uri_str = self.request.base_url + '?per_page=' + str(self.per_page) + '&page=' + str(self.page)
-        page_uri_str_nonum = self.request.base_url + '?per_page=' + str(self.per_page) + '&page='
+        page_uri_str = self.request.uri + '?per_page=' + str(self.per_page) + '&page=' + str(self.page)
+        page_uri_str_nonum = self.request.uri + '?per_page=' + str(self.per_page) + '&page='
         page_uri = URIRef(page_uri_str)
 
         # pagination
@@ -387,12 +400,12 @@ class FeaturesRenderer(ContainerRenderer):
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return Response(g.serialize(format="json-ld"), mimetype=self.mediatype, headers=self.headers)
+            return JSONResponse(g.serialize(format="json-ld"), media_type=self.mediatype, headers=self.headers)
         elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
-            return Response(g.serialize(format=self.mediatype), mimetype=self.mediatype, headers=self.headers)
+            return Response(g.serialize(format=self.mediatype), media_type=self.mediatype, headers=self.headers)
         else:
             return Response(
                 "The Media Type you requested cannot be serialized to",
-                status=400,
-                mimetype="text/plain"
+                status_code=400,
+                media_type="text/plain"
             )

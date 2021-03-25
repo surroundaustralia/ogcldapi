@@ -1,13 +1,24 @@
 from typing import List
-from views.link import *
-from flask import Response, render_template
-from rdflib import URIRef, Literal
-from rdflib.namespace import DCAT, DCTERMS, RDF
-from views.profiles import *
+
 from config import *
+from api.link import *
+from api.profiles import *
+from utils import utils
+
+from fastapi import Response
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
+from rdflib import URIRef, Literal, Graph
+from rdflib.namespace import DCAT, DCTERMS, RDF
+
 import json
 import markdown
 import logging
+
+
+templates = Jinja2Templates(directory="templates")
+g = utils.g
 
 
 class LandingPage:
@@ -18,8 +29,7 @@ class LandingPage:
         logging.debug("LandingPage()")
         self.uri = LANDING_PAGE_URL
 
-        # make dummy Landing Page data
-        g = get_graph()
+        print(len(g))
         self.description = None
         for s in g.subjects(predicate=RDF.type, object=DCAT.Dataset):
             for p, o in g.predicate_objects(subject=s):
@@ -46,7 +56,7 @@ class LandingPage:
                 title="API definition"
             ),
             Link(
-                LANDING_PAGE_URL + "/doc/",
+                LANDING_PAGE_URL + "/docs",
                 rel=RelType.SERVICE_DOC,
                 type=MediaType.HTML,
                 hreflang=HrefLang.EN,
@@ -82,7 +92,12 @@ class LandingPageRenderer(Renderer):
         logging.debug("LandingPageRenderer()")
         self.landing_page = LandingPage(other_links=other_links)
 
-        super().__init__(request, self.landing_page.uri, {"oai": profile_openapi, "dcat": profile_dcat}, "oai")
+        super().__init__(request,
+                         self.landing_page.uri,
+                         {"oai": profile_openapi, "dcat": profile_dcat},
+                         "oai",
+                         MEDIATYPE_NAMES=MEDIATYPE_NAMES,
+                         LOCAL_URIS=LOCAL_URIS)
 
         # add OGC API Link headers to pyLDAPI Link headers
         self.headers["Link"] = self.headers["Link"] + ", ".join([link.render_as_http_header() for link in self.landing_page.links])
@@ -91,9 +106,10 @@ class LandingPageRenderer(Renderer):
 
     def render(self):
         logging.debug("LandingPageRenderer.render()")
+        print("Parameters", self.request.query_params)
         for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
-                return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
+                return Response("The parameter {} you supplied is not allowed".format(v[0]), status_code=400)
 
         # try returning alt profile
         response = super().render()
@@ -141,23 +157,24 @@ class LandingPageRenderer(Renderer):
 
         return Response(
             json.dumps(page_json),
-            mimetype=str(MediaType.JSON.value),
-            headers=self.headers,
-        )
+            media_type=str(MediaType.JSON.value),
+            headers=self.headers)
 
     def _render_oai_html(self):
+        print("HERE")
         _template_context = {
             "uri": self.landing_page.uri,
             "title": self.landing_page.title,
-            "landing_page": self.landing_page
+            "landing_page": self.landing_page,
+            "request": self.request
         }
 
-        return Response(
-            render_template("landing_page_oai.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="landing_page_oai.html",
+                                          context=_template_context,
+                                          headers=self.headers)
 
     def _render_dcat_rdf(self):
+        print("dcat")
         g = Graph()
         g.bind("dcat", DCAT)
         g.add((
@@ -178,20 +195,21 @@ class LandingPageRenderer(Renderer):
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return Response(g.serialize(format="json-ld"), mimetype=self.mediatype)
+            return HTMLResponse(g.serialize(format="json-ld"), media_type=self.mediatype)
         else:
-            return Response(g.serialize(format=self.mediatype), mimetype=self.mediatype)
+            return Response(g.serialize(format=self.mediatype), media_type=self.mediatype)
 
     def _render_dcat_html(self):
+        print("hasa")
         _template_context = {
             "uri": self.dataset.uri,
             "label": self.dataset.label,
             "description": markdown.markdown(self.dataset.description),
             "parts": self.dataset.parts,
             "distributions": self.dataset.distributions,
+            "request": self.request
         }
 
-        return Response(
-            render_template("dataset.html", **_template_context),
-            headers=self.headers,
-        )
+        return templates.TemplateResponse(name="dataset.html",
+                                          context=_template_context,
+                                          headers=self.headers)

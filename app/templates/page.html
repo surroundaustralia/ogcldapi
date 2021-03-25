@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico')}}">
+  <link rel="shortcut icon" href="{{ url_for('static', path='img/favicon.ico')}}">
   <title>{% if api_title|length > 0 %}{{ api_title }}{% else %}{{ API_TITLE }}{% endif %}</title>
   <style>
     html, body {
@@ -213,10 +213,11 @@
   </header>
   <nav>
     <a href="/">Landing Page</a>
-    <a href="{{ url_for('collections_route') }}">Collections</a>
+{#    <a href="{{'collections'}}">Collections</a>#}
+  <a href="/collections">Collections</a>
     <a href="/spec">API Description</a>
-    <a href="/doc">API Docs</a>
-    <a href="{{ url_for('conformance_route') }}">Conformance</a>
+    <a href="/docs">API Docs</a>
+    <a href="{{'conformance'}}">Conformance</a>
   </nav>
   <div id="contents">
     {% block content %}{% endblock %}
@@ -232,7 +233,7 @@
           <p>This API is maintained by:</p>
           <p>
             <a href="https://surroundaustralia.com" style="font-family: sans-serif; text-decoration: none; font-weight: bold; color:#333;">
-              <img style="float:left; margin-right: 10px;" src="{{ url_for('static', filename='surround-logo-catprez.png') }}" alt="CatPrez Logo" />
+              <img style="float:left; margin-right: 10px;" src="{{ url_for('static', path='img/surround-logo-catprez.png') }}" alt="CatPrez Logo" />
               SURROUND<br />
               Australia
             </a>
