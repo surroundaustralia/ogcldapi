@@ -9,13 +9,16 @@ from config import *
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-# from fastapi_pagination import Pagination
+# from fastapi_contrib import pagination
+# from fastapi_pagination import Page, add_pagination, paginate
 
 from rdflib import URIRef
 from rdflib.namespace import DCTERMS, RDF
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
+
+# pag = pagination.Pagination()
 
 
 class Collections:
@@ -147,11 +150,14 @@ class CollectionsRenderer(ContainerRenderer):
 
     def _render_oai_html(self):
         # pagination = Pagination(page=self.page, per_page=self.per_page, total=self.collections_count)
-
+        # paginate
+        # print("paginate", paginate(self.members))
+        # print(self.members)
+        # pag(self.members)
         _template_context = {
             "links": self.links,
             "collections": self.members,
-            # "pagination": pagination,
+            # "pagination": pag(self.members),
             "request": self.request
         }
 

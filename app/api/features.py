@@ -11,6 +11,7 @@ from api.feature import Feature
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
+# from flask_paginate import Pagination
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Literal, URIRef
@@ -67,7 +68,10 @@ class FeaturesList:
 
         self.feature_count = len(features_uris)
         # truncate the list of Features to this page
-        page = features_uris[self.start:self.end]
+        # page = features_uris[self.start:self.end]
+        page = features_uris
+        # print(page)
+        print(len(page))
 
         # Features - only this page's
         self.features = []
@@ -83,6 +87,8 @@ class FeaturesList:
             self.features.append(
                 (str(s), identifier, title, description)
             )
+        print("features page", self.features)
+        print("len features", len(self.features))
 
         self.bbox_type = None
 
@@ -244,6 +250,9 @@ class FeaturesRenderer(ContainerRenderer):
 
             self.feature_list = FeaturesList(request, collection_id)
 
+            # self.pagination = pagination.paginate(self.feature_list)
+            # print("ab", self.pagination)
+
             super().__init__(
                 request,
                 LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items",
@@ -344,11 +353,15 @@ class FeaturesRenderer(ContainerRenderer):
     def _render_oai_html(self):
         # pagination = Pagination(page=self.page, per_page=self.per_page, total=self.feature_list.feature_count)
 
+        print("LINKS", self.links)
+        print("MEMBERS", self.members)
+        print("LEN", len(self.members))
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
             "members": self.members,
-            "request": self.request
+            "request": self.request,
+            # "pagination": pagination.paginate(serializer_class=self.members)
             # "pagination": pagination
         }
 
