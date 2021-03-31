@@ -218,7 +218,6 @@ class FeatureRenderer(Renderer):
         if other_links is not None:
             self.links.extend(other_links)
 
-        # print("ABC", LANDING_PAGE_URL + "/collections/" + self.feature.isPartOf + "/item/" + self.feature.identifier)
         super().__init__(
             request=request,
             instance_uri=LANDING_PAGE_URL + "/collections/" + collection_id + "/items/" + self.feature.identifier,
@@ -278,7 +277,6 @@ class FeatureRenderer(Renderer):
             "request": self.request
         }
 
-        print("TEMPLATE", _template_context)
         return templates.TemplateResponse(name="feature.html",
                                           context=_template_context,
                                           headers=self.headers)

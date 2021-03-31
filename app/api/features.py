@@ -234,9 +234,6 @@ class FeaturesRenderer(ContainerRenderer):
 
             self.feature_list = FeaturesList(request, collection_id)
 
-            # self.pagination = pagination.paginate(self.feature_list)
-            # print("ab", self.pagination)
-
             super().__init__(
                 request,
                 LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items",
@@ -335,10 +332,6 @@ class FeaturesRenderer(ContainerRenderer):
         )
 
     def _render_oai_html(self):
-        print("LINKS", self.links)
-        print("MEMBERS", self.members)
-        print("LEN", len(self.members))
-        print("perpage", self.per_page)
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,

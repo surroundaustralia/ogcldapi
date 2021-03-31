@@ -35,12 +35,10 @@ def conformance(request: Request,
     #            dcterms:title ?title
     #     }
     #     """
-    print("ahe")
     conformance_classes = []
     for s in g.subjects(predicate=RDF.type, object=OGCAPI.ConformanceTarget):
         uri = str(s)
         for o in g.objects(subject=s, predicate=DCTERMS.title):
             title = str(o)
         conformance_classes.append((uri, title))
-    print("C_classes", conformance_classes)
     return ConformanceRenderer(request, conformance_classes).render()

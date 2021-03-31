@@ -28,8 +28,6 @@ class ConformanceRenderer(Renderer):
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format", "version"]
 
     def render(self):
-        print("QUERY PARAMETERS", self.request.query_params)
-        print("items", self.request.query_params.items())
         for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
@@ -50,7 +48,6 @@ class ConformanceRenderer(Renderer):
         page_json = {
             "conformsTo": self.conformance_classes
         }
-        print("response", page_json)
 
         return JSONResponse(
             page_json,
@@ -59,14 +56,12 @@ class ConformanceRenderer(Renderer):
         )
 
     def _render_oai_html(self):
-        print("oai html conformance")
         _template_context = {
             "uri": LANDING_PAGE_URL + "/conformance",
             "conformance_classes": self.conformance_classes,
             "request": self.request
         }
 
-        print("URI", LANDING_PAGE_URL + "/conformance")
         return templates.TemplateResponse(name="conformance.html",
                                           context=_template_context,
                                           headers=self.headers)

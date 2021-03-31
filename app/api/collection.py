@@ -98,9 +98,7 @@ class Collection(object):
 
 class CollectionRenderer(Renderer):
     def __init__(self, request, collection_uri: str, other_links: List[Link] = None):
-        print("COLLECTIONURI", collection_uri)
         self.collection = Collection(collection_uri)
-        print("Collecti", self.collection)
         self.links = [
             Link(
                 LANDING_PAGE_URL + "/collections.json",
@@ -118,7 +116,6 @@ class CollectionRenderer(Renderer):
         if other_links is not None:
             self.links.extend(other_links)
 
-        print("HERE", LANDING_PAGE_URL + "/collections/" + self.collection.identifier)
         super().__init__(
             request,
             LANDING_PAGE_URL + "/collections/" + self.collection.identifier,

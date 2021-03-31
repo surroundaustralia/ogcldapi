@@ -105,7 +105,6 @@ class LandingPageRenderer(Renderer):
 
     def render(self):
         logging.debug("LandingPageRenderer.render()")
-        print("Parameters", self.request.query_params)
         for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status_code=400)
@@ -160,7 +159,6 @@ class LandingPageRenderer(Renderer):
             headers=self.headers)
 
     def _render_oai_html(self):
-        print("HERE")
         _template_context = {
             "uri": self.landing_page.uri,
             "title": self.landing_page.title,
@@ -173,7 +171,6 @@ class LandingPageRenderer(Renderer):
                                           headers=self.headers)
 
     def _render_dcat_rdf(self):
-        print("dcat")
         g = Graph()
         g.bind("dcat", DCAT)
         g.add((
@@ -199,7 +196,6 @@ class LandingPageRenderer(Renderer):
             return Response(g.serialize(format=self.mediatype), media_type=self.mediatype)
 
     def _render_dcat_html(self):
-        print("hasa")
         _template_context = {
             "uri": self.dataset.uri,
             "label": self.dataset.label,

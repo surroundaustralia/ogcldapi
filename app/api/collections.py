@@ -68,11 +68,8 @@ class CollectionsRenderer(ContainerRenderer):
 
         self.collections = Collections().collections
 
-        print("Collections", self.collections)
         self.collections_count = len(self.collections)
 
-        print("len collections count", self.collections_count)
-        print("limit", self.limit)
         # if limit is set, ignore page & per_page
         if self.limit is not None:
             self.collections = self.collections[0:self.limit]
@@ -141,13 +138,6 @@ class CollectionsRenderer(ContainerRenderer):
         )
 
     def _render_oai_html(self):
-        # pagination = Pagination(page=self.page, per_page=self.per_page, total=self.collections_count)
-        # paginate
-        # print("paginate", paginate(self.members))
-        # print(self.members)
-        # pag(self.members)
-        print(self.per_page)
-        print(self.page)
         _template_context = {
             "links": self.links,
             "collections": self.members,
