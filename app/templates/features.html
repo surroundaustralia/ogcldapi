@@ -1,19 +1,64 @@
 {% extends "page.html" %}
 {% block content %}
-  <div>
-    <h1>Features in {{ collection.title }}</h1>
-  </div>
-  <div id="maincontent">
-    <h2>Items</h2>
-    {% if bbox %}
-      <h4>Filtered by {{ bbox[0] }}: <code>{{ bbox[1] }}</code></h4>
-    {% endif %}
-    <ul>
-    {% for feature in members %}
-      <li><a href="{{ feature[0] }}">{{ feature[1] }}</a></li>
-    {% endfor %}
-    </ul>
-{#    {{ pagination.links }}#}
-  </div>
-  {% include 'page_altprofiles.html' %}
+    <div>
+        <h1>Features in {{ collection.title }}</h1>
+    </div>
+    <div id="maincontent">
+        <h2>Items</h2>
+        {% if bbox %}
+            <h4>Filtered by {{ bbox[0] }}: <code>{{ bbox[1] }}</code></h4>
+        {% endif %}
+        <div class="data-container"></div>
+        <div id="pagination-features"></div>
+        <div></div>
+    </div>
+    <script>
+    $(function() {
+      (function(name) {
+        var container = $('#pagination-' + name);
+        var sources = function () {
+          var result = [];
+          for (var i = 0; i < {{ members|tojson }}.length; i++) {
+            result.push({{ members|tojson }}[i]);
+          }
+
+          return result;
+        }();
+
+        var options = {
+          dataSource: sources,
+          pageSize: {{ pageSize }},
+          pageNumber: {{ pageNumber }},
+          callback: function (response, pagination) {
+            window.console && console.log(response, pagination);
+
+            var dataHtml = '<ul>';
+
+            $.each(response, function (index, item) {
+                dataHtml += '<li><a href=' + item[0] + '>' + item[1] + '</a></li>';
+            });
+
+            dataHtml += '</ul>';
+
+            container.prev().html(dataHtml);
+          }
+        };
+
+        //$.pagination(container, options);
+
+        container.addHook('beforeInit', function () {
+          window.console && console.log('beforeInit...');
+        });
+        container.pagination(options);
+
+        container.addHook('beforePageOnClick', function () {
+          window.console && console.log('beforePageOnClick...');
+          //return false
+        });
+      })('features');
+    })
+
+
+    </script>
+    {% include 'page_altprofiles.html' %}
 {% endblock %}

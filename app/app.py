@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
 from config import *
+from pyldapi import renderer, renderer_container
 from utils import utils
 
 from starlette.staticfiles import StaticFiles
@@ -49,6 +50,8 @@ def configure_data():
     features_api.g = utils.g
     conformance.g = utils.g
     collections.g = utils.g
+    renderer.MEDIATYPE_NAMES = MEDIATYPE_NAMES
+    renderer_container.MEDIATYPE_NAMES = MEDIATYPE_NAMES
 
 
 def configure_routing():

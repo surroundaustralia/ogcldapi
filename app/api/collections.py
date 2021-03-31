@@ -9,16 +9,12 @@ from config import *
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-# from fastapi_contrib import pagination
-# from fastapi_pagination import Page, add_pagination, paginate
 
 from rdflib import URIRef
 from rdflib.namespace import DCTERMS, RDF
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
-
-# pag = pagination.Pagination()
 
 
 class Collections:
@@ -68,22 +64,20 @@ class CollectionsRenderer(ContainerRenderer):
             else 20
         )
         # limit
-        limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
-
-        # if limit is set, ignore page & per_page
-        if limit is not None:
-            self.start = 0
-            self.end = limit
-        else:
-            # generate list for requested page and per_page
-            self.start = (self.page - 1) * self.per_page
-            self.end = self.start + self.per_page
+        self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
 
         self.collections = Collections().collections
+
         print("Collections", self.collections)
         self.collections_count = len(self.collections)
+
         print("len collections count", self.collections_count)
-        requested_collections = self.collections[self.start:self.end]
+        print("limit", self.limit)
+        # if limit is set, ignore page & per_page
+        if self.limit is not None:
+            self.collections = self.collections[0:self.limit]
+
+        requested_collections = self.collections
 
         super().__init__(
             request,
@@ -111,7 +105,6 @@ class CollectionsRenderer(ContainerRenderer):
                                "version"]
 
     def render(self):
-        print("self.request.query_params.items()", self.request.query_params.items())
         for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
                 return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
@@ -141,7 +134,6 @@ class CollectionsRenderer(ContainerRenderer):
             "collections": collection_dicts
         }
 
-        print(page_json)
         return JSONResponse(
             page_json,
             media_type=str(MediaType.JSON.value),
@@ -154,11 +146,14 @@ class CollectionsRenderer(ContainerRenderer):
         # print("paginate", paginate(self.members))
         # print(self.members)
         # pag(self.members)
+        print(self.per_page)
+        print(self.page)
         _template_context = {
             "links": self.links,
             "collections": self.members,
-            # "pagination": pag(self.members),
-            "request": self.request
+            "request": self.request,
+            "pageSize": self.per_page,
+            "pageNumber": self.page
         }
 
         return templates.TemplateResponse(name="collections_oai.html",

@@ -25,4 +25,4 @@ async def home(request: Request,
         render_content = LandingPageRenderer(request).render()
         return render_content
     except Exception as e:
-        return HTTPException(content=e, status_code=500)
+        return HTTPException(detail=e, status_code=500)

@@ -1,12 +1,10 @@
 from typing import Optional
 
 import fastapi
-from fastapi import Request, Response, Depends
+from fastapi import Request, Response, HTTPException
 
 from rdflib import Literal
 from rdflib.namespace import DCTERMS
-# from fastapi_contrib.pagination import Pagination
-# from fastapi_pagination import Page, add_pagination, paginate
 
 from api.collections import CollectionsRenderer
 from api.collection import CollectionRenderer
@@ -34,8 +32,10 @@ def collection(request: Request,
                per_page: Optional[str] = None,
                limit: Optional[str] = None,
                bbox: Optional[str] = None):
-    print("asa")
-    return CollectionsRenderer(request).render()
+    try:
+        return CollectionsRenderer(request).render()
+    except Exception as e:
+        return HTTPException(detail=e, status_code=500)
 
 
 @router.get("/collections/{collection_id}",
@@ -49,7 +49,6 @@ def collection_id(request: Request,
                   _profile: Optional[str] = None,
                   _mediatype: Optional[str] = None):
 
-    print("collection_ID")
     # get the URI for the Collection using the ID
     collection_uri = None
     for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
@@ -61,8 +60,10 @@ def collection_id(request: Request,
             status_code=400,
             media_type="text/plain"
         )
-
-    return CollectionRenderer(request, collection_uri).render()
+    try:
+        return CollectionRenderer(request, collection_uri).render()
+    except Exception as e:
+        return HTTPException(detail=e, status_code=500)
 
 
 @router.get("/collections/{collection_id}/items",
@@ -73,9 +74,12 @@ def collection_id(request: Request,
             })
 def collection_id_items(request: Request,
                         collection_id: str = None,
+                        page: Optional[str] = None,
+                        per_page: Optional[str] = None,
+                        limit: Optional[str] = None,
+                        bbox: Optional[str] = None,
                         _profile: Optional[str] = None,
                         _mediatype: Optional[str] = None):
-    print("ITEMS")
     return FeaturesRenderer(request, collection_id).render()
 
 
@@ -91,7 +95,6 @@ def collection_id_items_id(request: Request,
                            _profile: Optional[str] = None,
                            _mediatype: Optional[str] = None):
 
-    print("ITEM_ID")
     # get the URI for the Collection using the ID
     collection_uri = None
     for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):

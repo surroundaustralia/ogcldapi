@@ -29,7 +29,6 @@ class LandingPage:
         logging.debug("LandingPage()")
         self.uri = LANDING_PAGE_URL
 
-        print(len(g))
         self.description = None
         for s in g.subjects(predicate=RDF.type, object=DCAT.Dataset):
             for p, o in g.predicate_objects(subject=s):

@@ -11,7 +11,6 @@ from api.feature import Feature
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-# from flask_paginate import Pagination
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Literal, URIRef
@@ -34,25 +33,11 @@ class FeaturesList:
             if request.query_params.get("per_page") is not None
             else 20
         )
-        # limit
-        self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
-
-        # if limit is set, ignore page & per_page
-        if self.limit is not None:
-            self.start = 0
-            self.end = self.limit
-        else:
-            # generate list for requested page and per_page
-            self.start = (self.page - 1) * self.per_page
-            self.end = self.start + self.per_page
-
-        # g = get_graph()
 
         # get Collection
         for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
             self.collection = Collection(str(s))
 
-        print("COLLECTION", self.collection)
         # get list of Features within this Collection
         features_uris = []
         # filter if we have a filtering param
@@ -64,14 +49,16 @@ class FeaturesList:
             for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.collection.uri)):
                 features_uris.append(s)
 
-        print("FEATURES_URI", features_uris)
-
         self.feature_count = len(features_uris)
-        # truncate the list of Features to this page
-        # page = features_uris[self.start:self.end]
+
+        # limit
+        self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
+
+        # if limit is set, ignore page & per_page
+        if self.limit is not None:
+            features_uris = features_uris[:self.limit]
+
         page = features_uris
-        # print(page)
-        print(len(page))
 
         # Features - only this page's
         self.features = []
@@ -87,9 +74,6 @@ class FeaturesList:
             self.features.append(
                 (str(s), identifier, title, description)
             )
-        print("features page", self.features)
-        print("len features", len(self.features))
-
         self.bbox_type = None
 
     def get_feature_uris_by_bbox(self):
@@ -351,18 +335,17 @@ class FeaturesRenderer(ContainerRenderer):
         )
 
     def _render_oai_html(self):
-        # pagination = Pagination(page=self.page, per_page=self.per_page, total=self.feature_list.feature_count)
-
         print("LINKS", self.links)
         print("MEMBERS", self.members)
         print("LEN", len(self.members))
+        print("perpage", self.per_page)
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
             "members": self.members,
             "request": self.request,
-            # "pagination": pagination.paginate(serializer_class=self.members)
-            # "pagination": pagination
+            "pageSize": self.per_page,
+            "pageNumber": self.page
         }
 
         if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid

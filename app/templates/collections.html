@@ -1,15 +1,59 @@
 {% extends "page.html" %}
 {% block content %}
-  <div>
-    <h1>Collections</h1>
-  </div>
-  <div id="maincontent">
-    <ul>
-    {% for collection in collections  %}
-      <li><a href="{{ collection[0] }}">{{ collection[1] }}</a></li>
-    {% endfor %}
-    </ul>
-    {{ pagination.links }}
-  </div>
-  {% include 'page_altprofiles.html' %}
+    <div>
+        <h1>Collections</h1>
+    </div>
+    <div id="maincontent">
+        <div class="data-container"></div>
+        <div id="pagination-collections"></div>
+        <div></div>
+    </div>
+    <script>
+    $(function() {
+      (function(name) {
+        var container = $('#pagination-' + name);
+        var sources = function () {
+          var result = [];
+          for (var i = 0; i < {{ collections|tojson }}.length; i++) {
+            result.push({{ collections|tojson }}[i]);
+          }
+
+          return result;
+        }();
+
+        var options = {
+          dataSource: sources,
+          pageSize: {{ pageSize }},
+          pageNumber: {{ pageNumber }},
+          callback: function (response, pagination) {
+            window.console && console.log(response, pagination);
+
+            var dataHtml = '<ul>';
+
+            $.each(response, function (index, item) {
+                dataHtml += '<li><a href=' + item[0] + '>' + item[1] + '</a></li>';
+            });
+
+            dataHtml += '</ul>';
+
+            container.prev().html(dataHtml);
+          }
+        };
+
+        //$.pagination(container, options);
+
+        container.addHook('beforeInit', function () {
+          window.console && console.log('beforeInit...');
+        });
+        container.pagination(options);
+
+        container.addHook('beforePageOnClick', function () {
+          window.console && console.log('beforePageOnClick...');
+          //return false
+        });
+      })('collections');
+    })
+
+    </script>
+    {% include 'page_altprofiles.html' %}
 {% endblock %}
