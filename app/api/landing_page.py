@@ -6,7 +6,7 @@ from api.profiles import *
 from utils import utils
 
 from fastapi import Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
 from rdflib import URIRef, Literal, Graph
@@ -101,7 +101,7 @@ class LandingPageRenderer(Renderer):
         # add OGC API Link headers to pyLDAPI Link headers
         self.headers["Link"] = self.headers["Link"] + ", ".join([link.render_as_http_header() for link in self.landing_page.links])
 
-        self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format"]
+        self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format", "version"]
 
     def render(self):
         logging.debug("LandingPageRenderer.render()")
@@ -114,7 +114,9 @@ class LandingPageRenderer(Renderer):
         if response is not None:
             return response
         elif self.profile == "oai":
-            if self.mediatype == "application/json":
+            if self.mediatype in ["application/json",
+                                  "application/vnd.oai.openapi+json;version=3.0",
+                                  "application/geo+json"]:
                 return self._render_oai_json()
             else:
                 return self._render_oai_html()
@@ -153,8 +155,8 @@ class LandingPageRenderer(Renderer):
         if self.landing_page.description is not None:
             page_json["description"] = self.landing_page.description
 
-        return Response(
-            json.dumps(page_json),
+        return JSONResponse(
+            page_json,
             media_type=str(MediaType.JSON.value),
             headers=self.headers)
 

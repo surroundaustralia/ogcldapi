@@ -20,7 +20,8 @@ async def home(request: Request,
                _view: Optional[str] = None,
                _profile: Optional[str] = None,
                _format: Optional[str] = None,
-               _mediatype: Optional[str] = None):
+               _mediatype: Optional[str] = None,
+               version: Optional[str] = None):
     try:
         render_content = LandingPageRenderer(request).render()
         return render_content

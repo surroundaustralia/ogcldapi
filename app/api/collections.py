@@ -111,7 +111,8 @@ class CollectionsRenderer(ContainerRenderer):
         if response is not None:
             return response
         elif self.profile == "oai":
-            if self.mediatype in ["application/json", "application/vnd.oai.openapi+json;version=3.0", "application/geo+json"]:
+            if self.mediatype in ["application/json", "application/vnd.oai.openapi+json;version=3.0",
+                                  "application/geo+json"]:
                 return self._render_oai_json()
             else:
                 return self._render_oai_html()
