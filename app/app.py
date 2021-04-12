@@ -1,12 +1,18 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
+import uuid
+import logging
 from config import *
 from pyldapi import renderer, renderer_container
 from utils import utils
 
 from starlette.staticfiles import StaticFiles
+from starlette.middleware.cors import CORSMiddleware
 from routers import landing_page, conformance, collections
+from monitoring import logging_config
+from middlewares.correlation_id_middleware import CorrelationIdMiddleware
+from middlewares.logging_middleware import LoggingMiddleware
 from api import landing_page as landing_page_api
 from api import collection as collection_api
 from api import collections as collections_api
@@ -17,6 +23,17 @@ app = FastAPI(docs_url='/docs',
               version='1.0',
               title='OGC LD API',
               description=f"Open API Documentation for this {API_TITLE}")
+
+logging_config.configure_logging(level='INFO', service='chekabox-backend', instance=str(uuid.uuid4()))
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(CorrelationIdMiddleware)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["x-apigateway-header", "Content-Type", "X-Amz-Date"])
 
 
 @app.get("/spec", summary="API Description Page")
@@ -63,6 +80,6 @@ def configure_routing():
 
 if __name__ == '__main__':
     configure()
-    uvicorn.run(app, port=PORT, host=HOST)
+    uvicorn.run(app, port=PORT, host=HOST, log_config=logging_config.configure_logging(service="Uvicorn"))
 else:
     configure()

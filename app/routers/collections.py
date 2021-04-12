@@ -1,6 +1,7 @@
 from typing import Optional
 
 import fastapi
+import logging
 from fastapi import Request, Response, HTTPException
 
 from rdflib import Literal
@@ -33,6 +34,7 @@ def collection(request: Request,
                limit: Optional[str] = None,
                bbox: Optional[str] = None):
     try:
+        logging.info(f"Collections Render request: {request.path_params}")
         return CollectionsRenderer(request).render()
     except Exception as e:
         return HTTPException(detail=e, status_code=500)
@@ -50,6 +52,7 @@ def collection_id(request: Request,
                   _mediatype: Optional[str] = None):
 
     # get the URI for the Collection using the ID
+    logging.info(f"Collection ID request: {request.path_params}")
     collection_uri = None
     for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
         collection_uri = s
@@ -80,6 +83,7 @@ def collection_id_items(request: Request,
                         bbox: Optional[str] = None,
                         _profile: Optional[str] = None,
                         _mediatype: Optional[str] = None):
+    logging.info(f"Collection ID Item request: {request.path_params}")
     return FeaturesRenderer(request, collection_id).render()
 
 
@@ -96,6 +100,7 @@ def collection_id_items_id(request: Request,
                            _mediatype: Optional[str] = None):
 
     # get the URI for the Collection using the ID
+    logging.info(f"Collection ID Item ID request: {request.path_params}")
     collection_uri = None
     for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
         collection_uri = s

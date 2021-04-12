@@ -1,6 +1,7 @@
 from typing import Optional
 
 import fastapi
+import logging
 from fastapi import Request, HTTPException
 from fastapi.templating import Jinja2Templates
 
@@ -23,6 +24,7 @@ async def home(request: Request,
                _mediatype: Optional[str] = None,
                version: Optional[str] = None):
     try:
+        logging.info(f"Landing page request: {request.path_params}")
         render_content = LandingPageRenderer(request).render()
         return render_content
     except Exception as e:

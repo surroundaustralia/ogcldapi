@@ -1,6 +1,7 @@
 from typing import Optional
 
 import fastapi
+import logging
 from fastapi import Request
 from utils import utils
 
@@ -35,6 +36,7 @@ def conformance(request: Request,
     #            dcterms:title ?title
     #     }
     #     """
+    logging.info(f"Conformance page request: {request.path_params}")
     conformance_classes = []
     for s in g.subjects(predicate=RDF.type, object=OGCAPI.ConformanceTarget):
         uri = str(s)
