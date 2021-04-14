@@ -10,3 +10,4 @@ geomet==0.2.1.post1
 geojson-rewind==0.2.0
 python-json-logger==2.0.1
 git+https://github.com/RDFLib/rdflib.git@master#egg=rdflib
+git+https://github.com/RDFLib/pyLDAPI.git@feature/merge#egg=pyldapi

@@ -1,14 +1,15 @@
 from typing import List
 from api.profiles import *
 from api.link import *
-import json
 
+import logging
 from config import *
 from utils import utils
 
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
+from pyldapi.fastapi_framework import Renderer
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import URIRef, Literal, BNode
@@ -107,14 +108,17 @@ class Feature(object):
             }}
             """.format(self.uri)
 
-        sparql = SPARQLWrapper(SPARQL_ENDPOINT)
-        sparql.setQuery(q)
-        sparql.setReturnFormat(JSON)
-        ret = sparql.queryAndConvert()["results"]["bindings"]
-        self.geometries = [
-            Geometry(ret[0]["g1"]["value"], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84),
-            Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX),
-        ]
+        try:
+            sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+            sparql.setQuery(q)
+            sparql.setReturnFormat(JSON)
+            ret = sparql.queryAndConvert()["results"]["bindings"]
+            self.geometries = [
+                Geometry(ret[0]["g1"]["value"], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84),
+                Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX),
+            ]
+        except Exception as e:
+            logging.error(e)
 
         # Feature other properties
         self.extent_spatial = None

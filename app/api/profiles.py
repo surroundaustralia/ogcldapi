@@ -1,5 +1,5 @@
 from pyldapi.profile import Profile
-from pyldapi.renderer import Renderer
+from pyldapi.fastapi_framework import Renderer
 
 
 profile_openapi = Profile(

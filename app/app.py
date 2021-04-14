@@ -4,7 +4,7 @@ import uvicorn
 import uuid
 import logging
 from config import *
-from pyldapi import renderer, renderer_container
+from pyldapi.fastapi_framework import renderer, renderer_container
 from utils import utils
 
 from starlette.staticfiles import StaticFiles

@@ -1,4 +1,3 @@
-from pyldapi import ContainerRenderer
 from typing import List
 
 from api.link import *
@@ -9,6 +8,7 @@ from config import *
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
+from pyldapi.fastapi_framework import ContainerRenderer
 
 from rdflib import URIRef
 from rdflib.namespace import DCTERMS, RDF

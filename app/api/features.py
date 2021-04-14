@@ -1,4 +1,3 @@
-from pyldapi import ContainerRenderer
 from typing import List
 from config import *
 
@@ -11,6 +10,7 @@ from api.feature import Feature
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
+from pyldapi.fastapi_framework import ContainerRenderer, Renderer
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Literal, URIRef

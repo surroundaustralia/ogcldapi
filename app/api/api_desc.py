@@ -1,8 +1,14 @@
-from api.model.link import *
-from flask import Response, render_template
-from api.model.profiles import *
-from api.config import *
-import json
+from api.link import *
+
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
+
+from pyldapi.fastapi_framework import Renderer
+from api.profiles import *
+from config import *
+
+
+templates = Jinja2Templates(directory="templates")
 
 
 class ApiDescRenderer(Renderer):
@@ -171,9 +177,9 @@ class ApiDescRenderer(Renderer):
             "paths": self.paths,
         }
 
-        return Response(
-            json.dumps(page_json),
-            mimetype=str(MediaType.OPEN_API_3.value),
+        return JSONResponse(
+            page_json,
+            media_type=str(MediaType.OPEN_API_3.value),
             headers=self.headers,
         )
 
@@ -182,8 +188,6 @@ class ApiDescRenderer(Renderer):
             "uri": LANDING_PAGE_URL + "/api",
         }
 
-        return Response(
-            render_template("api.html", **_template_context),
-            headers=self.headers,
-        )
-
+        return templates.TemplateResponse(name="api.html",
+                                          context=_template_context,
+                                          headers=self.headers)
