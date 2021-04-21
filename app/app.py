@@ -19,16 +19,16 @@ from api import collections as collections_api
 from api import feature as feature_api
 from api import features as features_api
 
-app = FastAPI(docs_url='/docs',
+api = FastAPI(docs_url='/docs',
               version='1.0',
               title='OGC LD API',
               description=f"Open API Documentation for this {API_TITLE}")
 
 logging_config.configure_logging(level='INFO', service='chekabox-backend', instance=str(uuid.uuid4()))
-app.add_middleware(LoggingMiddleware)
-app.add_middleware(CorrelationIdMiddleware)
+api.add_middleware(LoggingMiddleware)
+api.add_middleware(CorrelationIdMiddleware)
 
-app.add_middleware(
+api.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],
     allow_credentials=False,
@@ -36,13 +36,13 @@ app.add_middleware(
     allow_headers=["x-apigateway-header", "Content-Type", "X-Amz-Date"])
 
 
-@app.get("/spec", summary="API Description Page")
+@api.get("/spec", summary="API Description Page")
 def spec():
-    openapi_json = app.openapi()
+    openapi_json = api.openapi()
     return JSONResponse(openapi_json)
 
 
-@app.get("/reload-data", summary="Endpoint to reload data from graph")
+@api.get("/reload-data", summary="Endpoint to reload data from graph")
 def reload():
     try:
         utils.get_graph()
@@ -54,7 +54,9 @@ def reload():
 
 def configure():
     # Load data
+    logging.info("Loading graph")
     utils.get_graph()
+    logging.info("Graph loaded")
     configure_routing()
     configure_data()
 
@@ -72,14 +74,19 @@ def configure_data():
 
 
 def configure_routing():
-    app.mount('/static', StaticFiles(directory='static'), name='static')
-    app.include_router(landing_page.router)
-    app.include_router(conformance.router)
-    app.include_router(collections.router)
+    api.mount('/static', StaticFiles(directory='static'), name='static')
+    api.include_router(landing_page.router)
+    api.include_router(conformance.router)
+    api.include_router(collections.router)
 
 
 if __name__ == '__main__':
+    logging.info("Running main function")
     configure()
-    uvicorn.run(app, port=PORT, host=HOST, log_config=logging_config.configure_logging(service="Uvicorn"))
+    uvicorn.run(api,
+                port=PORT,
+                host=HOST,
+                log_config=logging_config.configure_logging(service="Uvicorn"))
 else:
+    logging.info("Running uvicorn function")
     configure()
