@@ -1,36 +1,57 @@
+# On any commit, builds pylode to act as a test
+# On master, build a minified release, push to ECR and deploy to EKS cluster
+
 image:
-  name: python:3.8
+  name: python:3.7.4-alpine3.10
 
 options:
   docker: true
 
-definitions:
-  steps:
-    - step: &Test-step
-        name: Run tests
-        caches:
-          - pip
-        script:
-          - apt install git
-          - pip3 install pytest
-          - pip3 install -r ./requirements.txt
-          - pytest ./tests
-
 pipelines:
-  default:
-    - step: *Test-step
-## awaiting AWS credentials - cannot build / push docker image to ECR without this
-#    - step:
-#        name:
-#          Building Docker Image and push it to ECR
-#        caches:
-#          - pip
-#        script:
-#          - pip3 install awscli
-#          - export BUILD_ID=latest-$BITBUCKET_COMMIT-$BITBUCKET_BUILD_NUMBER
-#          - echo $BUILD_ID
-#          - aws configure set aws_access_key_id "${AWS_KEY}"
-#          - aws configure set aws_secret_access_key "${AWS_SECRET}"
-#          - eval $(aws ecr get-login --no-include-email --region "${AWS_DEFAULT_REGION}" | sed 's;https://;;g')
-#          - docker build -t ${AWS_ECR_REPOSITORY}:$BUILD_ID . -f ${DOCKER_FILE}
-#          - docker push ${AWS_ECR_REPOSITORY}:$BUILD_ID
+  branches:
+    master:
+      - step:
+          name: Build and push image to ECR
+          caches:
+            - docker
+          script:
+            # build the image
+            - docker build -t ldr/ogc-api . -f Dockerfile
+            # push image to AWS ECR
+            - pipe: atlassian/aws-ecr-push-image:1.3.0
+              variables:
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                ROLE_ARN: $ROLE_ARN
+                IMAGE_NAME: ldr/ogc-api
+#      - step:
+#          name: Deploy to Kubernetes
+#          script:
+#            # replace image name in deployment.yml
+#            # - sed -i -e "s/IMAGE_NAME/$ECR_URI\/ldr\/globe:latest/g" deploy/kubernetes/deployment.yml
+#            # run kubectl apply
+#            # if image name didn't change, kubectl apply won't do anything
+#            # might need image versioning
+#            - pipe: atlassian/aws-eks-kubectl-run:1.4.1
+#              variables:
+#                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+#                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+#                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+#                ROLE_ARN: $ROLE_ARN
+#                CLUSTER_NAME: "ldr-eks-cluster"
+#                KUBECTL_COMMAND: "apply"
+#                RESOURCE_PATH: "deployment.yaml"
+#      - step:
+#          name: Rollout restart
+#          script:
+#            # if image name didn't change, use rollout
+#            # rollout restart will "re-rollout" the deployment so the pods get the new image
+#            - pipe: atlassian/aws-eks-kubectl-run:1.4.1
+#              variables:
+#                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+#                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+#                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+#                ROLE_ARN: $ROLE_ARN
+#                CLUSTER_NAME: "ldr-eks-cluster"
+#                KUBECTL_COMMAND: "rollout restart deployment ldr-pylode-deployment"
