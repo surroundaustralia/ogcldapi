@@ -25,33 +25,33 @@ pipelines:
                 AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
                 ROLE_ARN: $ROLE_ARN
                 IMAGE_NAME: ldr/ogc-api
-#      - step:
-#          name: Deploy to Kubernetes
-#          script:
-#            # replace image name in deployment.yml
-#            # - sed -i -e "s/IMAGE_NAME/$ECR_URI\/ldr\/globe:latest/g" deploy/kubernetes/deployment.yml
-#            # run kubectl apply
-#            # if image name didn't change, kubectl apply won't do anything
-#            # might need image versioning
-#            - pipe: atlassian/aws-eks-kubectl-run:1.4.1
-#              variables:
-#                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-#                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-#                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
-#                ROLE_ARN: $ROLE_ARN
-#                CLUSTER_NAME: "ldr-eks-cluster"
-#                KUBECTL_COMMAND: "apply"
-#                RESOURCE_PATH: "deployment.yaml"
-#      - step:
-#          name: Rollout restart
-#          script:
-#            # if image name didn't change, use rollout
-#            # rollout restart will "re-rollout" the deployment so the pods get the new image
-#            - pipe: atlassian/aws-eks-kubectl-run:1.4.1
-#              variables:
-#                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-#                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-#                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
-#                ROLE_ARN: $ROLE_ARN
-#                CLUSTER_NAME: "ldr-eks-cluster"
-#                KUBECTL_COMMAND: "rollout restart deployment ldr-ogc-api-deployment"
+      - step:
+          name: Deploy to Kubernetes
+          script:
+            # replace image name in deployment.yml
+            # - sed -i -e "s/IMAGE_NAME/$ECR_URI\/ldr\/globe:latest/g" deploy/kubernetes/deployment.yml
+            # run kubectl apply
+            # if image name didn't change, kubectl apply won't do anything
+            # might need image versioning
+            - pipe: atlassian/aws-eks-kubectl-run:1.4.1
+              variables:
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                ROLE_ARN: $ROLE_ARN
+                CLUSTER_NAME: "ldr-eks-cluster"
+                KUBECTL_COMMAND: "apply"
+                RESOURCE_PATH: "deployment.yaml"
+      - step:
+          name: Rollout restart
+          script:
+            # if image name didn't change, use rollout
+            # rollout restart will "re-rollout" the deployment so the pods get the new image
+            - pipe: atlassian/aws-eks-kubectl-run:1.4.1
+              variables:
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                ROLE_ARN: $ROLE_ARN
+                CLUSTER_NAME: "ldr-eks-cluster"
+                KUBECTL_COMMAND: "rollout restart deployment ldr-ogc-api-deployment"
