@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ldr-ogc-api-deployment
+  labels:
+    app: ldr-ogc-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ldr-ogc-api
+  template:
+    metadata:
+      labels:
+        app: ldr-ogc-api
+    spec:
+      containers:
+      - name: pylode
+        image: 680471986828.dkr.ecr.ap-southeast-2.amazonaws.com/ldr/ogc-api:latest
+        ports:
+        - containerPort: 9000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ldr-ogc-api-service
+spec:
+  selector:
+    app: ldr-ogc-api
+  type: LoadBalancer
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 9000
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 9000
