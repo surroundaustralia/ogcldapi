@@ -1,9 +1,10 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
+FROM python:3.7
 
-ENV APP_MODULE="app:api"
+EXPOSE 9000
 
-COPY ./app /app
-RUN pip install -r /app/requirements.txt
+COPY ./app ./
+RUN pip install -r ./requirements.txt
 
+CMD ["uvicorn", "app:api", "--host", "0.0.0.0", "--port", "9000"]
 #docker build -t ogc-api . -f Dockerfile
-#docker run -p 8000:80 -d -it --name ogc-api --restart unless-stopped ogc-api
+#docker run -p 9000:9000 -it --name ogc-api ogc-api

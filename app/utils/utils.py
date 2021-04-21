@@ -12,6 +12,6 @@ def get_graph():
     # g = Graph("SPARQLStore")
     # g.open(SPARQL_ENDPOINT)
     global g
-    with open('D:\Surround\GA\dataset_asgs2016_dggs\\default_graph_2.pkl', 'rb') as handle:
+    with open('./utils/default_graph_2.pkl', 'rb') as handle:
         g = pickle.load(handle)
     return g
