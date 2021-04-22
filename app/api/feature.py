@@ -85,6 +85,7 @@ class Feature(object):
         # g = get_graph()
         # Feature properties
         self.description = None
+        print("SELF URI", self.uri)
         for p, o in g.predicate_objects(subject=URIRef(self.uri)):
             if p == DCTERMS.identifier:
                 self.identifier = str(o)
@@ -108,6 +109,7 @@ class Feature(object):
             }}
             """.format(self.uri)
 
+        print("SPARQLENDPOINT", SPARQL_ENDPOINT)
         try:
             sparql = SPARQLWrapper(SPARQL_ENDPOINT)
             sparql.setQuery(q)
@@ -281,6 +283,9 @@ class FeatureRenderer(Renderer):
             "request": self.request
         }
 
+        print("featire", self.feature)
+        for a in self.feature:
+            print(a)
         return templates.TemplateResponse(name="feature.html",
                                           context=_template_context,
                                           headers=self.headers)
