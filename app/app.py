@@ -55,7 +55,7 @@ def reload():
 def configure():
     # Load data
     logging.info("Loading graph")
-    # utils.get_graph()
+    utils.get_graph()
     logging.info("Graph loaded")
     configure_routing()
     configure_data()
