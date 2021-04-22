@@ -24,7 +24,7 @@ api = FastAPI(docs_url='/docs',
               title='OGC LD API',
               description=f"Open API Documentation for this {API_TITLE}")
 
-logging_config.configure_logging(level='INFO', service='chekabox-backend', instance=str(uuid.uuid4()))
+logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))
 api.add_middleware(LoggingMiddleware)
 api.add_middleware(CorrelationIdMiddleware)
 
