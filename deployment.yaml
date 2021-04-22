@@ -15,17 +15,17 @@ spec:
         app: ldr-ogc-api
     spec:
       containers:
-      - name: pylode
+      - name: ogc-api
         image: 680471986828.dkr.ecr.ap-southeast-2.amazonaws.com/ldr/ogc-api:latest
         ports:
         - containerPort: 9000
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "250m"
+            memory: "2Gi"
+              cpu: "1000m"
           limits:
-            memory: "1024Mi"
-            cpu: "500m"
+            memory: "4Gi"
+#            cpu: "1000m"
 
 ---
 apiVersion: v1
