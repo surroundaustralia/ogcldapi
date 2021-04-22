@@ -23,7 +23,7 @@ spec:
           - name: SPARQL_ENDPOINT
             value: "http://localhost:7200/repositories/asgs_dataset"
           - name: LANDING_PAGE_URL
-            value: "http://a25a8a2eda9464b7fb3931bf12de441b-1975690911.ap-southeast-2.elb.amazonaws.com/"
+            value: "http://a25a8a2eda9464b7fb3931bf12de441b-1975690911.ap-southeast-2.elb.amazonaws.com"
           - name: DATASET_URI
             value: "https://w3id.org/dggs/asgs2016"
         resources:
