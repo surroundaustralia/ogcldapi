@@ -19,6 +19,11 @@ spec:
         image: 680471986828.dkr.ecr.ap-southeast-2.amazonaws.com/ldr/ogc-api:latest
         ports:
         - containerPort: 9000
+        env:
+          - name: SPARQL_ENDPOINT
+            value: "http://localhost:7200/repositories/asgs_dataset"
+          - name: DATASET_URI
+            value: "https://w3id.org/dggs/asgs2016"
         resources:
           requests:
             memory: "2Gi"
