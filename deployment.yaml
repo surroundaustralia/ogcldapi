@@ -21,7 +21,7 @@ spec:
         - containerPort: 9000
         env:
           - name: SPARQL_ENDPOINT
-            value: "http://localhost:7200/repositories/asgs_dataset"
+            value: "http://fuseki.surroundaustralia.com/asgs_dggs/query"
           - name: LANDING_PAGE_URL
             value: "http://a25a8a2eda9464b7fb3931bf12de441b-1975690911.ap-southeast-2.elb.amazonaws.com"
           - name: DATASET_URI
