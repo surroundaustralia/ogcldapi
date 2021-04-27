@@ -108,6 +108,10 @@ class Feature(object):
             }}
             """.format(self.uri)
 
+        logging.info(f"SparQL Endpoint: {SPARQL_ENDPOINT}")
+        logging.info(f"Uri feature: {self.uri}")
+        logging.info(f"Query feature: {q}")
+
         try:
             sparql = SPARQLWrapper(SPARQL_ENDPOINT)
             sparql.setQuery(q)
@@ -117,6 +121,7 @@ class Feature(object):
                 Geometry(ret[0]["g1"]["value"], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84),
                 Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX),
             ]
+            logging.info(f"Geometries - {self.geometries}")
         except Exception as e:
             logging.error(e)
 
