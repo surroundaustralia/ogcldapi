@@ -28,11 +28,11 @@ spec:
             value: "https://w3id.org/dggs/asgs2016"
         resources:
           requests:
-            memory: "1.5Gi"
+            memory: "2Gi"
             cpu: "200m"
           limits:
-            memory: "2Gi"
-            cpu: "300m"
+            memory: "3Gi"
+            cpu: "400m"
 
 ---
 apiVersion: v1
