@@ -22,6 +22,7 @@ API_TITLE = os.getenv("API_TITLE", "OGC LD API")
 LANDING_PAGE_URL = os.getenv("LANDING_PAGE_URL", f"http://localhost:{PORT}")
 DATASET_URI = os.getenv("DATASET_URI", "https://w3id.org/dggs/asgs2016")
 SPARQL_ENDPOINT = os.getenv("SPARQL_ENDPOINT", "http://fuseki.surroundaustralia.com/asgs_dggs/query")
+TEST_GRAPH = os.getenv("TEST_GRAPH", None)
 
 MEDIATYPE_NAMES = {
     "text/html": "HTML",
