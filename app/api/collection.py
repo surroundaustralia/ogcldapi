@@ -46,6 +46,7 @@ class Collection(object):
         if other_links is not None:
             self.links.extend(other_links)
 
+        #TODO move up front or change to SPARQL query - this is taking 16 seconds on a 287k triples dataset
         self.feature_count = 0
         for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.uri)):
             self.feature_count += 1
