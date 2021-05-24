@@ -3,7 +3,7 @@ from rdflib import Namespace
 __version__ = "1.2"
 GEO = Namespace("http://www.opengis.net/ont/geosparql#")
 GEOX = Namespace("https://linked.data.gov.au/def/geox#")
-OGCAPI = Namespace("https://data.surroundaustralia.com/def/ogcapi/")
+OGCAPI = Namespace("https://data.surroundaustralia.com/def/ogcldapi/")
 
 DEBUG = os.getenv("DEBUG", True)
 HOST = os.getenv("HOST", '0.0.0.0')
