@@ -5,7 +5,7 @@ import logging
 from fastapi import Request, Response, HTTPException
 
 from rdflib import Literal
-from rdflib.namespace import DCTERMS
+from rdflib.namespace import DCTERMS, XSD
 
 from api.collections import CollectionsRenderer
 from api.collection import CollectionRenderer
@@ -54,7 +54,7 @@ def collection_id(request: Request,
     # get the URI for the Collection using the ID
     logging.info(f"Collection ID request: {request.path_params}")
     collection_uri = None
-    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
+    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)):
         collection_uri = s
 
     if collection_uri is None:
@@ -102,7 +102,7 @@ def collection_id_items_id(request: Request,
     # get the URI for the Collection using the ID
     logging.info(f"Collection ID Item ID request: {request.path_params}")
     collection_uri = None
-    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
+    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)):
         collection_uri = s
 
     if collection_uri is None:
@@ -113,7 +113,7 @@ def collection_id_items_id(request: Request,
         )
 
     # get URIs for things with this ID  - IDs may not be unique across Collections
-    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(item_id)):
+    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(item_id, datatype=XSD.token)):
         # if this Feature is in this Collection, return it
         if (s, DCTERMS.isPartOf, collection_uri) in g:
             return FeatureRenderer(request=request,
