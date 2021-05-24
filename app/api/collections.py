@@ -20,7 +20,7 @@ g = utils.g
 class Collections:
     def __init__(self):
         self.collections = []
-        for s in g.subjects(predicate=RDF.type, object=OGCAPI.Collection):
+        for s in g.subjects(predicate=RDF.type, object=OGCAPI.FeatureCollection):
             if (s, DCTERMS.isPartOf, URIRef(DATASET_URI)) in g:
                 identifier = None
                 title = None
