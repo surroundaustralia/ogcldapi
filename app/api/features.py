@@ -35,7 +35,7 @@ class FeaturesList:
         )
 
         # get Collection
-        for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id)):
+        for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)):
             self.collection = Collection(str(s))
 
         # get list of Features within this Collection
@@ -62,8 +62,10 @@ class FeaturesList:
 
         # Features - only this page's
         self.features = []
-        for s in page:
+        # for s in page: # original code
+        for s in page[:self.per_page]:
             description = None
+            title = None
             for p, o in g.predicate_objects(subject=s):
                 if p == DCTERMS.identifier:
                     identifier = str(o)
@@ -71,6 +73,8 @@ class FeaturesList:
                     title = str(o)
                 elif p == DCTERMS.description:
                     description = str(o)
+            if not title:
+                title = f"Feature {identifier}"
             self.features.append(
                 (str(s), identifier, title, description)
             )
@@ -110,11 +114,10 @@ class FeaturesList:
             PREFIX dcterms: <http://purl.org/dc/terms/>
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
             PREFIX geof: <http://www.opengis.net/def/function/geosparql/>
-            PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcapi/>
 
             SELECT ?f
             WHERE {{
-                ?f a ogcapi:Feature ;
+                ?f a geo:Feature ;
                    dcterms:isPartOf <{collection_uri}> ;            
                    geo:hasGeometry/geo:asWKT ?wkt .
     
@@ -151,11 +154,10 @@ class FeaturesList:
             PREFIX dcterms: <http://purl.org/dc/terms/>
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
             PREFIX geox: <https://linked.data.gov.au/def/geox#>
-            PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcapi/>
 
             SELECT ?f
             WHERE {{
-                ?f a ogcapi:Feature ;
+                ?f a geo:Feature ;
                    dcterms:isPartOf <{}> .
                 ?f geo:hasGeometry/geox:asDGGS ?dggs .
 
@@ -178,11 +180,10 @@ class FeaturesList:
         #     PREFIX dcterms: <http://purl.org/dc/terms/>
         #     PREFIX geo: <http://www.opengis.net/ont/geosparql#>
         #     PREFIX geox: <https://linked.data.gov.au/def/geox#>
-        #     PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcapi/>
         #
         #     SELECT ?f ?coords
         #     WHERE {{
-        #         ?f a ogcapi:Feature ;
+        #         ?f a geo:Feature ;
         #            dcterms:isPartOf <{}> .
         #         ?f geo:hasGeometry/geox:asDGGS ?dggs .
         #

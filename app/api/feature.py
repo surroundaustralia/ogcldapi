@@ -71,11 +71,11 @@ class Feature(object):
 
         q = """
             PREFIX dcterms: <http://purl.org/dc/terms/>
-            PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcapi/>
+            PREFIX geo: <http://www.opengis.net/ont/geosparql#>
 
             SELECT ?identifier ?title ?description
             WHERE {{
-                ?uri a ogcapi:Feature ;
+                ?uri a geo:Feature ;
                    dcterms:isPartOf <{}> ;
                    dcterms:identifier ?identifier ;
                    OPTIONAL {{?uri dcterms:title ?title}}
@@ -85,6 +85,7 @@ class Feature(object):
         # g = get_graph()
         # Feature properties
         self.description = None
+        self.title = None
         for p, o in g.predicate_objects(subject=URIRef(self.uri)):
             if p == DCTERMS.identifier:
                 self.identifier = str(o)
@@ -94,17 +95,18 @@ class Feature(object):
                 self.description = markdown.markdown(str(o))
             elif p == DCTERMS.isPartOf:
                 self.isPartOf = str(o)
+        if not self.title:
+            self.title = f"Feature {self.identifier}"
 
         # Feature geometries
         # out of band call for Geometries as BNodes not supported by SPARQLStore
         q = """
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-            PREFIX geox: <https://linked.data.gov.au/def/geox#>
             SELECT * 
             WHERE {{
                 <{}>
                     geo:hasGeometry/geo:asWKT ?g1 ;
-                    geo:hasGeometry/geox:asDGGS ?g2 .
+                    geo:hasGeometry/geo:asDGGS ?g2 .
             }}
             """.format(self.uri)
 
