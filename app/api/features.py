@@ -1,12 +1,11 @@
 from typing import List
 from config import *
-
 from utils import utils
 from api.profiles import *
 from api.link import *
 from api.collection import Collection
 from api.feature import Feature
-
+from owslib.ogcapi.features import Features
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -16,7 +15,6 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD, RDF
 import re
-
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
@@ -46,46 +44,62 @@ class FeaturesList:
             features_uris = self.get_feature_uris_by_bbox()
         else:
             # all features in list
-            for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.collection.uri)):
-                features_uris.append(s)
-
-        self.feature_count = len(features_uris)
+            # for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.collection.uri)):
+            #     features_uris.append(s)
+            result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
+                                 SELECT (COUNT(?s) as ?count) {{?s dcterms:isPartOf <{self.collection.uri}>}}""")
+        self.feature_count = int(list(result.bindings[0].values())[0])
 
         # limit
         self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
 
         # if limit is set, ignore page & per_page
-        if self.limit is not None:
-            features_uris = features_uris[:self.limit]
+        # if self.limit is not None:
+        #     features_uris = features_uris[:self.limit]
 
-        page = features_uris
+        # page = features_uris
 
-        # Features - only this page's
-        self.features = []
         # for s in page: # original code
-        for s in page[:self.per_page]:
-            description = None
-            title = None
-            for p, o in g.predicate_objects(subject=s):
-                if p == DCTERMS.identifier:
-                    identifier = str(o)
-                elif p == DCTERMS.title:
-                    title = str(o)
-                elif p == DCTERMS.description:
-                    description = str(o)
-            if not title:
-                title = f"Feature {identifier}"
-            self.features.append(
-                (str(s), identifier, title, description)
-            )
+        result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+                             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                             SELECT ?feature ?identifier ?title ?description
+                                {{?feature dcterms:isPartOf <{self.collection.uri}> .
+                                      OPTIONAL {{?feature dcterms:identifier ?identifier }}
+                                      OPTIONAL {{?feature dcterms:title ?title}}
+                                      OPTIONAL {{?feature dcterms:title ?description}}
+                                }}
+                              LIMIT {self.per_page*10}""")
+        result = [{str(k): v for k, v in i.items()} for i in result.bindings]
+        features = [str(i["feature"]) for i in result]
+        descriptions = [i["description"] if "description" in i.keys() else None for i in result]
+        identifiers = [str(i["identifier"]) if "identifier" in i.keys() else None for i in result]
+        # use the title if it's available, otherwise use "Feature {identifier}"
+        titles = [i["title"] if "title" in i.keys() else f"Feature {i['identifier']}" for i in result]
+        self.features = list(zip(features, identifiers, titles, descriptions))
+        # for s in page:
+        #     description = None
+        #     title = None
+        #     for p, o in g.predicate_objects(subject=s):
+        #         if p == DCTERMS.identifier:
+        #             identifier = str(o)
+        #         elif p == DCTERMS.title:
+        #             title = str(o)
+        #         elif p == DCTERMS.description:
+        #             description = str(o)
+        #     if not title:
+        #         title = f"Feature {identifier}"
+        #     self.features.append(
+        #         (str(s), identifier, title, description)
+        #         )
         self.bbox_type = None
 
     def get_feature_uris_by_bbox(self):
         allowed_bbox_formats = {
-            "coords": r"([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+)",  # Lat Longs, e.g. 160.6,-55.95,-170,-25.89
+            "coords": r"([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+)",
+            # Lat Longs, e.g. 160.6,-55.95,-170,-25.89
             "cell_id": r"([A-Z][0-9]{0,15})$",  # single DGGS Cell ID, e.g. R1234
             "cell_ids": r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
-        }
+            }
         for k, v in allowed_bbox_formats.items():
             if re.match(v, self.request.query_params.get("bbox")):
                 self.bbox_type = k
@@ -140,7 +154,7 @@ class FeaturesList:
             "tl_lat": parts[1],
             "br_lon": parts[2],
             "br_lat": parts[3]
-        })
+            })
         # TODO FILTER
         features_uris = []
         for r in get_graph().query(q):
@@ -222,14 +236,14 @@ class FeaturesRenderer(ContainerRenderer):
                     rel=RelType.SELF.value,
                     type=MediaType.JSON.value,
                     title="This Document"
-                ),
+                    ),
                 Link(
                     LANDING_PAGE_URL + "/collections.html",
                     rel=RelType.SELF.value,
                     type=MediaType.HTML.value,
                     title="This Document in HTML"
-                ),
-            ]
+                    ),
+                ]
             if other_links is not None:
                 self.links.extend(other_links)
 
@@ -242,11 +256,12 @@ class FeaturesRenderer(ContainerRenderer):
                 "The Features of Collection {}".format(self.feature_list.collection.identifier),
                 None,
                 None,
-                [(LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items/" + x[1], x[2]) for x in self.feature_list.features],
+                [(LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items/" + x[1], x[2])
+                 for x in self.feature_list.features],
                 self.feature_list.feature_count,
                 profiles={"oai": profile_openapi, "geosp": profile_geosparql},
                 default_profile_token="oai"
-            )
+                )
 
     def _valid_parameters(self):
         allowed_params = ["_profile", "_view", "_mediatype", "_format", "page", "per_page", "limit", "bbox"]
@@ -255,7 +270,7 @@ class FeaturesRenderer(ContainerRenderer):
             r"([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+)",  # Lat Longs, e.g. 160.6,-55.95,-170,-25.89
             r"([A-Z][0-9]{0,15})$",  # single DGGS Cell ID, e.g. R1234
             r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
-        ]
+            ]
 
         for p in self.request.query_params.keys():
             if p not in allowed_params:
@@ -286,7 +301,7 @@ class FeaturesRenderer(ContainerRenderer):
                 status=400,
                 mimetype="text/plain",
                 headers=self.headers
-            )
+                )
 
         # try returning alt profile
         response = super().render()
@@ -311,26 +326,26 @@ class FeaturesRenderer(ContainerRenderer):
             "links": [x.__dict__ for x in self.links],
             "collection": self.feature_list.collection.to_dict(),
             "items": self.members,
-        }
+            }
 
         return JSONResponse(
             page_json,
             media_type=str(MediaType.JSON.value),
             headers=self.headers,
-        )
+            )
 
     def _render_oai_geojson(self):
         page_json = {
             "links": [x.__dict__ for x in self.links],
             "collection": self.feature_list.collection.to_geo_json_dict(),
             "items": self.members,
-        }
+            }
 
         return JSONResponse(
             page_json,
             media_type=str(MediaType.GEOJSON.value),
             headers=self.headers,
-        )
+            )
 
     def _render_oai_html(self):
         _template_context = {
@@ -340,7 +355,7 @@ class FeaturesRenderer(ContainerRenderer):
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page
-        }
+            }
 
         if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid
             _template_context["bbox"] = (self.feature_list.bbox_type, self.request.query_params.get("bbox"))
@@ -382,7 +397,7 @@ class FeaturesRenderer(ContainerRenderer):
             URIRef(self.feature_list.collection.uri),
             GEOX.featureCount,
             Literal(self.feature_list.feature_count, datatype=XSD.integer)
-        ))
+            ))
 
         for f in self.feature_list.features:
             g = g + Feature(f[0]).to_geosp_graph()
@@ -398,4 +413,4 @@ class FeaturesRenderer(ContainerRenderer):
                 "The Media Type you requested cannot be serialized to",
                 status_code=400,
                 media_type="text/plain"
-            )
+                )
