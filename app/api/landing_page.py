@@ -30,7 +30,7 @@ class LandingPage:
         self.uri = LANDING_PAGE_URL
 
         self.description = None
-        for s in g.subjects(predicate=RDF.type, object=DCAT.Dataset):
+        for s in g.subjects(predicate=RDF.type, object=OGCAPI.Dataset):
             for p, o in g.predicate_objects(subject=s):
                 if p == DCTERMS.title:
                     self.title = str(o)

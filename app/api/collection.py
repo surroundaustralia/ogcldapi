@@ -46,9 +46,10 @@ class Collection(object):
         if other_links is not None:
             self.links.extend(other_links)
 
-        self.feature_count = 0
-        for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.uri)):
-            self.feature_count += 1
+        #TODO confirm the below is not being used (or the functions in 54:64 which utilise this
+        # self.feature_count = 0
+        # for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.uri)):
+        #     self.feature_count += 1
 
     def to_dict(self):
         self.links = [x.__dict__ for x in self.links]
