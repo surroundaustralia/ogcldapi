@@ -68,7 +68,7 @@ class FeaturesList:
                                       OPTIONAL {{?feature dcterms:title ?title}}
                                       OPTIONAL {{?feature dcterms:title ?description}}
                                 }}
-                              LIMIT {self.per_page}""")
+                              LIMIT {self.per_page*10}""")
         result = [{str(k): v for k, v in i.items()} for i in result.bindings]
         features = [str(i["feature"]) for i in result]
         descriptions = [i["description"] if "description" in i.keys() else None for i in result]
