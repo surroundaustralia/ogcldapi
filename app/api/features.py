@@ -5,7 +5,7 @@ from api.profiles import *
 from api.link import *
 from api.collection import Collection
 from api.feature import Feature
-from owslib.ogcapi.features import Features
+
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
