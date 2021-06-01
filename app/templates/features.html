@@ -3,6 +3,7 @@
     <div>
         <h1>Features in {{ collection.title }}</h1>
     </div>
+
     <div id="maincontent">
         <h2>Items</h2>
         {% if bbox %}
@@ -10,6 +11,14 @@
         {% endif %}
         <div class="data-container"></div>
         <div id="pagination-features"></div>
+        <div style="grid-column: 1; grid-row: 3;">
+            <h3>Members</h3>
+                <ul>
+                {%- for member in members -%}
+                <li><a href="{{ member[0] }}">{{ member[1] }}</a></li>
+                {%- endfor -%}
+                </ul>
+        </div>
         <div>
             {{ page_links }}
         </div>
