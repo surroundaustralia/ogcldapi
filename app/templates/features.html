@@ -10,6 +10,9 @@
         {% endif %}
         <div class="data-container"></div>
         <div id="pagination-features"></div>
+        <div>
+            {{ page_links }}
+        </div>
         <div></div>
     </div>
     <script>
@@ -25,31 +28,33 @@
           return result;
         }();
 
-        var options = {
-          dataSource: sources,
-          pageSize: {{ pageSize }},
-          pageNumber: {{ pageNumber }},
-          callback: function (response, pagination) {
-            window.console && console.log(response, pagination);
 
-            var dataHtml = '<ul>';
 
-            $.each(response, function (index, item) {
-                dataHtml += '<li><a href=' + item[0] + '>' + item[1] + '</a></li>';
-            });
-
-            dataHtml += '</ul>';
-
-            container.prev().html(dataHtml);
-          }
-        };
+        // var options = {
+        //   dataSource: sources,
+        //   pageSize: {{ pageSize }},
+        //   pageNumber: {{ pageNumber }},
+        //   callback: function (response, pagination) {
+        //     window.console && console.log(response, pagination);
+        //
+        //     var dataHtml = '<ul>';
+        //
+        //     $.each(response, function (index, item) {
+        //         dataHtml += '<li><a href=' + item[0] + '>' + item[1] + '</a></li>';
+        //     });
+        //
+        //     dataHtml += '</ul>';
+        //
+        //     container.prev().html(dataHtml);
+        //   }
+        // };
 
         //$.pagination(container, options);
 
         container.addHook('beforeInit', function () {
           window.console && console.log('beforeInit...');
         });
-        container.pagination(options);
+        // container.pagination(options);
 
         container.addHook('beforePageOnClick', function () {
           window.console && console.log('beforePageOnClick...');

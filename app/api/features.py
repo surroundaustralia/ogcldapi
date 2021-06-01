@@ -361,6 +361,8 @@ class FeaturesRenderer(ContainerRenderer):
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
+            "members_total_count": self.members_total_count,
+            "page_links": self.page_links,
             "members": self.members,
             "request": self.request,
             "pageSize": self.per_page,
