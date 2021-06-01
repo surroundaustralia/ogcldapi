@@ -101,6 +101,9 @@ class FeaturesList:
         #     self.features.append(
         #         (str(s), identifier, title, description)
         #         )
+        start = (self.page-1)*self.per_page
+        end = start + self.per_page
+        self.filtered_features = self.features[start:end]
         self.bbox_type = None
 
     def get_feature_uris_by_bbox(self):
@@ -267,7 +270,7 @@ class FeaturesRenderer(ContainerRenderer):
                 None,
                 None,
                 [(LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items/" + x[1], x[2])
-                 for x in self.feature_list.features],
+                 for x in self.feature_list.filtered_features],
                 self.feature_list.feature_count,
                 profiles={"oai": profile_openapi, "geosp": profile_geosparql},
                 default_profile_token="oai"
