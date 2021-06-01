@@ -70,11 +70,12 @@ class FeaturesList:
             result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
                                  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                                  SELECT ?feature ?identifier ?title ?description
-                                    {{?feature dcterms:isPartOf <{self.collection.uri}> .
-                                          OPTIONAL {{?feature dcterms:identifier ?identifier }}
-                                          OPTIONAL {{?feature dcterms:title ?title}}
-                                          OPTIONAL {{?feature dcterms:title ?description}}
-                                    }}
+                                    {{?feature dcterms:isPartOf <{self.collection.uri}> ;
+                                        dcterms:identifier ?token_identifier ;
+                                        OPTIONAL {{?feature dcterms:title ?title}}
+                                        OPTIONAL {{?feature dcterms:title ?description}}
+                                        BIND (xsd:integer(?token_identifier) AS ?identifier)
+                                    }} ORDER BY ?identifier
                                   """)
             #LIMIT {self.per_page*10}
             result = [{str(k): v for k, v in i.items()} for i in result.bindings]
