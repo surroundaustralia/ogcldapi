@@ -24,55 +24,6 @@
         </div>
         <div></div>
     </div>
-    <script>
-    $(function() {
-      (function(name) {
-        var container = $('#pagination-' + name);
-        var sources = function () {
-          var result = [];
-          for (var i = 0; i < {{ members|tojson }}.length; i++) {
-            result.push({{ members|tojson }}[i]);
-          }
 
-          return result;
-        }();
-
-
-
-        // var options = {
-        //   dataSource: sources,
-        //   pageSize: {{ pageSize }},
-        //   pageNumber: {{ pageNumber }},
-        //   callback: function (response, pagination) {
-        //     window.console && console.log(response, pagination);
-        //
-        //     var dataHtml = '<ul>';
-        //
-        //     $.each(response, function (index, item) {
-        //         dataHtml += '<li><a href=' + item[0] + '>' + item[1] + '</a></li>';
-        //     });
-        //
-        //     dataHtml += '</ul>';
-        //
-        //     container.prev().html(dataHtml);
-        //   }
-        // };
-
-        //$.pagination(container, options);
-
-        container.addHook('beforeInit', function () {
-          window.console && console.log('beforeInit...');
-        });
-        // container.pagination(options);
-
-        container.addHook('beforePageOnClick', function () {
-          window.console && console.log('beforePageOnClick...');
-          //return false
-        });
-      })('features');
-    })
-
-
-    </script>
     {% include 'page_altprofiles.html' %}
 {% endblock %}
