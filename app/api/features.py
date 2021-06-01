@@ -71,13 +71,12 @@ class FeaturesList:
                                  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                                  SELECT ?feature ?identifier ?title ?description
                                     {{?feature dcterms:isPartOf <{self.collection.uri}> ;
-                                        dcterms:identifier ?token_identifier ;
+                                        dcterms:identifier ?identifier ;
                                         OPTIONAL {{?feature dcterms:title ?title}}
                                         OPTIONAL {{?feature dcterms:title ?description}}
-                                        BIND (xsd:integer(?token_identifier) AS ?identifier)
                                     }} ORDER BY ?identifier
                                   """)
-            #LIMIT {self.per_page*10}
+            # BIND (xsd:integer(?token_identifier) AS ?identifier)
             result = [{str(k): v for k, v in i.items()} for i in result.bindings]
             features = [str(i["feature"]) for i in result]
             descriptions = [i["description"] if "description" in i.keys() else None for i in result]
@@ -87,21 +86,7 @@ class FeaturesList:
             self.features = list(zip(features, identifiers, titles, descriptions))
             with open('index.p', 'wb') as f:
                 pickle.dump(self.features, f, pickle.HIGHEST_PROTOCOL)
-        # for s in page:
-        #     description = None
-        #     title = None
-        #     for p, o in g.predicate_objects(subject=s):
-        #         if p == DCTERMS.identifier:
-        #             identifier = str(o)
-        #         elif p == DCTERMS.title:
-        #             title = str(o)
-        #         elif p == DCTERMS.description:
-        #             description = str(o)
-        #     if not title:
-        #         title = f"Feature {identifier}"
-        #     self.features.append(
-        #         (str(s), identifier, title, description)
-        #         )
+        # information for pagination
         start = (self.page-1)*self.per_page
         end = start + self.per_page
         self.filtered_features = self.features[start:end]
