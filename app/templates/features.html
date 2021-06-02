@@ -20,10 +20,10 @@
                 </ul>
         </div>
         <div>
-            <input type="button" id="first" onclick="location.href='{{ first_page }}'" value="first" />
-            <input type="button" id="next" onclick="location.href='{{ next_page }}'" value="next" />
-            <input type="button" id="previous" onclick="location.href='{{ prev_page }}'" value="previous" />
-            <input type="button" id="last" onclick="location.href='{{ last_page }}'" value="last" />
+            <input type="button" id="first" onclick="location.href='{{ page_links.first_page }}'" value="first" />
+            <input type="button" id="next" onclick="location.href='{{ page_links.next_page }}'" value="next" />
+            <input type="button" id="previous" onclick="location.href='{{ page_links.prev_page }}'" value="previous" />
+            <input type="button" id="last" onclick="location.href='{{ page_links.last_page }}'" value="last" />
             <h3></h3>
         </div>
     </div>
