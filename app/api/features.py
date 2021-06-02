@@ -347,32 +347,19 @@ class FeaturesRenderer(ContainerRenderer):
             )
 
     def _render_oai_html(self):
-        prev_link = ""
-        next_link = ""
-        first_link = ""
-        last_link = ""
-        for page_link in self.page_links:
-            if "prev" in page_link:
-                prev_link = page_link.split(';')[0]
-                prev_link = prev_link[prev_link.find("<")+1:prev_link.find(">")]
-            if "next" in page_link:
-                next_link = page_link.split(';')[0]
-                next_link = next_link[next_link.find("<")+1:next_link.find(">")]
-            if "first" in page_link:
-                first_link = page_link.split(';')[0]
-                first_link = first_link[first_link.find("<")+1:first_link.find(">")]
-            if "last" in page_link:
-                last_link = page_link.split(';')[0]
-                last_link = last_link[last_link.find("<")+1:last_link.find(">")]
+
+        # generate link QSAs from the FeaturesRenderer attributes
+        links = {}
+        for link_type in ["first_page", "next_page", "prev_page", "last_page"]:
+            page = getattr(self, link_type)
+            if page:
+                links[link_type] = f"{self.instance_uri}?per_page={self.per_page}&page={page}"
 
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
             "members_total_count": self.members_total_count,
-            "first_page": first_link,
-            "prev_page": prev_link,
-            "next_page": next_link,
-            "last_page": last_link,
+            "page_links": links,
             "members": self.members,
             "request": self.request,
             "pageSize": self.per_page,
