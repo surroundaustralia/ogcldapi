@@ -347,16 +347,38 @@ class FeaturesRenderer(ContainerRenderer):
             )
 
     def _render_oai_html(self):
+        prev_link = ""
+        next_link = ""
+        first_link = ""
+        last_link = ""
+        for page_link in self.page_links:
+            if "prev" in page_link:
+                prev_link = page_link.split(';')[0]
+                prev_link = prev_link[prev_link.find("<")+1:prev_link.find(">")]
+            if "next" in page_link:
+                next_link = page_link.split(';')[0]
+                next_link = next_link[next_link.find("<")+1:next_link.find(">")]
+            if "first" in page_link:
+                first_link = page_link.split(';')[0]
+                first_link = first_link[first_link.find("<")+1:first_link.find(">")]
+            if "last" in page_link:
+                last_link = page_link.split(';')[0]
+                last_link = last_link[last_link.find("<")+1:last_link.find(">")]
+
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
             "members_total_count": self.members_total_count,
-            "page_links": self.page_links,
+            "first_page": first_link,
+            "prev_page": prev_link,
+            "next_page": next_link,
+            "last_page": last_link,
             "members": self.members,
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page
             }
+
 
         if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid
             _template_context["bbox"] = (self.feature_list.bbox_type, self.request.query_params.get("bbox"))
