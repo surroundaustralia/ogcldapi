@@ -62,7 +62,7 @@ class FeaturesList:
         # page = features_uris
 
         # for s in page: # original code
-        pickle_file = Path('index.p')
+        pickle_file = Path(Path(self.collection.uri).with_suffix('.p').name)
         if pickle_file.exists():
             with open('index.p', 'rb') as f:
                 self.features = pickle.load(f)
