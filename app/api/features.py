@@ -1,20 +1,22 @@
+import pickle
+import re
+from pathlib import Path
 from typing import List
-from config import *
-from utils import utils
-from api.profiles import *
-from api.link import *
-from api.collection import Collection
-from api.feature import Feature
 
+from SPARQLWrapper import SPARQLWrapper, JSON
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from pyldapi.fastapi_framework import ContainerRenderer, Renderer
-
-from SPARQLWrapper import SPARQLWrapper, JSON
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD, RDF
-import re
+
+from api.collection import Collection
+from api.feature import Feature
+from api.link import *
+from api.profiles import *
+from config import *
+from utils import utils
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
@@ -60,37 +62,34 @@ class FeaturesList:
         # page = features_uris
 
         # for s in page: # original code
-        result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
-                             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                             SELECT ?feature ?identifier ?title ?description
-                                {{?feature dcterms:isPartOf <{self.collection.uri}> .
-                                      OPTIONAL {{?feature dcterms:identifier ?identifier }}
-                                      OPTIONAL {{?feature dcterms:title ?title}}
-                                      OPTIONAL {{?feature dcterms:title ?description}}
-                                }}
-                              LIMIT {self.per_page*10}""")
-        result = [{str(k): v for k, v in i.items()} for i in result.bindings]
-        features = [str(i["feature"]) for i in result]
-        descriptions = [i["description"] if "description" in i.keys() else None for i in result]
-        identifiers = [str(i["identifier"]) if "identifier" in i.keys() else None for i in result]
-        # use the title if it's available, otherwise use "Feature {identifier}"
-        titles = [i["title"] if "title" in i.keys() else f"Feature {i['identifier']}" for i in result]
-        self.features = list(zip(features, identifiers, titles, descriptions))
-        # for s in page:
-        #     description = None
-        #     title = None
-        #     for p, o in g.predicate_objects(subject=s):
-        #         if p == DCTERMS.identifier:
-        #             identifier = str(o)
-        #         elif p == DCTERMS.title:
-        #             title = str(o)
-        #         elif p == DCTERMS.description:
-        #             description = str(o)
-        #     if not title:
-        #         title = f"Feature {identifier}"
-        #     self.features.append(
-        #         (str(s), identifier, title, description)
-        #         )
+        pickle_file = Path(Path(self.collection.uri).with_suffix('.p').name)
+        if pickle_file.exists():
+            with open('index.p', 'rb') as f:
+                self.features = pickle.load(f)
+        else:
+            result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+                                 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                                 SELECT ?feature ?identifier ?title ?description
+                                    {{?feature dcterms:isPartOf <{self.collection.uri}> ;
+                                        dcterms:identifier ?identifier ;
+                                        OPTIONAL {{?feature dcterms:title ?title}}
+                                        OPTIONAL {{?feature dcterms:title ?description}}
+                                    }} ORDER BY ?identifier
+                                  """)
+            # BIND (xsd:integer(?token_identifier) AS ?identifier)
+            result = [{str(k): v for k, v in i.items()} for i in result.bindings]
+            features = [str(i["feature"]) for i in result]
+            descriptions = [i["description"] if "description" in i.keys() else None for i in result]
+            identifiers = [str(i["identifier"]) if "identifier" in i.keys() else None for i in result]
+            # use the title if it's available, otherwise use "Feature {identifier}"
+            titles = [i["title"] if "title" in i.keys() else f"Feature {i['identifier']}" for i in result]
+            self.features = list(zip(features, identifiers, titles, descriptions))
+            with open('index.p', 'wb') as f:
+                pickle.dump(self.features, f, pickle.HIGHEST_PROTOCOL)
+        # information for pagination
+        start = (self.page-1)*self.per_page
+        end = start + self.per_page
+        self.filtered_features = self.features[start:end]
         self.bbox_type = None
 
     def get_feature_uris_by_bbox(self):
@@ -257,7 +256,7 @@ class FeaturesRenderer(ContainerRenderer):
                 None,
                 None,
                 [(LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items/" + x[1], x[2])
-                 for x in self.feature_list.features],
+                 for x in self.feature_list.filtered_features],
                 self.feature_list.feature_count,
                 profiles={"oai": profile_openapi, "geosp": profile_geosparql},
                 default_profile_token="oai"
@@ -348,14 +347,25 @@ class FeaturesRenderer(ContainerRenderer):
             )
 
     def _render_oai_html(self):
+
+        # generate link QSAs from the FeaturesRenderer attributes
+        links = {}
+        for link_type in ["first_page", "next_page", "prev_page", "last_page"]:
+            page = getattr(self, link_type)
+            if page:
+                links[link_type] = f"{self.instance_uri}?per_page={self.per_page}&page={page}"
+
         _template_context = {
             "links": self.links,
             "collection": self.feature_list.collection,
+            "members_total_count": self.members_total_count,
+            "page_links": links,
             "members": self.members,
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page
             }
+
 
         if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid
             _template_context["bbox"] = (self.feature_list.bbox_type, self.request.query_params.get("bbox"))
