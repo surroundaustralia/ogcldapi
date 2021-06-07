@@ -1,17 +1,19 @@
+import pickle
+from pathlib import Path
 from typing import List
-from api.profiles import *
-from config import *
-from api.link import *
 
+import markdown
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from pyldapi.fastapi_framework import Renderer
-
-import markdown
-from utils import utils
 from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCTERMS, RDF
+
+from api.link import *
+from api.profiles import *
+from config import *
+from utils import utils
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
@@ -46,10 +48,14 @@ class Collection(object):
         if other_links is not None:
             self.links.extend(other_links)
 
-        #TODO confirm the below is not being used (or the functions in 54:64 which utilise this
-        # self.feature_count = 0
-        # for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.uri)):
-        #     self.feature_count += 1
+        # TODO Test lines 50-52
+        # pickle_file = Path(Path(self.collection.uri).with_suffix('.p').name)
+        # with pickle_file.open() as f:
+        #     self.feature_count = len(pickle.load(f))
+
+        self.feature_count = 0
+        for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.uri)):
+            self.feature_count += 1
 
     def to_dict(self):
         self.links = [x.__dict__ for x in self.links]
