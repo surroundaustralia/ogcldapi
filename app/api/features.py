@@ -84,7 +84,7 @@ class FeaturesList:
             # use the title if it's available, otherwise use "Feature {identifier}"
             titles = [i["title"] if "title" in i.keys() else f"Feature {i['identifier']}" for i in result]
             self.features = list(zip(features, identifiers, titles, descriptions))
-            with open('index.p', 'wb') as f:
+            with open(pickle_file, 'wb') as f:
                 pickle.dump(self.features, f, pickle.HIGHEST_PROTOCOL)
         # information for pagination
         start = (self.page-1)*self.per_page
