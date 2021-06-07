@@ -64,7 +64,7 @@ class FeaturesList:
         # for s in page: # original code
         pickle_file = Path(Path(self.collection.uri).with_suffix('.p').name)
         if pickle_file.exists():
-            with open('index.p', 'rb') as f:
+            with open(pickle_file, 'rb') as f:
                 self.features = pickle.load(f)
         else:
             result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
