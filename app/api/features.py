@@ -73,7 +73,7 @@ class FeaturesList:
                                 {{?feature dcterms:isPartOf <{self.collection.uri}> ;
                                     dcterms:identifier ?identifier ;
                                     OPTIONAL {{?feature dcterms:title ?title}}
-                                    OPTIONAL {{?feature dcterms:title ?description}}
+                                    OPTIONAL {{?feature dcterms:description ?description}}
                                 }} LIMIT {self.per_page} OFFSET {(self.page-1)*self.per_page}
                               """)
         # BIND (xsd:integer(?token_identifier) AS ?identifier)
