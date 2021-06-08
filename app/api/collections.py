@@ -19,21 +19,40 @@ g = utils.g
 
 class Collections:
     def __init__(self):
-        self.collections = []
-        for s in g.subjects(predicate=RDF.type, object=OGCAPI.FeatureCollection):
-            if (s, DCTERMS.isPartOf, URIRef(DATASET_URI)) in g:
-                identifier = None
-                title = None
-                description = None
-                for p, o in g.predicate_objects(subject=s):
-                    if p == DCTERMS.identifier:
-                        identifier = str(o)
-                    elif p == DCTERMS.title:
-                        title = str(o)
-                    elif p == DCTERMS.description:
-                        description = str(o)
 
-                self.collections.append((str(s), identifier, title, description))
+        result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+                             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                             PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcldapi/>
+                             SELECT ?fc ?identifier ?title ?description
+                                {{?fc a ogcapi:FeatureCollection ;
+                                    dcterms:identifier ?identifier ;
+                                    dcterms:title ?title
+                                    OPTIONAL {{?fc dcterms:description ?description}}
+                                }}
+                              """)
+        result = [{str(k): v for k, v in i.items()} for i in result.bindings]
+        fc = [str(i["fc"]) for i in result]
+        descriptions = [i["description"] if "description" in i.keys() else None for i in result]
+        identifiers = [str(i["identifier"]) if "identifier" in i.keys() else None for i in result]
+        titles = [i["title"] for i in result]
+        self.collections = list(zip(fc, identifiers, titles, descriptions))
+
+        # self.collections = []
+        #
+        # for s in g.subjects(predicate=RDF.type, object=OGCAPI.FeatureCollection):
+        #     if (s, DCTERMS.isPartOf, URIRef(DATASET_URI)) in g:
+        #         identifier = None
+        #         title = None
+        #         description = None
+        #         for p, o in g.predicate_objects(subject=s):
+        #             if p == DCTERMS.identifier:
+        #                 identifier = str(o)
+        #             elif p == DCTERMS.title:
+        #                 title = str(o)
+        #             elif p == DCTERMS.description:
+        #                 description = str(o)
+        #
+        #         self.collections.append((str(s), identifier, title, description))
 
 
 class CollectionsRenderer(ContainerRenderer):
