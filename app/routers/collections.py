@@ -112,13 +112,25 @@ def collection_id_items_id(request: Request,
             media_type="text/plain"
         )
 
+    result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+                         PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                         SELECT ?feature
+                            {{?feature dcterms:identifier "{item_id}"^^xsd:token ;
+                                       dcterms:isPartOf <{collection_uri}> .
+                            }}
+                          """)
+    feature = str(list(result.bindings[0].values())[0])
+    return FeatureRenderer(request=request,
+                           feature_uri=str(feature),
+                           collection_id=collection_id).render()
+
     # get URIs for things with this ID  - IDs may not be unique across Collections
-    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(item_id, datatype=XSD.token)):
-        # if this Feature is in this Collection, return it
-        if (s, DCTERMS.isPartOf, collection_uri) in g:
-            return FeatureRenderer(request=request,
-                                   feature_uri=str(s),
-                                   collection_id=collection_id).render()
+    # for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(item_id, datatype=XSD.token)):
+    #     # if this Feature is in this Collection, return it
+    #     if (s, DCTERMS.isPartOf, collection_uri) in g:
+    #         return FeatureRenderer(request=request,
+    #                                feature_uri=str(s),
+    #                                collection_id=collection_id).render()
 
     return Response(
         "The Feature you have entered the ID for is not part of the Collection you entered the ID for",
