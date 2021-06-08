@@ -48,7 +48,11 @@ class Collection(object):
         if other_links is not None:
             self.links.extend(other_links)
 
-        # TODO Confirm deletion of "self.feature_count" below causes no issues.
+        # TODO Test lines 50-52
+        # pickle_file = Path(Path(self.collection.uri).with_suffix('.p').name)
+        # with pickle_file.open() as f:
+        #     self.feature_count = len(pickle.load(f))
+
         # self.feature_count = 0
         # for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.uri)):
         #     self.feature_count += 1
