@@ -39,15 +39,12 @@ class FeaturesList:
             self.collection = Collection(str(s))
 
         # get list of Features within this Collection
-        features_uris = []
         # filter if we have a filtering param
         if request.query_params.get("bbox") is not None:
             # work out what sort of BBOX filter it is and filter by that type
             features_uris = self.get_feature_uris_by_bbox()
         else:
             # all features in list
-            # for s in g.subjects(predicate=DCTERMS.isPartOf, object=URIRef(self.collection.uri)):
-            #     features_uris.append(s)
             result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
                                  SELECT (COUNT(?s) as ?count) {{?s dcterms:isPartOf <{self.collection.uri}>}}""")
         self.feature_count = int(list(result.bindings[0].values())[0])
@@ -55,18 +52,6 @@ class FeaturesList:
         # limit
         self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
 
-        # if limit is set, ignore page & per_page
-        # if self.limit is not None:
-        #     features_uris = features_uris[:self.limit]
-
-        # page = features_uris
-
-        # for s in page: # original code
-        # pickle_file = Path(Path(self.collection.uri).with_suffix('.p').name)
-        # if pickle_file.exists():
-        #     with open(pickle_file, 'rb') as f:
-        #         self.features = pickle.load(f)
-        # else:
         result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
                              PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                              SELECT ?feature ?identifier ?title ?description
@@ -76,7 +61,6 @@ class FeaturesList:
                                     OPTIONAL {{?feature dcterms:description ?description}}
                                 }} LIMIT {self.per_page} OFFSET {(self.page-1)*self.per_page}
                               """)
-        # BIND (xsd:integer(?token_identifier) AS ?identifier)
         result = [{str(k): v for k, v in i.items()} for i in result.bindings]
         features = [str(i["feature"]) for i in result]
         descriptions = [i["description"] if "description" in i.keys() else None for i in result]
@@ -84,12 +68,7 @@ class FeaturesList:
         # use the title if it's available, otherwise use "Feature {identifier}"
         titles = [i["title"] if "title" in i.keys() else f"Feature {i['identifier']}" for i in result]
         self.features = list(zip(features, identifiers, titles, descriptions))
-            # with open(pickle_file, 'wb') as f:
-            #     pickle.dump(self.features, f, pickle.HIGHEST_PROTOCOL)
-        # information for pagination
-        # start = (self.page-1)*self.per_page
-        # end = start + self.per_page
-        # self.filtered_features = self.features[start:end]
+
         self.bbox_type = None
 
     def get_feature_uris_by_bbox(self):
