@@ -5,9 +5,9 @@ from api.link import *
 import logging
 from config import *
 from utils import utils
-
+from rdflib import Graph
 from fastapi import Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from pyldapi.fastapi_framework import Renderer
 
@@ -120,8 +120,8 @@ class Feature(object):
             sparql.setReturnFormat(JSON)
             ret = sparql.queryAndConvert()["results"]["bindings"]
             self.geometries = []
-            if 'g1' in ret[0].keys():
-                self.geometries.append(Geometry(ret[0]["g1"]["value"], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84))
+            if 'g1' in ret[0].keys(): # TODO come up with a better solution than splitting the string on '> '
+                self.geometries.append(Geometry(ret[0]["g1"]["value"].split('> ')[1], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84))
             if 'g2' in ret[0].keys():
                 self.geometries.append(Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX))
             # self.geometries = [
@@ -162,6 +162,7 @@ class Feature(object):
             ]
           },
         """
+        #TODO we have geojson in the data - just read this
         geojson_geometry = [g.to_geo_json_dict() for g in self.geometries if g.crs == CRS.WGS84][0]  # one only
 
         properties = {
@@ -179,52 +180,53 @@ class Feature(object):
         }
 
     def to_geosp_graph(self):
-        # g = Graph()
-        g.bind("geo", GEO)
-        g.bind("geox", GEOX)
+        local_g = Graph()
+
+        local_g.bind("geo", GEO)
+        local_g.bind("geox", GEOX)
 
         f = URIRef(self.uri)
-        g.add((
+        local_g.add((
             f,
             RDF.type,
             GEO.Feature
         ))
         for geom in self.geometries:
             this_geom = BNode()
-            g.add((
+            local_g.add((
                 f,
                 GEO.hasGeometry,
                 this_geom
             ))
-            g.add((
+            local_g.add((
                 this_geom,
                 RDFS.label,
                 Literal(geom.label)
             ))
-            g.add((
+            local_g.add((
                 this_geom,
                 GEOX.hasRole,
                 URIRef(geom.role.value)
             ))
-            g.add((
+            local_g.add((
                 this_geom,
                 GEOX.inCRS,
                 URIRef(geom.crs.value)
             ))
             if geom.crs == CRS.TB16PIX:
-                g.add((
+                local_g.add((
                     this_geom,
                     GEOX.asDGGS,
                     Literal(geom.coordinates, datatype=GEOX.DggsLiteral)
                 ))
             else:  # WGS84
-                g.add((
+                local_g.add((
                     this_geom,
                     GEO.asWKT,
                     Literal(geom.coordinates, datatype=GEO.WktLiteral)
                 ))
 
-        return g
+        return local_g
 
 
 class FeatureRenderer(Renderer):
@@ -302,9 +304,9 @@ class FeatureRenderer(Renderer):
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return JSONResponse(g.serialize(format="json-ld").decode(), media_type=self.mediatype, headers=self.headers)
+            return JSONResponse(g.serialize(format="json-ld"), media_type=self.mediatype, headers=self.headers)
         elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
-            return JSONResponse(g.serialize(format=self.mediatype).decode(), media_type=self.mediatype, headers=self.headers)
+            return PlainTextResponse(g.serialize(format=self.mediatype), media_type=self.mediatype, headers=self.headers)
         else:
             return Response(
                 "The Media Type you requested cannot be serialized to",

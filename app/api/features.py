@@ -76,6 +76,7 @@ class FeaturesList:
                                     OPTIONAL {{?feature dcterms:description ?description}}
                                 }} LIMIT {self.per_page} OFFSET {(self.page-1)*self.per_page}
                               """)
+
         # BIND (xsd:integer(?token_identifier) AS ?identifier)
         result = [{str(k): v for k, v in i.items()} for i in result.bindings]
         features = [str(i["feature"]) for i in result]
