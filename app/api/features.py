@@ -35,15 +35,17 @@ class FeaturesList:
         )
 
         # get Collection
-        for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)):
-            self.collection = Collection(str(s))
+        self.collection = Collection
+        result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
+                             SELECT ?collection {{?collection dcterms:identifier "{collection_id}"^^xsd:token}}""")
+        collection = str(list(result.bindings[0].values())[0])
+        self.collection = Collection(collection)
 
         # filter if we have a filtering param
         if request.query_params.get("bbox") is not None:
             # work out what sort of BBOX filter it is and filter by that type
             features_uris = self.get_feature_uris_by_bbox()
         else:
-
             result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
                                  SELECT (COUNT(?s) as ?count) {{?s dcterms:isPartOf <{self.collection.uri}>}}""")
         self.feature_count = int(list(result.bindings[0].values())[0])

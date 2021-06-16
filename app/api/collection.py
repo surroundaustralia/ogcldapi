@@ -27,14 +27,18 @@ class Collection(object):
     ):
         self.uri = uri
         # Feature properties
-        self.description = None
-        for p, o in g.predicate_objects(subject=URIRef(self.uri)):
-            if p == DCTERMS.title:
-                self.title = str(o)
-            elif p == DCTERMS.identifier:
-                self.identifier = str(o)
-            elif p == DCTERMS.description:
-                self.description = markdown.markdown(str(o))
+        collection_graph = g.query(f"""DESCRIBE <{self.uri}>""").graph
+        self.identifier = collection_graph.value(URIRef(self.uri), DCTERMS.identifier)
+        self.title = collection_graph.value(URIRef(self.uri), DCTERMS.title)
+        self.description = collection_graph.value(URIRef(self.uri), DCTERMS.description)
+
+        # for p, o in g.predicate_objects(subject=URIRef(self.uri)):
+        #     if p == DCTERMS.title:
+        #         self.title = str(o)
+        #     elif p == DCTERMS.identifier:
+        #         self.identifier = str(o)
+        #     elif p == DCTERMS.description:
+        #         self.description = markdown.markdown(str(o))
 
         # Collection other properties
         self.extent_spatial = None

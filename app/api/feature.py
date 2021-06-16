@@ -72,6 +72,8 @@ class Feature(object):
         self.properties = {}
         defined_labels = {
             URIRef('http://purl.org/dc/terms/type'): 'Type',
+            URIRef('http://purl.org/dc/terms/identifier'): 'Identifier',
+            URIRef('http://purl.org/dc/terms/isPartOf'): 'Is part of Feature Collection'
             }
         feature_graph = g.query(f"""DESCRIBE <{self.uri}>""").graph
         non_bnodes = [i for i in feature_graph.triples((None, None, None))
@@ -97,7 +99,7 @@ class Feature(object):
             else:
                 self.properties[i[1]] = i[2]
 
-        self.identifier = str(feature_graph.value(URIRef(self.uri), DCTERMS.identifier))
+        self.identifier = feature_graph.value(URIRef(self.uri), DCTERMS.identifier)
         self.title = feature_graph.value(URIRef(self.uri), DCTERMS.title)
         self.description = feature_graph.value(URIRef(self.uri), DCTERMS.description)
         self.label = feature_graph.value(URIRef(self.uri), RDFS.label)
