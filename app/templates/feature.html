@@ -27,7 +27,7 @@
       {% endfor %}
       {% for geometry in feature.geometries %}
         <tr>
-          <td>{{ geometry.label }}</td><td><code>{{ geometry.coordinates }}</code></td>
+          <td>{{ geometry.label }}</td><td><code>{{ ' '.join(geometry.coordinates.split()[:6]+[' ... ']+geometry.coordinates.split()[-6:]) }}</code></td>
         </tr>
       {% endfor %}
       </table>
