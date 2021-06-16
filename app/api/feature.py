@@ -18,11 +18,11 @@ from enum import Enum
 from geomet import wkt
 from geojson_rewind import rewind
 import markdown
-
+from typing import ChainMap
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
-
+context = utils.context
 
 class GeometryRole(Enum):
     Boundary = "https://linked.data.gov.au/def/geometry-roles/boundary"
@@ -68,69 +68,96 @@ class Feature(object):
             uri: str,
             other_links: List[Link] = None):
         self.uri = uri
+        self.geometries = []
+        self.properties = {}
+        defined_labels = {
+            URIRef('http://purl.org/dc/terms/type'): 'Type',
+            }
+        feature_graph = g.query(f"""DESCRIBE <{self.uri}>""").graph
+        non_bnodes = [i for i in feature_graph.triples((None, None, None))
+                      if not (isinstance(i[0], BNode) or isinstance(i[2], BNode))]
+        bnodes = [i for i in feature_graph.triples((None, None, None))
+                      if isinstance(i[2], BNode)]
 
-        q = """
-            PREFIX dcterms: <http://purl.org/dc/terms/>
-            PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+        # get the pref labels from a context source - such as the ontology, taxonomies
+        labels_from_context = {}
+        for i in non_bnodes:
+            label = context.label(i[1])
+            prefLabel = context.preferredLabel(i[1])
+            if label:
+                labels_from_context[i[1]] = str(label[0][1])
+            elif prefLabel:
+                labels_from_context[i[1]] = str(prefLabel[0][1])
 
-            SELECT ?identifier ?title ?description
-            WHERE {{
-                ?uri a geo:Feature ;
-                   dcterms:isPartOf <{}> ;
-                   dcterms:identifier ?identifier ;
-                   OPTIONAL {{?uri dcterms:title ?title}}
-                   OPTIONAL {{?uri dcterms:description ?description}}
-            }}
-            """  # .format(collection_id)
-        # g = get_graph()
-        # Feature properties
-        self.description = None
-        self.title = None
-        for p, o in g.predicate_objects(subject=URIRef(self.uri)):
-            if p == DCTERMS.identifier:
-                self.identifier = str(o)
-            elif p == DCTERMS.title:
-                self.title = str(o)
-            elif p == DCTERMS.description:
-                self.description = markdown.markdown(str(o))
-            elif p == DCTERMS.isPartOf:
-                self.isPartOf = str(o)
+        labels = dict(ChainMap(defined_labels, labels_from_context))
+        # generate property pairs
+        for i in non_bnodes:
+            if i[1] in labels.keys():
+                self.properties[labels[i[1]]] = i[2]
+            else:
+                self.properties[i[1]] = i[2]
+
+        self.identifier = str(feature_graph.value(URIRef(self.uri), DCTERMS.identifier))
+        self.title = feature_graph.value(URIRef(self.uri), DCTERMS.title)
+        self.description = feature_graph.value(URIRef(self.uri), DCTERMS.description)
+        self.label = feature_graph.value(URIRef(self.uri), RDFS.label)
+        self.isPartOf = feature_graph.value(URIRef(self.uri), DCTERMS.isPartOf)
         if not self.title:
-            self.title = f"Feature {self.identifier}"
+            if self.label:
+                self.title = self.label
+            else:
+                self.title = f"Feature {self.identifier}"
 
         # Feature geometries
         # out of band call for Geometries as BNodes not supported by SPARQLStore
-        q = f"""
-            PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-            SELECT * 
-            WHERE {{
-                <{self.uri}>
-                    geo:hasGeometry/geo:asWKT ?g1 .
-                   OPTIONAL {{ <{self.uri}> geo:hasGeometry/geo:asDGGS ?g2 . }}
-            }}
-            """
+        # q = f"""
+        #     PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+        #     SELECT *
+        #     WHERE {{
+        #         <{self.uri}>
+        #             geo:hasGeometry/geo:asWKT ?g1 .
+        #            OPTIONAL {{ <{self.uri}> geo:hasGeometry/geo:asDGGS ?g2 . }}
+        #     }}
+        #     """
 
-        logging.info(f"SparQL Endpoint: {SPARQL_ENDPOINT}")
-        logging.info(f"Uri feature: {self.uri}")
-        logging.info(f"Query feature: {q}")
-
-        try:
-            sparql = SPARQLWrapper(SPARQL_ENDPOINT)
-            sparql.setQuery(q)
-            sparql.setReturnFormat(JSON)
-            ret = sparql.queryAndConvert()["results"]["bindings"]
-            self.geometries = []
-            if 'g1' in ret[0].keys(): # TODO come up with a better solution than splitting the string on '> '
-                self.geometries.append(Geometry(ret[0]["g1"]["value"].split('> ')[1], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84))
-            if 'g2' in ret[0].keys():
-                self.geometries.append(Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX))
-            # self.geometries = [
-            #     Geometry(ret[0]["g1"]["value"], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84),
-            #     Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX),
-            # ]
-            logging.info(f"Geometries - {self.geometries}")
-        except Exception as e:
-            logging.error(e)
+        # logging.info(f"SparQL Endpoint: {SPARQL_ENDPOINT}")
+        # logging.info(f"Uri feature: {self.uri}")
+        # logging.info(f"Query feature: {q}")
+        geom_names = {
+            'WKT': {"name": "Well Known Text Geometry", "crs": CRS.WGS84},
+            'DGGS': {"name": "TB16Pix Geometry", "crs": CRS.TB16PIX},
+            'GeoJSON': {"name": "GeoJSON Geometry", "crs": CRS.WGS84}}
+        geom_bnode = feature_graph.value(URIRef(self.uri), GEO.hasGeometry)
+        for geom_type in ['WKT', 'DGGS', 'GeoJSON']:
+            geom_literal = feature_graph.value(geom_bnode, GEO[f'as{geom_type}'])
+            if geom_literal:
+                #TODO temporary while geometries contain type at front
+                if geom_literal.find('>') > 0:
+                    geom_literal = geom_literal.split('> ')[1]
+                #TODO only use the truncated geom literal in the HTML pages
+                split_geom = geom_literal.split()
+                truncated_geom_literal = ' '.join(split_geom[:6] + [' ... '] + split_geom[-6:])
+                self.geometries.append(Geometry(geom_literal,
+                                                GeometryRole.Boundary,
+                                                geom_names[geom_type]["name"],
+                                                geom_names[geom_type]["crs"]))
+        # try:
+        #     sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+        #     sparql.setQuery(q)
+        #     sparql.setReturnFormat(JSON)
+        #     ret = sparql.queryAndConvert()["results"]["bindings"]
+        #     self.geometries = []
+        #     if 'g1' in ret[0].keys(): # TODO come up with a better solution than splitting the string on '> '
+        #         self.geometries.append(Geometry(ret[0]["g1"]["value"].split('> ')[1], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84))
+        #     if 'g2' in ret[0].keys():
+        #         self.geometries.append(Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX))
+        #     # self.geometries = [
+        #     #     Geometry(ret[0]["g1"]["value"], GeometryRole.Boundary, "WGS84 Geometry", CRS.WGS84),
+        #     #     Geometry(ret[0]["g2"]["value"], GeometryRole.Boundary, "TB16Pix Geometry", CRS.TB16PIX),
+        #     # ]
+        #     logging.info(f"Geometries - {self.geometries}")
+        # except Exception as e:
+        #     logging.error(e)
 
         # Feature other properties
         self.extent_spatial = None
@@ -162,8 +189,12 @@ class Feature(object):
             ]
           },
         """
-        #TODO we have geojson in the data - just read this
-        geojson_geometry = [g.to_geo_json_dict() for g in self.geometries if g.crs == CRS.WGS84][0]  # one only
+        # TODO might make more sense to put the geometries in to a dictionary, to avoid the list comps below
+        available_geoms = [g.label for g in self.geometries]
+        if "GeoJSON Geometry" in available_geoms:
+            geojson_geometry = [g.coordinates for g in self.geometries if g.label == "GeoJSON Geometry"][0]
+        else:
+            geojson_geometry = [g.to_geo_json_dict() for g in self.geometries if g.label == "Well Known Text Geometry"][0]  # one only
 
         properties = {
             "title": self.title,

@@ -20,6 +20,11 @@
         }
       </style>
       <table class="lined">
+      {% for k,v in feature.properties.items() %}
+        <tr>
+          <td>{{ k }}</td><td><code>{{ v }}</code></td>
+        </tr>
+      {% endfor %}
       {% for geometry in feature.geometries %}
         <tr>
           <td>{{ geometry.label }}</td><td><code>{{ geometry.coordinates }}</code></td>
