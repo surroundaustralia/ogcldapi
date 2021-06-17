@@ -1,24 +1,21 @@
+from enum import Enum
+from typing import ChainMap
 from typing import List
-from api.profiles import *
-from api.link import *
 
-import logging
-from config import *
-from utils import utils
-from rdflib import Graph
 from fastapi import Response
 from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import Renderer
-
-from SPARQLWrapper import SPARQLWrapper, JSON
-from rdflib import URIRef, Literal, BNode
-from rdflib.namespace import DCTERMS, RDF, RDFS, XSD
-from enum import Enum
-from geomet import wkt
 from geojson_rewind import rewind
-import markdown
-from typing import ChainMap
+from geomet import wkt
+from pyldapi.fastapi_framework import Renderer
+from rdflib import Graph
+from rdflib import URIRef, Literal, BNode
+from rdflib.namespace import DCTERMS, RDF, RDFS
+
+from api.link import *
+from api.profiles import *
+from config import *
+from utils import utils
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
@@ -71,7 +68,7 @@ class Feature(object):
         self.geometries = []
         self.properties = {}
         defined_labels = {
-            URIRef('http://purl.org/dc/terms/type'): 'Type',
+            URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): 'Type',
             URIRef('http://purl.org/dc/terms/identifier'): 'Identifier',
             URIRef('http://purl.org/dc/terms/isPartOf'): 'Is part of Feature Collection'
             }
@@ -83,21 +80,23 @@ class Feature(object):
 
         # get the pref labels from a context source - such as the ontology, taxonomies
         labels_from_context = {}
-        for i in non_bnodes:
-            label = context.label(i[1])
-            prefLabel = context.preferredLabel(i[1])
+        for triple in non_bnodes:
+            label = context.label(triple[1])
+            prefLabel = context.preferredLabel(triple[1])
             if label:
-                labels_from_context[i[1]] = str(label[0][1])
+                labels_from_context[triple[1]] = str(label[0][1])
             elif prefLabel:
-                labels_from_context[i[1]] = str(prefLabel[0][1])
+                labels_from_context[triple[1]] = str(prefLabel[0][1])
 
         labels = dict(ChainMap(defined_labels, labels_from_context))
         # generate property pairs
-        for i in non_bnodes:
-            if i[1] in labels.keys():
-                self.properties[labels[i[1]]] = i[2]
+        for triple in non_bnodes:
+            if triple[1] in labels.keys():
+                self.properties[triple[1]] = {"val": triple[2],
+                                              "name": labels[triple[1]],
+                                              "prefixedURI": triple[1].n3(feature_graph.namespace_manager)}
             else:
-                self.properties[i[1]] = i[2]
+                self.properties[triple[1]] = {"val": triple[2]}
 
         self.identifier = feature_graph.value(URIRef(self.uri), DCTERMS.identifier)
         self.title = feature_graph.value(URIRef(self.uri), DCTERMS.title)
@@ -137,8 +136,6 @@ class Feature(object):
                 if geom_literal.find('>') > 0:
                     geom_literal = geom_literal.split('> ')[1]
                 #TODO only use the truncated geom literal in the HTML pages
-                split_geom = geom_literal.split()
-                truncated_geom_literal = ' '.join(split_geom[:6] + [' ... '] + split_geom[-6:])
                 self.geometries.append(Geometry(geom_literal,
                                                 GeometryRole.Boundary,
                                                 geom_names[geom_type]["name"],
