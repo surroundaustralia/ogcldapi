@@ -1,9 +1,8 @@
 {% extends "page.html" %}
+{% set active_page = "collections" %}
 {% block content %}
-  <div>
-    <h1>{{ collection.title }}</h1>
-  </div>
   <div id="maincontent">
+    <h1>{{ collection.title }}</h1>
     {% if collection.description is not none %}
       <div>{{ collection.description|safe }}</div>
     {% endif %}

@@ -1,48 +1,37 @@
 {% extends "page.html" %}
+{% set active_page = "collections" %}
 {% block content %}
-  <div>
-    <h1>{{ feature.title }}</h1>
-  </div>
-  <div id="maincontent">
-    {% if feature.description is not none %}
-      <div>{{ feature.description|safe }}</div>
-    {% endif %}
-    {% if feature.geometries is not none %}
-      <style>
-        table.lined {
-            border-collapse:collapse;
-            margin-bottom: 10px;
-        }
-        table.lined td {
-            border: solid 1px lightgrey;
-            border-collapse:collapse;
-            padding:5px;
-        }
-      </style>
-      <table class="lined">
-      {% for k,v in feature.properties.items() %}
-        <tr>
-          <td>{% if "name" in v.keys() %}
-            <span class="tooltip">{{ v.name }}<span class="tooltiptext"><a href="{{ k }}">{{ v.prefixedURI }}</a></span></span>
+<div id="maincontent">
+  <h1>{{ feature.title }}</h1>
+  {% if feature.description is not none %}
+    <div>{{ feature.description|safe }}</div>
+  {% endif %}
+  {% if feature.geometries is not none %}
+    <!-- map -->
+    <table class="lined">
+    {% for k,v in feature.properties.items() %}
+      <tr>
+        <td>{% if "name" in v.keys() %}
+          <span class="tooltip">{{ v.name }}<span class="tooltiptext"><a href="{{ k }}">{{ v.prefixedURI }}</a></span></span>
 <!--            <a href="{{ k }}">{{ v.name }}</a>-->
-              {% else %} {{ k }}
-              {% endif %}
-          </td>
-          <td><code>{{ v.val }}</code></td>
-        </tr>
-      {% endfor %}
-      {% for geometry in feature.geometries %}
-        <tr>
-          <td>{{ geometry.label }}</td><td><code>
-          {% if geometry.coordinates.split()|length > 6 %}
-            {{ ' '.join(geometry.coordinates.split()[:6]+[' ... ']+geometry.coordinates.split()[-6:]) }}
-          {% else %}{{ geometry.coordinates }}
-          {% endif %}</code></td>
+            {% else %} {{ k }}
+            {% endif %}
+        </td>
+        <td><code>{{ v.val }}</code></td>
+      </tr>
+    {% endfor %}
+    {% for geometry in feature.geometries %}
+      <tr>
+        <td>{{ geometry.label }}</td><td><code>
+        {% if geometry.coordinates.split()|length > 6 %}
+          {{ ' '.join(geometry.coordinates.split()[:6]+[' ... ']+geometry.coordinates.split()[-6:]) }}
+        {% else %}{{ geometry.coordinates }}
+        {% endif %}</code></td>
 <!--          <td>{{ geometry.label }}</td><td><code>{{ ' '.join(geometry.coordinates.split()[:6]+[' ... ']+geometry.coordinates.split()[-6:]) }}</code></td>-->
-        </tr>
-      {% endfor %}
-      </table>
-    {% endif %}
-  </div>
-  {% include 'page_altprofiles.html' %}
+      </tr>
+    {% endfor %}
+    </table>
+  {% endif %}
+</div>
+{% include 'page_altprofiles.html' %}
 {% endblock %}

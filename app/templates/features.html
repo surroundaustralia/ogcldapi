@@ -1,32 +1,28 @@
 {% extends "page.html" %}
+{% set active_page = "collections" %}
 {% block content %}
-    <div>
-        <h1>Features in {{ collection.title }}</h1>
+<div id="maincontent">
+    <h1>Features in {{ collection.title }}</h1>
+    <h2>Items</h2>
+    {% if bbox %}
+        <h4>Filtered by {{ bbox[0] }}: <code>{{ bbox[1] }}</code></h4>
+    {% endif %}
+    <div class="data-container features-list">
+        <h3>Members</h3>
+            <ul>
+            {%- for member in members -%}
+            <li><a href="{{ member[0] }}">{{ member[1] }}</a></li>
+            {%- endfor -%}
+            </ul>
     </div>
-
-    <div id="maincontent">
-        <h2>Items</h2>
-        {% if bbox %}
-            <h4>Filtered by {{ bbox[0] }}: <code>{{ bbox[1] }}</code></h4>
-        {% endif %}
-        <div class="data-container"></div>
-        <div id="pagination-features"></div>
-        <div class="data-container">
-            <h3>Members</h3>
-                <ul>
-                {%- for member in members -%}
-                <li><a href="{{ member[0] }}">{{ member[1] }}</a></li>
-                {%- endfor -%}
-                </ul>
-        </div>
-        <div>
-            <input type="button" id="first" onclick="location.href='{{ page_links.first_page }}'" value="first" />
-            <input type="button" id="next" onclick="location.href='{{ page_links.next_page }}'" value="next" />
-            <input type="button" id="previous" onclick="location.href='{{ page_links.prev_page }}'" value="previous" />
-            <input type="button" id="last" onclick="location.href='{{ page_links.last_page }}'" value="last" />
-            <h3></h3>
-        </div>
+    <div id="pagination-features">
+        <input type="button" id="first" onclick="location.href='{{ page_links.first_page }}'" value="first" />
+        <input type="button" id="next" onclick="location.href='{{ page_links.next_page }}'" value="next" />
+        <input type="button" id="previous" onclick="location.href='{{ page_links.prev_page }}'" value="previous" />
+        <input type="button" id="last" onclick="location.href='{{ page_links.last_page }}'" value="last" />
+        <h3></h3>
     </div>
+</div>
 
-    {% include 'page_altprofiles.html' %}
+{% include 'page_altprofiles.html' %}
 {% endblock %}
