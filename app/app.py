@@ -86,7 +86,8 @@ if __name__ == '__main__':
     uvicorn.run(api,
                 port=PORT,
                 host=HOST,
-                log_config=logging_config.configure_logging(service="Uvicorn"))
+                # log_config=logging_config.configure_logging(service="Uvicorn")
+    )
 else:
     logging.info("Running uvicorn function")
     configure()

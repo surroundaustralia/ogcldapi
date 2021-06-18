@@ -15,12 +15,16 @@
             {%- endfor -%}
             </ul>
     </div>
-    <div id="pagination-features">
-        <input type="button" id="first" onclick="location.href='{{ page_links.first_page }}'" value="first" />
-        <input type="button" id="next" onclick="location.href='{{ page_links.next_page }}'" value="next" />
-        <input type="button" id="previous" onclick="location.href='{{ page_links.prev_page }}'" value="previous" />
-        <input type="button" id="last" onclick="location.href='{{ page_links.last_page }}'" value="last" />
-        <h3></h3>
+    <div id="pagination">
+        {% if pageNumber > 1 %}
+        <button class="pagination-btn" onclick="location.href='{{ page_links.first_page }}'"><i class="far fa-chevron-double-left"></i></button>
+        <button class="pagination-btn" onclick="location.href='{{ page_links.prev_page }}'">{{ pageNumber - 1 }}</button>
+        {% endif %}
+        <button class="pagination-btn current-page" disabled>{{ pageNumber }}</button>
+        {% if pageNumber < page_links.last_page.split("&page=")[1]|int %}
+        <button class="pagination-btn" onclick="location.href='{{ page_links.next_page }}'">{{ pageNumber + 1 }}</button>
+        <button class="pagination-btn" onclick="location.href='{{ page_links.last_page }}'"><i class="far fa-chevron-double-right"></i></button>
+        {% endif %}
     </div>
 </div>
 

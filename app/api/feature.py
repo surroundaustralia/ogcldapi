@@ -404,7 +404,8 @@ class FeatureRenderer(Renderer):
         _template_context = {
             "links": self.links,
             "feature": self.feature,
-            "request": self.request
+            "request": self.request,
+            "map_polygon": self.feature.geometries[2].coordinates,
         }
 
         return templates.TemplateResponse(name="feature.html",
