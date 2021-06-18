@@ -3,65 +3,24 @@
 {% block content %}
     <div id="maincontent">
       <h1>Collections</h1>
-{#        <ul>#}
-{#            {% for collection in collections %}#}
-{#                <li><a href="{{ collection[0] }}">{{ collection[1] }}</a></li>#}
-{#            {% endfor %}#}
-{#        </ul>#}
-        <div class="data-container"></div>
-        <div id="pagination-collections"></div>
-        <div></div>
+        <div class="data-container">
+          <ul>
+            {%- for collection in collections -%}
+            <li><a href="{{ collection[0] }}">{{ collection[1] }}</a></li>
+            {%- endfor -%}
+            </ul>
+        </div>
+        <div id="pagination">
+          {% if pageNumber > 1 %}
+          <button class="pagination-btn" onclick="location.href='{{ page_links.first_page }}'"><i class="far fa-chevron-double-left"></i></button>
+          <button class="pagination-btn" onclick="location.href='{{ page_links.prev_page }}'">{{ pageNumber - 1 }}</button>
+          {% endif %}
+          <button class="pagination-btn current-page" disabled>{{ pageNumber }}</button>
+          {% if pageNumber < page_links.last_page.split("&page=")[1]|int %}
+          <button class="pagination-btn" onclick="location.href='{{ page_links.next_page }}'">{{ pageNumber + 1 }}</button>
+          <button class="pagination-btn" onclick="location.href='{{ page_links.last_page }}'"><i class="far fa-chevron-double-right"></i></button>
+          {% endif %}
+      </div>
     </div>
-    <script>
-    console.log({{ collections|tojson }})
-    $(function() {
-      (function(name) {
-        var container = $('#pagination-' + name);
-        var sources = function () {
-          var result = [];
-          for (var i = 0; i < {{ collections|tojson }}.length; i++) {
-            console.log("A")
-            console.log(i)
-            console.log({{ collections|tojson }}[i])
-            result.push({{ collections|tojson }}[i]);
-          }
-
-          return result;
-        }();
-
-        var options = {
-          dataSource: sources,
-          callback: function (response, pagination) {
-            window.console && console.log(response, pagination);
-
-            var dataHtml = '<ul>';
-
-            $.each(response, function (index, item) {
-                console.log("item")
-                console.log(item[0])
-                console.log(item[1])
-                dataHtml += '<li><a href=' + item[0] + '>' + item[1] + '</a></li>';
-            });
-
-            dataHtml += '</ul>';
-
-            container.prev().html(dataHtml);
-          }
-        };
-
-        //$.pagination(container, options);
-
-        container.addHook('beforeInit', function () {
-          window.console && console.log('beforeInit...');
-        });
-        container.pagination(options);
-
-        container.addHook('beforePageOnClick', function () {
-          window.console && console.log('beforePageOnClick...');
-          //return false
-        });
-      })('collections');
-    })
-    </script>
     {% include 'page_altprofiles.html' %}
 {% endblock %}

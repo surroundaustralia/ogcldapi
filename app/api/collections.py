@@ -138,8 +138,16 @@ class CollectionsRenderer(ContainerRenderer):
         )
 
     def _render_oai_html(self):
+        # generate link QSAs from the CollectionsRenderer attributes
+        links = {}
+        for link_type in ["first_page", "next_page", "prev_page", "last_page"]:
+            page = getattr(self, link_type)
+            if page:
+                links[link_type] = f"{self.instance_uri}?per_page={self.per_page}&page={page}"
+
         _template_context = {
             "links": self.links,
+            "page_links": links,
             "collections": self.members,
             "request": self.request,
             "pageSize": self.per_page,

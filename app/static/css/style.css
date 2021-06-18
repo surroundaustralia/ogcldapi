@@ -212,6 +212,57 @@ table.lined td {
     margin-bottom: 12px;
 }
 
-#pagination-features {
+#pagination {
     margin-top: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.pagination-btn {
+    background-color: white;
+    color: var(--primary-blue);
+    cursor: pointer;
+    border-radius: 0;
+    border: 1px solid var(--primary-blue);
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pagination-btn > i {
+    font-size: 12px;
+}
+
+.pagination-btn.current-page, .pagination-btn.current-page:hover {
+    background-color: var(--primary-blue);
+    color: white;
+    cursor: unset;
+}
+
+.pagination-btn:hover {
+    background-color: var(--primary-blue);
+    color: white;
+}
+
+#pagination > .pagination-btn:first-child {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+
+#pagination > .pagination-btn:last-child {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+#pagination > .pagination-btn:not(:last-child) {
+    border-right: none;
+}
+
+/* map */
+#map {
+    height: 500px;
+    margin-bottom: 20px;
 }

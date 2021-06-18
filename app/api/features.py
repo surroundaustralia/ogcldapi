@@ -325,7 +325,6 @@ class FeaturesRenderer(ContainerRenderer):
             )
 
     def _render_oai_html(self):
-
         # generate link QSAs from the FeaturesRenderer attributes
         links = {}
         for link_type in ["first_page", "next_page", "prev_page", "last_page"]:
