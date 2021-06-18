@@ -19,7 +19,7 @@ from utils import utils
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
-context = utils.context
+geo_context = utils.context
 
 class GeometryRole(Enum):
     Boundary = "https://linked.data.gov.au/def/geometry-roles/boundary"
@@ -66,43 +66,125 @@ class Feature(object):
             other_links: List[Link] = None):
         self.uri = uri
         self.geometries = []
-        self.properties = {}
-        defined_labels = {
-            URIRef('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'): 'Type',
-            URIRef('http://purl.org/dc/terms/identifier'): 'Identifier',
-            URIRef('http://purl.org/dc/terms/isPartOf'): 'Is part of Feature Collection'
-            }
-        feature_graph = g.query(f"""DESCRIBE <{self.uri}>""").graph
-        non_bnodes = [i for i in feature_graph.triples((None, None, None))
-                      if not (isinstance(i[0], BNode) or isinstance(i[2], BNode))]
-        bnodes = [i for i in feature_graph.triples((None, None, None))
-                      if isinstance(i[2], BNode)]
 
-        # get the pref labels from a context source - such as the ontology, taxonomies
-        labels_from_context = {}
-        for triple in non_bnodes:
-            label = context.label(triple[1])
-            prefLabel = context.preferredLabel(triple[1])
-            if label:
-                labels_from_context[triple[1]] = str(label[0][1])
-            elif prefLabel:
-                labels_from_context[triple[1]] = str(prefLabel[0][1])
+        # get graph namespaces + geosparql namespaces as we want their prefixes for display
+        graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""").graph
+        graph_namespaces += geo_context
 
-        labels = dict(ChainMap(defined_labels, labels_from_context))
+        non_bnode_query = g.query(f"""
+            PREFIX dcterms: <http://purl.org/dc/terms/> 
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+            SELECT ?pred ?predLabel ?obj ?objLabel {{
+                <{self.uri}> ?pred ?obj 
+                OPTIONAL {{ 
+                    {{?pred rdfs:label ?predLabel}} UNION {{?pred skos:prefLabel ?predLabel}} UNION {{?pred dcterms:title ?predLabel}} }}
+                OPTIONAL {{ 
+                    {{?obj rdfs:label ?objLabel}} UNION {{?obj skos:prefLabel ?objLabel}} UNION {{?obj dcterms:title ?objLabel}} }}
+                FILTER(!ISBLANK(?obj))
+                }}""")
+        non_bnode_results = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
+
+        bnode_query = g.query(f"""
+            PREFIX dcterms: <http://purl.org/dc/terms/> 
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+            PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+            SELECT ?p1 ?p1Label ?p2 ?p2Label ?o2 ?o2Label {{
+                <{self.uri}> ?p1 ?o1 .
+                ?o1 ?p2 ?o2
+                OPTIONAL {{ 
+                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}} }}
+                OPTIONAL 
+                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} }}
+                OPTIONAL {{ 
+                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}} }}
+                FILTER(ISBLANK(?o1))
+                FILTER(?p1!=geo:hasGeometry)
+                }}""")
+        bnode_results = [{str(k): v for k, v in i.items()} for i in bnode_query.bindings]
+
+        geom_query = g.query(f"""
+            PREFIX dcterms: <http://purl.org/dc/terms/> 
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+            PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+            SELECT ?p1 ?p1Label ?p2 ?p2Label ?o2 ?o2Label {{
+                <{self.uri}> ?p1 ?o1 .
+                ?o1 ?p2 ?o2
+                OPTIONAL {{ 
+                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}} }}
+                OPTIONAL 
+                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} }}
+                OPTIONAL {{ 
+                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}} }}
+                FILTER(ISBLANK(?o1))
+                FILTER(?p1=geo:hasGeometry)
+                }}""")
+        geom_results = [{str(k): v for k, v in i.items()} for i in geom_query.bindings]
+
+        # add prefixed URIs (e.g. "skos:prefLabel") to the properties (for display as tooltips in the UI)
+        for result_set in [non_bnode_results, bnode_results, geom_results]:
+            for property in result_set:
+                for k, v in property.copy().items():
+                    if isinstance(v, URIRef):
+                        property[f"{k}Prefixed"] = v.n3(graph_namespaces.namespace_manager)
+
+        # for bnodes,
+        # 1. collect "property 1's"
+        # 2. create a dicitonary per property 1
+        # (within this dictionary:)
+        # 3. add the property 1's attributes
+        # 4. add the property 1's (1:many) values as a list
+        p1_vals = []
+        for result in bnode_results:
+            p1_vals.append(result['p1'])
+        unique_p1_vals = list(set(p1_vals))
+        new_bnode_results = {}
+        for val in unique_p1_vals:
+            new_bnode_results[val] = {"nestedItems": []}
+            for result in bnode_results:
+                if result['p1'] == val:
+                    new_bnode_results[val]["nestedItems"].append({k:v for k,v in result.items() if k != 'p1'})
+                    if 'p1Prefixed' in result.keys():
+                        new_bnode_results[val]["p1Prefixed"] = result["p1Prefixed"]
+                    if 'p1Label' in result.keys():
+                        new_bnode_results[val]["p1Label"] = result["p1Label"]
+
+        self.properties = [i for i in non_bnode_results]
+        self.bnode_properties = new_bnode_results
+        # for property in non_bnode_results:
+        #     keys = [key for key in non_bnode_results[0].keys()]
+        #     self.properties[property['pred']] = {}
+        #         if
+
+        # non_bnodes = [i for i in feature_graph.triples((None, None, None))
+        #               if not (isinstance(i[0], BNode) or isinstance(i[2], BNode))]
+        # bnodes = [i for i in feature_graph.triples((None, None, None))
+        #               if isinstance(i[2], BNode)]
+        #
+        # # get the pref labels from a context source - such as the ontology, taxonomies
+        # labels_from_context = {}
+        # for triple in non_bnodes:
+        #     label = context.label(triple[1])
+        #     prefLabel = context.preferredLabel(triple[1])
+        #     if label:
+        #         labels_from_context[triple[1]] = str(label[0][1])
+        #     elif prefLabel:
+        #         labels_from_context[triple[1]] = str(prefLabel[0][1])
+        #
+        # labels = dict(ChainMap(defined_labels, labels_from_context))
         # generate property pairs
-        for triple in non_bnodes:
-            if triple[1] in labels.keys():
-                self.properties[triple[1]] = {"val": triple[2],
-                                              "name": labels[triple[1]],
-                                              "prefixedURI": triple[1].n3(feature_graph.namespace_manager)}
-            else:
-                self.properties[triple[1]] = {"val": triple[2]}
+        # for triple in non_bnodes:
+        #     if triple[1] in labels.keys():
+        #         self.properties[triple[1]] = {"val": triple[2],
+        #                                       "name": labels[triple[1]],
+        #                                       "prefixedURI": triple[1].n3(feature_graph.namespace_manager)}
+        #     else:
+        #         self.properties[triple[1]] = {"val": triple[2]}
 
-        self.identifier = feature_graph.value(URIRef(self.uri), DCTERMS.identifier)
-        self.title = feature_graph.value(URIRef(self.uri), DCTERMS.title)
-        self.description = feature_graph.value(URIRef(self.uri), DCTERMS.description)
-        self.label = feature_graph.value(URIRef(self.uri), RDFS.label)
-        self.isPartOf = feature_graph.value(URIRef(self.uri), DCTERMS.isPartOf)
+        self.identifier = graph_namespaces.value(URIRef(self.uri), DCTERMS.identifier)
+        self.title = graph_namespaces.value(URIRef(self.uri), DCTERMS.title)
+        self.description = graph_namespaces.value(URIRef(self.uri), DCTERMS.description)
+        self.label = graph_namespaces.value(URIRef(self.uri), RDFS.label)
+        self.isPartOf = graph_namespaces.value(URIRef(self.uri), DCTERMS.isPartOf)
         if not self.title:
             if self.label:
                 self.title = self.label
@@ -128,9 +210,9 @@ class Feature(object):
             'WKT': {"name": "Well Known Text Geometry", "crs": CRS.WGS84},
             'DGGS': {"name": "TB16Pix Geometry", "crs": CRS.TB16PIX},
             'GeoJSON': {"name": "GeoJSON Geometry", "crs": CRS.WGS84}}
-        geom_bnode = feature_graph.value(URIRef(self.uri), GEO.hasGeometry)
+        geom_bnode = graph_namespaces.value(URIRef(self.uri), GEO.hasGeometry)
         for geom_type in ['WKT', 'DGGS', 'GeoJSON']:
-            geom_literal = feature_graph.value(geom_bnode, GEO[f'as{geom_type}'])
+            geom_literal = graph_namespaces.value(geom_bnode, GEO[f'as{geom_type}'])
             if geom_literal:
                 #TODO temporary while geometries contain type at front
                 if geom_literal.find('>') > 0:
