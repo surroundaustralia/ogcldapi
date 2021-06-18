@@ -38,47 +38,7 @@
         </td>
       </tr>
     {% endfor %}
-    {% for property in feature.bnode_properties %}
-      <tr>
-        <table class="lined">
-          <tr>
-            <td>
-              {% if "p1Label" in property.keys() %}
-                <span class="tooltip">{{ property.p1Label }}
-                  <span class="tooltiptext">
-                    <a href="{{ property.p1 }}">{{ property.p1Prefixed }}</a>
-                  </span>
-                </span>
-              {% else %}
-                {{ property.p1 }}
-              {% endif %}
-            </td>
-            <td>
-              {% if "p2Label" in property.keys() %}
-                <span class="tooltip">{{ property.p2Label }}
-                  <span class="tooltiptext">
-                    <a href="{{ property.p2 }}">{{ property.p2Prefixed }}</a>
-                  </span>
-                </span>
-              {% else %}
-                {{ property.p2 }}
-              {% endif %}
-            </td>
-            <td>
-              {% if "o2Label" in property.keys() %}
-                <span class="tooltip">{{ property.o2Label }}
-                  <span class="tooltiptext">
-                    <a href="{{ property.o2 }}">{{ property.o2Prefixed }}</a>
-                  </span>
-                </span>
-              {% else %}
-                {{ property.o2 }}
-              {% endif %}
-            </td>
-          </tr>
-        </table>
-      </tr>
-    {% endfor %}
+
     {% for geometry in feature.geometries %}
       <tr>
         <td>{{ geometry.label }}</td><td><code>
