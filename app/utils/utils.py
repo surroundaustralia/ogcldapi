@@ -5,7 +5,7 @@ from config import SPARQL_ENDPOINT, TEST_GRAPH
 from rdflib import Graph
 
 g = None
-context = Graph().parse('https://raw.githubusercontent.com/surroundaustralia/fsdf-kg/master/edg/ontologies/fsdf.ttl', format='turtle')
+context = Graph().parse('static/geo.ttl', format='turtle')
 
 def get_graph():
     global g
