@@ -165,7 +165,8 @@ class CollectionRenderer(Renderer):
             'uri': self.instance_uri,
             "links": self.links,
             "collection": self.collection,
-            "request": self.request
+            "request": self.request,
+            "api_title": f"{self.collection.title} - {API_TITLE}"
         }
 
         return templates.TemplateResponse(name="collection.html",

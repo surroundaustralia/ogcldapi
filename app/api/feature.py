@@ -345,8 +345,9 @@ class FeatureRenderer(Renderer):
         _template_context = {
             "links": self.links,
             "feature": self.feature,
-            "request": self.request
-            }
+            "request": self.request,
+            "api_title": f"{self.feature.title} - {API_TITLE}"
+        }
 
         return templates.TemplateResponse(name="feature.html",
                                           context=_template_context,

@@ -14,11 +14,36 @@
     {% set active_page = active_page -%}
     <div id="main-container">
         <header>
-            <div>
-                <h1>{% if api_title|length > 0 %}{{ api_title }}{% else %}{{ API_TITLE }}{% endif %}</h1>
+            <div id="header-top">
+                <div id="header-top-content">
+                    <a href="#">Careers</a>
+                    <a href="#">Contact Us</a>
+                    <a href="#">Skip to Content</a>
+                    <div id="header-socials">
+                        <a class="header-social-link" href="#"><i class="fab fa-twitter"></i></a>
+                        <a class="header-social-link" href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a class="header-social-link" href="#"><i class="fab fa-youtube"></i></a>
+                        <a class="header-social-link" href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr/>
+            <div id="header-bottom">
+                <img src="{{ url_for('static', path='img/ga-logo.jpg') }}" alt="">
+                <div id="header-bottom-content">
+                    <h4>Applying geoscience to Australia's most important challenges </h4>
+                    <div id="header-nav">
+                        <a href="#"><i class="fas fa-home"></i></a>
+                        <a href="#">About</a>
+                        <a href="#">Scientific Topics</a>
+                        <a href="#">Education</a>
+                        <a href="#">Data & Publications</a>
+                        <a href="#">News & Events</a>
+                    </div>
+                </div>
             </div>
         </header>
-        <div id="header-bottom"></div>
+        <div id="header-band"></div>
         <div id="gap-container">
             <nav id="top-nav">
                 <a class="top-nav-item{% if active_page == 'home' %} active{% endif %}" href="/">Landing Page</a>
@@ -32,23 +57,62 @@
             </div>
         </div>
         <footer>
-            <div id="footer-content">
-                <div>
-                    <p>
-                        This API is created using <a href="https://github.com/rdflib/pyLDAPI">pyLDAPI</a>, a Linked
-                        Data API tool written in Python.
-                    </p>
+            <div id="footer-top">
+                <div class="footer-content-col">
+                    <h5>Quicklinks</h5>
+                    <a href="#">Home</a>
+                    <a href="#">About</a>
+                    <a href="#">Scientific Topics</a>
+                    <a href="#">Data & Publications</a>
+                    <a href="#">Education</a>
+                    <a href="#">News & Events</a>
+                </div>
+                <div class="footer-content-col">
+                    <h5>Connect with Us</h5>
+                    <a class="footer-social-link" href="#"><i class="fab fa-twitter"></i></a>
+                    <a class="footer-social-link" href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a class="footer-social-link" href="#"><i class="fab fa-youtube"></i></a>
+                    <a class="footer-social-link" href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <div class="footer-content-col">
+                    <h5>Our Address</h5>
+                    <address>
+                        <b>Geoscience Australia</b>
+                        <br/>
+                        Cnr Jerrabomberra Ave and
+                        <br/>
+                        Hindmarsh Drive
+                        <br/>
+                        Symonston ACT 2609 
+                    </address>
+                    <a href="#">View Google Map</a>
+                </div>
+                <div class="footer-content-col">
+                    <h5>Important Numbers</h5>
+                    <address>
+                        General Enquiries: 1800 800 173
+                        <br/>
+                        Switchboard: +61 2 6249 9111
+                        <br/>
+                        Earthquake information: 1800 655 739
+                        <br/>
+                        Media Hotline: 1800 882 035
+                    </address>
+                    <a class="contact-us-btn" href="#" type="button"><span>Contact us </span><i class="far fa-chevron-right"></i></a>
+                </div>
+            </div>
+            <hr/>
+            <div id="footer-bottom">
+                <div id="footer-bottom-links">
+                    <a href="#">Copyright</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Accessibility</a>
+                    <a href="#">Sitemap</a>
+                    <a href="#">Information Publication Scheme</a>
+                    <a href="#">Freedom of Information</a>
                 </div>
                 <div>
-                    <p>This API is maintained by:</p>
-                    <p>
-                        <a href="https://surroundaustralia.com">
-                            <img src="{{ url_for('static', path='img/surround-logo-catprez.png') }}"
-                                alt="CatPrez Logo" />
-                            SURROUND<br />
-                            Australia
-                        </a>
-                    </p>
+                    We acknowledge the Traditional Owners of the country where we work throughout Australia. We acknowledge Aboriginal and Torres Strait Islander people’s continuing connection to land, sea and community. We pay our respects to their elders past and present and emerging.
                 </div>
             </div>
         </footer>

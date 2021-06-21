@@ -164,7 +164,8 @@ class LandingPageRenderer(Renderer):
             "uri": self.landing_page.uri,
             "title": self.landing_page.title,
             "landing_page": self.landing_page,
-            "request": self.request
+            "request": self.request,
+            "api_title": API_TITLE
         }
 
         return templates.TemplateResponse(name="landing_page_oai.html",

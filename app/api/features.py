@@ -340,8 +340,9 @@ class FeaturesRenderer(ContainerRenderer):
             "members": self.members,
             "request": self.request,
             "pageSize": self.per_page,
-            "pageNumber": self.page
-            }
+            "pageNumber": self.page,
+            "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}"
+        }
 
 
         if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid

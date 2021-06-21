@@ -15,18 +15,30 @@
             {%- endfor -%}
             </ul>
     </div>
-    <div id="pagination">
+    <div class="pagination">
+        {% set lastPageNumber = page_links.last_page.split("&page=")[1] | int %}
+        <button class="pagination-btn" onclick="location.href='{{ page_links.prev_page }}'" {% if pageNumber == 1 %}disabled{% endif %}><i class="far fa-chevron-left"></i></button>
+        {% if pageNumber > 2 %}
+            <button class="pagination-btn" onclick="location.href='{{ page_links.first_page }}'">1</button>
+        {% endif %}
+        {% if pageNumber > 3 %}
+            <button class="pagination-btn"><i class="far fa-ellipsis-h"></i></button>  
+        {% endif %}
         {% if pageNumber > 1 %}
-        <button class="pagination-btn" onclick="location.href='{{ page_links.first_page }}'"><i class="far fa-chevron-double-left"></i></button>
-        <button class="pagination-btn" onclick="location.href='{{ page_links.prev_page }}'">{{ pageNumber - 1 }}</button>
+            <button class="pagination-btn" onclick="location.href='{{ page_links.prev_page }}'">{{ pageNumber - 1 }}</button>
         {% endif %}
         <button class="pagination-btn current-page" disabled>{{ pageNumber }}</button>
-        {% if pageNumber < page_links.last_page.split("&page=")[1]|int %}
-        <button class="pagination-btn" onclick="location.href='{{ page_links.next_page }}'">{{ pageNumber + 1 }}</button>
-        <button class="pagination-btn" onclick="location.href='{{ page_links.last_page }}'"><i class="far fa-chevron-double-right"></i></button>
+        {% if pageNumber < lastPageNumber %}
+            <button class="pagination-btn" onclick="location.href='{{ page_links.next_page }}'">{{ pageNumber + 1 }}</button>
         {% endif %}
+        {% if pageNumber < lastPageNumber - 2 %}
+            <button class="pagination-btn"><i class="far fa-ellipsis-h"></i></button>  
+        {% endif %}
+        {% if pageNumber < lastPageNumber - 1 %}
+            <button class="pagination-btn" onclick="location.href='{{ page_links.last_page }}'">{{ lastPageNumber }}</button>    
+        {% endif %}
+        <button class="pagination-btn" onclick="location.href='{{ page_links.next_page }}'" {% if pageNumber == lastPageNumber %}disabled{% endif %}><i class="far fa-chevron-right"></i></button>
     </div>
 </div>
-
 {% include 'page_altprofiles.html' %}
 {% endblock %}

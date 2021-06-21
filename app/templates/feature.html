@@ -10,7 +10,6 @@
   {% endif %}
   {% if feature.geometries is not none %}
     <div id="map"></div>
-    <!-- map -->
     <table class="lined">
     {% for property in feature.properties %}
       <tr>
@@ -25,7 +24,7 @@
             {{ property.pred }}
           {% endif %}
         </td>
-        <td>
+        <td colspan="2">
           {% if "objLabel" in property.keys() %}
             <span class="tooltip">{{ property.objLabel }}
               <span class="tooltiptext">
@@ -38,14 +37,65 @@
         </td>
       </tr>
     {% endfor %}
+    {% for property, value in feature.bnode_properties.items() %}
+      <tr>
+        <td rowspan="{{ value.nestedItems | length }}">
+          {% if "p1Prefixed" in value.keys() %}
+            <a href="{{ property }}">{{ value.p1Prefixed }}</a>
+          {% else %}
+            {{ property }}
+          {% endif %}
+        </td>
+        <td>
+          {% if "p2Prefixed" in value.nestedItems[0].keys() %}
+            <a href="{{ value.nestedItems[0].p2 }}">{{ value.nestedItems[0].p2Prefixed }}</a>
+          {% else %}
+            {{ value.nestedItems[0].p2 }}
+          {% endif %}
+        </td>
+        <td>
+          {% if "o2Prefixed" in value.nestedItems[0].keys() %}
+            <a href="{{ value.nestedItems[0].o2 }}">{{ value.nestedItems[0].o2Prefixed }}</a>
+          {% else %}
+            {{ value.nestedItems[0].o2 }}
+          {% endif %}
+        </td>
+        {% for item in value.nestedItems %}
+          {% if loop.index0 > 0 %}
+            <tr>
+              <td>
+                {% if "p2Prefixed" in item.keys() %}
+                  <a href="{{ item.p2 }}">{{ item.p2Prefixed }}</a>
+                {% else %}
+                  {{ item.p2 }}
+                {% endif %}
+              </td>
+              <td>
+                {% if "o2Prefixed" in item.keys() %}
+                  <a href="{{ item.o2 }}">{{ item.o2Prefixed }}</a>
+                {% else %}
+                  {{ item.o2 }}
+                {% endif %}
+              </td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    {% for geometry in feature.geometries %}
 
     {% for geom_type, geometry in feature.geometries.items() %}
       <tr>
-        <td>{{ geometry.label }}</td><td><code>
-        {% if geometry.coordinates.split()|length > 6 %}
-          {{ ' '.join(geometry.coordinates.split()[:6]+[' ... ']+geometry.coordinates.split()[-6:]) }}
-        {% else %}{{ geometry.coordinates }}
-        {% endif %}</code></td>
+        <td>{{ geometry.label }}</td>
+        <td colspan="2">
+          <code>
+            {% if geometry.coordinates.split()|length > 6 %}
+              {{ ' '.join(geometry.coordinates.split()[:6]+[' ... ']+geometry.coordinates.split()[-6:]) }}
+            {% else %}
+              {{ geometry.coordinates }}
+            {% endif %}
+          </code>
+        </td>
       </tr>
     {% endfor %}
     </table>
