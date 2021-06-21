@@ -37,42 +37,62 @@
         </td>
       </tr>
     {% endfor %}
-    {% for property, value in feature.bnode_properties.items() %}
+    {% for p1, nested_dict in feature.bnode_properties.items() %}
       <tr>
-        <td rowspan="{{ value.nestedItems | length }}">
-          {% if "p1Prefixed" in value.keys() %}
-            <a href="{{ property }}">{{ value.p1Prefixed }}</a>
+        <td rowspan="{{ nested_dict.nestedItems | length }}">
+          {% if "p1Prefixed" and "p1Label" in nested_dict.keys() %}
+            <span class="tooltip">{{ nested_dict.p1Label }}
+              <span class="tooltiptext">
+                <a href="{{ p1 }}">{{ nested_dict.p1Prefixed }}</a>
+              </span>
+            </span>
           {% else %}
-            {{ property }}
+            {{ p1 }}
           {% endif %}
         </td>
         <td>
-          {% if "p2Prefixed" in value.nestedItems[0].keys() %}
-            <a href="{{ value.nestedItems[0].p2 }}">{{ value.nestedItems[0].p2Prefixed }}</a>
+          {% if "p2Prefixed" and "p2Label" in nested_dict.nestedItems[0].keys() %}
+            <span class="tooltip">{{ nested_dict.nestedItems[0].p2Label }}
+              <span class="tooltiptext">
+                <a href="{{ nested_dict.nestedItems[0].p2 }}">{{ nested_dict.nestedItems[0].p2Prefixed }}</a>
+              </span>
+            </span>
           {% else %}
-            {{ value.nestedItems[0].p2 }}
+            {{ nested_dict.nestedItems[0].p2 }}
           {% endif %}
         </td>
         <td>
-          {% if "o2Prefixed" in value.nestedItems[0].keys() %}
-            <a href="{{ value.nestedItems[0].o2 }}">{{ value.nestedItems[0].o2Prefixed }}</a>
+          {% if "o2Prefixed" and "o2Label" in nested_dict.nestedItems[0].keys() %}
+            <span class="tooltip">{{ nested_dict.nestedItems[0].o2Label }}
+              <span class="tooltiptext">
+                <a href="{{ nested_dict.nestedItems[0].o2 }}">{{ nested_dict.nestedItems[0].o2Prefixed }}</a>
+              </span>
+            </span>
           {% else %}
-            {{ value.nestedItems[0].o2 }}
+            {{ nested_dict.nestedItems[0].o2 }}
           {% endif %}
         </td>
-        {% for item in value.nestedItems %}
+        {% for item in nested_dict.nestedItems %}
           {% if loop.index0 > 0 %}
             <tr>
               <td>
-                {% if "p2Prefixed" in item.keys() %}
-                  <a href="{{ item.p2 }}">{{ item.p2Prefixed }}</a>
+                {% if "p2Prefixed" and "p2Label" in item.keys() %}
+                  <span class="tooltip">{{ item.p2Label }}
+                    <span class="tooltiptext">
+                      <a href="{{ item.p2 }}">{{ item.p2Prefixed }}</a>
+                    </span>
+                  </span>
                 {% else %}
                   {{ item.p2 }}
                 {% endif %}
               </td>
               <td>
-                {% if "o2Prefixed" in item.keys() %}
-                  <a href="{{ item.o2 }}">{{ item.o2Prefixed }}</a>
+                {% if "o2Prefixed" and "o2Label" in item.keys() %}
+                  <span class="tooltip">{{ item.o2Label }}
+                    <span class="tooltiptext">
+                      <a href="{{ item.o2 }}">{{ item.o2Prefixed }}</a>
+                    </span>
+                  </span>
                 {% else %}
                   {{ item.o2 }}
                 {% endif %}
@@ -82,8 +102,6 @@
         {% endfor %}
       </tr>
     {% endfor %}
-    {% for geometry in feature.geometries %}
-
     {% for geom_type, geometry in feature.geometries.items() %}
       <tr>
         <td>{{ geometry.label }}</td>
