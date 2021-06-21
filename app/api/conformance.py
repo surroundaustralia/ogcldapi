@@ -60,7 +60,8 @@ class ConformanceRenderer(Renderer):
         _template_context = {
             "uri": LANDING_PAGE_URL + "/conformance",
             "conformance_classes": self.conformance_classes,
-            "request": self.request
+            "request": self.request,
+            "api_title": f"Conformance - {API_TITLE}"
         }
 
         return templates.TemplateResponse(name="conformance.html",

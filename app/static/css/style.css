@@ -328,12 +328,16 @@ footer > hr {
     position: absolute;
     z-index: 1;
     cursor: unset;
-    margin-left: 8px;
+    /* margin-left: 8px; */
     font-size: 0.9rem;
 }
 
 .tooltip:hover .tooltiptext {
     visibility: visible;
+}
+
+.tooltip .tooltiptext a {
+    color: white;
 }
 
 ul {
@@ -372,16 +376,12 @@ table.lined td {
     padding:5px;
 }
 
-/* pagination */
-#pagination-collections {
-    margin-top: auto;
-}
-
 .features-list {
     margin-bottom: 12px;
 }
 
-#pagination {
+/* pagination */
+.pagination {
     margin-top: auto;
     display: flex;
     flex-direction: row;
@@ -405,10 +405,15 @@ table.lined td {
     font-size: 12px;
 }
 
-.pagination-btn.current-page, .pagination-btn.current-page:hover {
-    background-color: var(--primary-blue);
-    color: white;
+.pagination-btn:disabled, .pagination-btn:disabled:hover {
     cursor: unset;
+    background-color: lightgrey;
+    color: white;
+}
+
+.pagination-btn.current-page, .pagination-btn.current-page:hover {
+    background-color: var(--primary-blue-dark);
+    color: white;
 }
 
 .pagination-btn:hover {
@@ -416,17 +421,17 @@ table.lined td {
     color: white;
 }
 
-#pagination > .pagination-btn:first-child {
+.pagination > .pagination-btn:first-child {
     border-top-left-radius: 6px;
     border-bottom-left-radius: 6px;
 }
 
-#pagination > .pagination-btn:last-child {
+.pagination > .pagination-btn:last-child {
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
 }
 
-#pagination > .pagination-btn:not(:last-child) {
+.pagination > .pagination-btn:not(:last-child) {
     border-right: none;
 }
 

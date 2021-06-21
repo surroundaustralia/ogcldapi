@@ -405,7 +405,7 @@ class FeatureRenderer(Renderer):
             "links": self.links,
             "feature": self.feature,
             "request": self.request,
-            "map_polygon": self.feature.geometries[2].coordinates,
+            "api_title": f"{self.feature.title} - {API_TITLE}"
         }
 
         return templates.TemplateResponse(name="feature.html",

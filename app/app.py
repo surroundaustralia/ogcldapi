@@ -21,7 +21,7 @@ from api import features as features_api
 
 api = FastAPI(docs_url='/docs',
               version='1.0',
-              title='OGC LD API',
+              title=API_TITLE,
               description=f"Open API Documentation for this {API_TITLE}")
 
 # logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     uvicorn.run(api,
                 port=PORT,
                 host=HOST,
-                # log_config=logging_config.configure_logging(service="Uvicorn")
+                log_config=logging_config.configure_logging(service="Uvicorn") # comment out this line to disable logging
     )
 else:
     logging.info("Running uvicorn function")

@@ -151,7 +151,8 @@ class CollectionsRenderer(ContainerRenderer):
             "collections": self.members,
             "request": self.request,
             "pageSize": self.per_page,
-            "pageNumber": self.page
+            "pageNumber": self.page,
+            "api_title": f"Collections - {API_TITLE}"
         }
 
         return templates.TemplateResponse(name="collections_oai.html",

@@ -186,6 +186,7 @@ class ApiDescRenderer(Renderer):
     def _render_oai_html(self):
         _template_context = {
             "uri": LANDING_PAGE_URL + "/api",
+            "api_title": f"API Description - {API_TITLE}"
         }
 
         return templates.TemplateResponse(name="api.html",
