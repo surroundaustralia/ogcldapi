@@ -39,7 +39,7 @@
       </tr>
     {% endfor %}
 
-    {% for geometry in feature.geometries %}
+    {% for geom_type, geometry in feature.geometries.items() %}
       <tr>
         <td>{{ geometry.label }}</td><td><code>
         {% if geometry.coordinates.split()|length > 6 %}
@@ -51,7 +51,7 @@
     </table>
   {% endif %}
   <script>
-    const data = '{{ map_polygon | tojson }}';
+    const data = '{{ feature.geometries["GeoJSON"].coordinates | tojson }}';
     const map = L.map('map');
 
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
