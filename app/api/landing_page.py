@@ -1,5 +1,5 @@
 from typing import List
-
+import time
 from config import *
 from api.link import *
 from api.profiles import *
@@ -28,14 +28,13 @@ class LandingPage:
     ):
         logging.debug("LandingPage()")
         self.uri = LANDING_PAGE_URL
-
+        self.dataset_uri = DATASET_URI
         self.description = None
-        for s in g.subjects(predicate=RDF.type, object=OGCAPI.Dataset):
-            for p, o in g.predicate_objects(subject=s):
-                if p == DCTERMS.title:
-                    self.title = str(o)
-                elif p == DCTERMS.description:
-                    self.description = markdown.markdown(o)
+
+        dataset_triples = g.query(f"""DESCRIBE <{self.dataset_uri}>""").graph
+        self.title = dataset_triples.value(URIRef(self.dataset_uri), DCTERMS.title)
+        self.description = dataset_triples.value(URIRef(self.dataset_uri), DCTERMS.description)
+
         logging.debug("LandingPage() RDF loops")
 
         # make links
