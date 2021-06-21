@@ -1,8 +1,10 @@
-FROM python:3.7
+FROM python:3.7-slim-buster
 
 EXPOSE 9000
 
 COPY ./app ./
+RUN apt -y update
+RUN apt install -y git
 RUN pip install -r ./requirements.txt
 
 CMD ["uvicorn", "app:api", "--host", "0.0.0.0", "--port", "9000"]
