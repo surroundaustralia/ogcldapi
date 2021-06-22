@@ -99,6 +99,10 @@ class CollectionsRenderer(ContainerRenderer):
                                "limit",
                                "bbox",
                                "version"]
+        
+        # override last_page variable (pyldapi's last_page calculation is incorrect)
+        ceiling = lambda a,b : a//b + bool(a%b)
+        self.last_page = ceiling(self.collections_count, self.per_page)
 
     def render(self):
         for v in self.request.query_params.items():

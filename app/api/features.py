@@ -239,6 +239,10 @@ class FeaturesRenderer(ContainerRenderer):
                 profiles={"oai": profile_openapi, "geosp": profile_geosparql},
                 default_profile_token="oai"
                 )
+            
+            # override last_page variable (pyldapi's last_page calculation is incorrect)
+            ceiling = lambda a,b : a//b + bool(a%b)
+            self.last_page = ceiling(self.feature_list.feature_count, self.per_page)
 
     def _valid_parameters(self):
         allowed_params = ["_profile", "_view", "_mediatype", "_format", "page", "per_page", "limit", "bbox"]
