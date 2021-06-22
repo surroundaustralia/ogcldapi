@@ -1,5 +1,3 @@
-from enum import Enum
-from typing import ChainMap
 from typing import List
 
 from fastapi import Response
@@ -7,7 +5,6 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from geojson_rewind import rewind
 from geomet import wkt
-from pyldapi.fastapi_framework import Renderer
 from rdflib import Graph
 from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS
@@ -69,19 +66,20 @@ class Feature(object):
         self.geometries = {}
 
         # get graph namespaces + geosparql namespaces as we want their prefixes for display
-        graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""").graph
-        graph_namespaces += geo_context
+        self.graph_namespaces = geo_context
+        self.graph_namespaces += g.query(f"""DESCRIBE <{self.uri}>""").graph
+        self.graph_namespaces.bind('geo', Namespace('http://www.opengis.net/ont/geosparql#'))
 
         non_bnode_query = g.query(f"""
             PREFIX dcterms: <http://purl.org/dc/terms/> 
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
-            SELECT ?pred ?predLabel ?obj ?objLabel {{
-                <{self.uri}> ?pred ?obj 
+            SELECT ?p1 ?p1Label ?o1 ?o1Label {{
+                <{self.uri}> ?p1 ?o1 
                 OPTIONAL {{ 
-                    {{?pred rdfs:label ?predLabel}} UNION {{?pred skos:prefLabel ?predLabel}} UNION {{?pred dcterms:title ?predLabel}} }}
+                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:p1Label ?predLabel}} UNION {{?p1 dcterms:title ?p1Label}} }}
                 OPTIONAL {{ 
-                    {{?obj rdfs:label ?objLabel}} UNION {{?obj skos:prefLabel ?objLabel}} UNION {{?obj dcterms:title ?objLabel}} }}
-                FILTER(!ISBLANK(?obj))
+                    {{?o1 rdfs:label ?o1Label}} UNION {{?o1 skos:prefLabel ?o1Label}} UNION {{?o1 dcterms:title ?o1Label}} }}
+                FILTER(!ISBLANK(?o1))
                 }}""")
         non_bnode_results = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
 
@@ -126,7 +124,16 @@ class Feature(object):
             for property in result_set:
                 for k, v in property.copy().items():
                     if isinstance(v, URIRef):
-                        property[f"{k}Prefixed"] = v.n3(graph_namespaces.namespace_manager)
+                        property[f"{k}Prefixed"] = v.n3(self.graph_namespaces.namespace_manager)
+                keys = property.keys()
+                for node in ['p1', 'p2', 'o1', 'o2']:
+                    if node in keys and f'{node}Label' not in keys:
+                        label = self.get_label(property[node])
+                        if label:
+                            property[f"{node}Label"] = label
+                # check for p1 label, if not, use function to try find one from context
+                # if o1 / p2 / o2 in proerty.keys()
+                # use function to check for label with these
 
         # for bnodes,
         # 1. collect "property 1's"
@@ -152,11 +159,11 @@ class Feature(object):
         self.properties = [i for i in non_bnode_results]
         self.bnode_properties = new_bnode_results
 
-        self.identifier = graph_namespaces.value(URIRef(self.uri), DCTERMS.identifier)
-        self.title = graph_namespaces.value(URIRef(self.uri), DCTERMS.title)
-        self.description = graph_namespaces.value(URIRef(self.uri), DCTERMS.description)
-        self.label = graph_namespaces.value(URIRef(self.uri), RDFS.label)
-        self.isPartOf = graph_namespaces.value(URIRef(self.uri), DCTERMS.isPartOf)
+        self.identifier = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.identifier)
+        self.title = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.title)
+        self.description = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.description)
+        self.label = self.graph_namespaces.value(URIRef(self.uri), RDFS.label)
+        self.isPartOf = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.isPartOf)
         if not self.title:
             if self.label:
                 self.title = self.label
@@ -164,21 +171,23 @@ class Feature(object):
                 self.title = f"Feature {self.identifier}"
 
         geom_names = {
-            'WKT': {"name": "Well Known Text Geometry", "crs": CRS.WGS84},
-            'DGGS': {"name": "TB16Pix Geometry", "crs": CRS.TB16PIX},
-            'GeoJSON': {"name": "GeoJSON Geometry", "crs": CRS.WGS84}
+            'asWKT': {"crs": CRS.WGS84},
+            'asDGGS': {"crs": CRS.TB16PIX},
+            'asGeoJSON': {"crs": CRS.WGS84}
             }
-        geom_bnode = graph_namespaces.value(URIRef(self.uri), GEO.hasGeometry)
-        for geom_type in ['WKT', 'DGGS', 'GeoJSON']:
-            geom_literal = graph_namespaces.value(geom_bnode, GEO[f'as{geom_type}'])
-            if geom_literal:
-                # TODO temporary while geometries contain type at front
-                if geom_literal.find('>') > 0:
-                    geom_literal = geom_literal.split('> ')[1]
-                self.geometries[geom_type] = Geometry(geom_literal,
-                                                      GeometryRole.Boundary,
-                                                      geom_names[geom_type]["name"],
-                                                      geom_names[geom_type]["crs"])
+
+        for result in geom_results:
+            geom_type = result["p2"].split('#')[1]
+            geom_literal = result["o2"]
+            geom_label = geo_context.preferredLabel(result["p2"])[0][1]
+            if geom_literal.find('>') > 0:
+                geom_literal = geom_literal.split('> ')[1]
+            self.geometries[geom_type] = Geometry(
+                geom_literal,
+                GeometryRole.Boundary,
+                geom_label,
+                geom_names[geom_type]["crs"]
+                )
 
         # Feature other properties
         self.extent_spatial = None
@@ -278,6 +287,15 @@ class Feature(object):
 
         return local_g
 
+    def get_label(self, node):
+        preflabel_from_context = self.graph_namespaces.preferredLabel(node)
+        label_from_context = self.graph_namespaces.label(node)
+        if preflabel_from_context:
+            return preflabel_from_context[0][1]
+        elif label_from_context:
+            return label_from_context[0][1]
+
+
 
 class FeatureRenderer(Renderer):
     def __init__(self, request, feature_uri: str, collection_id: str, other_links: List[Link] = None):
@@ -339,8 +357,8 @@ class FeatureRenderer(Renderer):
             )
 
     def _render_oai_html(self):
-        if "GeoJSON" not in self.feature.geometries.keys():
-            self.feature.geometries["GeoJSON"] = self.feature.to_geo_json_dict
+        if "asGeoJSON" not in self.feature.geometries.keys():
+            self.feature.geometries["asGeoJSON"] = self.feature.to_geo_json_dict
 
         _template_context = {
             "links": self.links,

@@ -11,28 +11,36 @@
   {% if feature.geometries is not none %}
     <div id="map"></div>
     <table class="lined">
+      <tr>
+        <td>
+          <p>Feature URI</p>
+        </td>
+        <td colspan="2">
+          {{ feature.uri }}
+        </td>
+      </tr>
     {% for property in feature.properties %}
       <tr>
         <td>
-          {% if "predLabel" in property.keys() %}
-            <span class="tooltip">{{ property.predLabel }}
+          {% if "p1Label" in property.keys() %}
+            <span class="tooltip">{{ property.p1Label }}
               <span class="tooltiptext">
-                <a href="{{ property.pred }}">{{ property.predPrefixed }}</a>
+                <a href="{{ property.p1 }}">{{ property.p1Prefixed }}</a>
               </span>
             </span>
           {% else %}
-            {{ property.pred }}
+            {{ property.p1 }}
           {% endif %}
         </td>
         <td colspan="2">
-          {% if "objLabel" in property.keys() %}
-            <span class="tooltip">{{ property.objLabel }}
+          {% if "o1Label" in property.keys() %}
+            <span class="tooltip">{{ property.o1Label }}
               <span class="tooltiptext">
-                <a href="{{ property.obj }}">{{ property.objPrefixed }}</a>
+                <a href="{{ property.o1 }}">{{ property.o1Prefixed }}</a>
               </span>
             </span>
           {% else %}
-            {{ property.obj }}
+            {{ property.o1 }}
           {% endif %}
         </td>
       </tr>
@@ -119,7 +127,7 @@
     </table>
   {% endif %}
   <script>
-    const data = '{{ feature.geometries["GeoJSON"].coordinates | tojson }}';
+    const data = '{{ feature.geometries["asGeoJSON"].coordinates | tojson }}';
     const map = L.map('map');
 
     L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
