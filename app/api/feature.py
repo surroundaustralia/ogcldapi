@@ -16,7 +16,6 @@ from utils import utils
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
-geo_context = utils.context
 
 
 class GeometryRole(Enum):
@@ -66,9 +65,9 @@ class Feature(object):
         self.geometries = {}
 
         # get graph namespaces + geosparql namespaces as we want their prefixes for display
-        self.graph_namespaces = geo_context
-        self.graph_namespaces += g.query(f"""DESCRIBE <{self.uri}>""").graph
-        self.graph_namespaces.bind('geo', Namespace('http://www.opengis.net/ont/geosparql#'))
+        # self.graph_namespaces = geo_context
+        self.graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""").graph
+        # self.graph_namespaces.bind('geo', Namespace('http://www.opengis.net/ont/geosparql#'))
 
         non_bnode_query = g.query(f"""
             PREFIX dcterms: <http://purl.org/dc/terms/> 
@@ -76,9 +75,11 @@ class Feature(object):
             SELECT ?p1 ?p1Label ?o1 ?o1Label {{
                 <{self.uri}> ?p1 ?o1 
                 OPTIONAL {{ 
-                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:p1Label ?predLabel}} UNION {{?p1 dcterms:title ?p1Label}} }}
+                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:p1Label ?predLabel}} UNION {{?p1 dcterms:title ?p1Label}} 
+                        FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL {{ 
-                    {{?o1 rdfs:label ?o1Label}} UNION {{?o1 skos:prefLabel ?o1Label}} UNION {{?o1 dcterms:title ?o1Label}} }}
+                    {{?o1 rdfs:label ?o1Label}} UNION {{?o1 skos:prefLabel ?o1Label}} UNION {{?o1 dcterms:title ?o1Label}}
+                        FILTER(lang(?o1Label) = "" || lang(?o1Label) = "en") }}
                 FILTER(!ISBLANK(?o1))
                 }}""")
         non_bnode_results = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
@@ -91,11 +92,14 @@ class Feature(object):
                 <{self.uri}> ?p1 ?o1 .
                 ?o1 ?p2 ?o2
                 OPTIONAL {{ 
-                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}} }}
+                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}} 
+                        FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL 
-                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} }}
+                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} 
+                        FILTER(lang(?p2Label) = "" || lang(?p2Label) = "en") }}
                 OPTIONAL {{ 
-                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}} }}
+                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}}
+                        FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
                 FILTER(ISBLANK(?o1))
                 FILTER(?p1!=geo:hasGeometry)
                 }}""")
@@ -109,11 +113,14 @@ class Feature(object):
                 <{self.uri}> ?p1 ?o1 .
                 ?o1 ?p2 ?o2
                 OPTIONAL {{ 
-                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}} }}
+                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}}
+                        FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL 
-                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} }}
+                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} 
+                        FILTER(lang(?p2Label) = "" || lang(?p2Label) = "en") }}
                 OPTIONAL {{ 
-                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}} }}
+                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}} 
+                        FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
                 FILTER(ISBLANK(?o1))
                 FILTER(?p1=geo:hasGeometry)
                 }}""")
@@ -125,12 +132,12 @@ class Feature(object):
                 for k, v in property.copy().items():
                     if isinstance(v, URIRef):
                         property[f"{k}Prefixed"] = v.n3(self.graph_namespaces.namespace_manager)
-                keys = property.keys()
-                for node in ['p1', 'p2', 'o1', 'o2']:
-                    if node in keys and f'{node}Label' not in keys:
-                        label = self.get_label(property[node])
-                        if label:
-                            property[f"{node}Label"] = label
+                # keys = property.keys()
+                # for node in ['p1', 'p2', 'o1', 'o2']:
+                #     if node in keys and f'{node}Label' not in keys:
+                #         label = self.get_label(property[node])
+                #         if label:
+                #             property[f"{node}Label"] = label
                 # check for p1 label, if not, use function to try find one from context
                 # if o1 / p2 / o2 in proerty.keys()
                 # use function to check for label with these
@@ -179,13 +186,12 @@ class Feature(object):
         for result in geom_results:
             geom_type = result["p2"].split('#')[1]
             geom_literal = result["o2"]
-            geom_label = geo_context.preferredLabel(result["p2"])[0][1]
             if geom_literal.find('>') > 0:
                 geom_literal = geom_literal.split('> ')[1]
             self.geometries[geom_type] = Geometry(
                 geom_literal,
                 GeometryRole.Boundary,
-                geom_label,
+                result["p2Label"],
                 geom_names[geom_type]["crs"]
                 )
 
@@ -266,12 +272,12 @@ class Feature(object):
                 this_geom,
                 GEOX.hasRole,
                 URIRef(geom.role.value)
-            ))
+                ))
             local_g.add((
                 this_geom,
                 GEOX.inCRS,
                 URIRef(geom.crs.value)
-            ))
+                ))
             if geom.crs == CRS.TB16PIX:
                 local_g.add((
                     this_geom,
@@ -287,14 +293,13 @@ class Feature(object):
 
         return local_g
 
-    def get_label(self, node):
-        preflabel_from_context = self.graph_namespaces.preferredLabel(node)
-        label_from_context = self.graph_namespaces.label(node)
-        if preflabel_from_context:
-            return preflabel_from_context[0][1]
-        elif label_from_context:
-            return label_from_context[0][1]
-
+    # def get_label(self, node):
+    #     preflabel_from_context = self.graph_namespaces.preferredLabel(node)
+    #     label_from_context = self.graph_namespaces.label(node)
+    #     if preflabel_from_context:
+    #         return preflabel_from_context[0][1]
+    #     elif label_from_context:
+    #         return label_from_context[0][1]
 
 
 class FeatureRenderer(Renderer):
@@ -365,7 +370,7 @@ class FeatureRenderer(Renderer):
             "feature": self.feature,
             "request": self.request,
             "api_title": f"{self.feature.title} - {API_TITLE}"
-        }
+            }
 
         return templates.TemplateResponse(name="feature.html",
                                           context=_template_context,

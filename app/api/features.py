@@ -1,13 +1,11 @@
-import pickle
 import re
-from pathlib import Path
 from typing import List
 
 from SPARQLWrapper import SPARQLWrapper, JSON
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import ContainerRenderer, Renderer
+from pyldapi.fastapi_framework import ContainerRenderer
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD, RDF
 

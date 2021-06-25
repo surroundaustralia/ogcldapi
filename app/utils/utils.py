@@ -5,11 +5,9 @@ from config import SPARQL_ENDPOINT, TEST_GRAPH
 from rdflib import Graph
 
 g = None
-context = Graph().parse('static/geo.ttl', format='turtle')
 
 def get_graph():
     global g
-    global context
 
     if TEST_GRAPH:
         with open(TEST_GRAPH, 'rb') as handle:
