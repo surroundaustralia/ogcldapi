@@ -75,11 +75,9 @@ class Feature(object):
             SELECT ?p1 ?p1Label ?o1 ?o1Label {{
                 <{self.uri}> ?p1 ?o1 
                 OPTIONAL {{ 
-                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:p1Label ?predLabel}} UNION {{?p1 dcterms:title ?p1Label}} 
-                        FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
+                    {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL {{ 
-                    {{?o1 rdfs:label ?o1Label}} UNION {{?o1 skos:prefLabel ?o1Label}} UNION {{?o1 dcterms:title ?o1Label}}
-                        FILTER(lang(?o1Label) = "" || lang(?o1Label) = "en") }}
+                    {{?o1 rdfs:label ?o1Label}} FILTER(lang(?o1Label) = "" || lang(?o1Label) = "en") }}
                 FILTER(!ISBLANK(?o1))
                 }}""")
         non_bnode_results = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
@@ -92,14 +90,11 @@ class Feature(object):
                 <{self.uri}> ?p1 ?o1 .
                 ?o1 ?p2 ?o2
                 OPTIONAL {{ 
-                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}} 
-                        FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
+                    {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL 
-                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} 
-                        FILTER(lang(?p2Label) = "" || lang(?p2Label) = "en") }}
+                    {{ {{?p2 rdfs:label ?p2Label}} FILTER(lang(?p2Label) = "" || lang(?p2Label) = "en") }}
                 OPTIONAL {{ 
-                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}}
-                        FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
+                    {{?o2 rdfs:label ?o2Label}} FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
                 FILTER(ISBLANK(?o1))
                 FILTER(?p1!=geo:hasGeometry)
                 }}""")
@@ -113,14 +108,11 @@ class Feature(object):
                 <{self.uri}> ?p1 ?o1 .
                 ?o1 ?p2 ?o2
                 OPTIONAL {{ 
-                    {{?p1 rdfs:label ?p1Label}} UNION {{?p1 skos:prefLabel ?p1Label}} UNION {{?p1 dcterms:title ?p1Label}}
-                        FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
+                    {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL 
-                    {{ {{?p2 rdfs:label ?p2Label}} UNION {{?p2 skos:prefLabel ?p2Label}} UNION {{?p2 dcterms:title ?p2Label}} 
-                        FILTER(lang(?p2Label) = "" || lang(?p2Label) = "en") }}
+                    {{ {{?p2 rdfs:label ?p2Label}} FILTER(lang(?p2Label) = "" || lang(?p2Label) = "en") }}
                 OPTIONAL {{ 
-                    {{?o2 rdfs:label ?o2Label}} UNION {{?o2 skos:prefLabel ?o2Label}} UNION {{?o2 dcterms:title ?o2Label}} 
-                        FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
+                    {{?o2 rdfs:label ?o2Label}} FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
                 FILTER(ISBLANK(?o1))
                 FILTER(?p1=geo:hasGeometry)
                 }}""")
@@ -132,15 +124,6 @@ class Feature(object):
                 for k, v in property.copy().items():
                     if isinstance(v, URIRef):
                         property[f"{k}Prefixed"] = v.n3(self.graph_namespaces.namespace_manager)
-                # keys = property.keys()
-                # for node in ['p1', 'p2', 'o1', 'o2']:
-                #     if node in keys and f'{node}Label' not in keys:
-                #         label = self.get_label(property[node])
-                #         if label:
-                #             property[f"{node}Label"] = label
-                # check for p1 label, if not, use function to try find one from context
-                # if o1 / p2 / o2 in proerty.keys()
-                # use function to check for label with these
 
         # for bnodes,
         # 1. collect "property 1's"
