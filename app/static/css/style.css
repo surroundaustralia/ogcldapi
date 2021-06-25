@@ -1,16 +1,18 @@
 :root {
-    --primary-blue: #006983;
-    --primary-blue-dark: #104f5f;
-    --secondary-dark-grey: #2F2F2F;
-    --btn-orange: #A33F1F;
+    --blue: #006983;
+    --darkblue: #104f5f;
+    --darkgrey: #2F2F2F;
+    --orange: #A33F1F;
+
+    --page-max-width: 1200px;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body, html {
-    box-sizing: border-box;
     margin: 0;
-}
-
-body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     height: 100vh;
 }
@@ -34,7 +36,7 @@ header > hr {
 
 #header-top {
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--page-max-width);
     /* flex-grow: 1; */
     margin: 0 auto;
     display: flex;
@@ -63,7 +65,7 @@ header > hr {
 }
 
 .header-social-link {
-    background-color: var(--primary-blue);
+    background-color: var(--blue);
     color: white;
     text-decoration: none;
     border-radius: 50%;
@@ -82,7 +84,7 @@ header > hr {
     flex-direction: row;
     gap: 40px;
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--page-max-width);
     /* flex-grow: 1; */
     margin: 20px auto;
 }
@@ -113,12 +115,12 @@ header > hr {
 
 #header-band {
     height: 40px;
-    background-color: var(--primary-blue);
+    background-color: var(--blue);
     flex-shrink: 0;
 }
 
 #gap-container {
-    max-width: 1000px;
+    max-width: var(--page-max-width);
     margin: 0 auto;
     width: 100%;
     margin-bottom: 20px;
@@ -129,15 +131,15 @@ header > hr {
 
 #top-nav {
     margin-top: 12px;
-    border-top: 2px solid var(--primary-blue);
-    border-bottom: 2px solid var(--primary-blue);
+    border-top: 2px solid var(--blue);
+    border-bottom: 2px solid var(--blue);
     display: flex;
     flex-direction: row;
     justify-content: space-around;
 }
 
 a {
-    color: var(--primary-blue);
+    color: var(--blue);
 }
 
 .top-nav-item {
@@ -153,13 +155,13 @@ a {
 }
 
 .top-nav-item:hover, .top-nav-item.active:hover  {
-    background-color: var(--primary-blue);
+    background-color: var(--blue);
     color: white;
 }
 
 .top-nav-item.active {
     font-weight: bold;
-    color: var(--primary-blue);
+    color: var(--blue);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -187,7 +189,7 @@ h4 {
     display: flex;
     flex-direction: row;
     flex-grow: 1;
-    gap: 12px;
+    gap: 16px;
     padding: 12px;
 }
 
@@ -198,13 +200,13 @@ h4 {
 }
 
 #altprofiles {
-    width: 25%;
+    width: 250px;
     margin-top: 54px;
     flex-shrink: 0;
 }
 
 footer {
-    background-color: var(--secondary-dark-grey);
+    background-color: var(--darkgrey);
     color: white;
     margin-top: auto;
     display: flex;
@@ -217,7 +219,7 @@ footer {
     justify-content: space-between;
     gap: 12px;
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--page-max-width);
     margin: 0 auto;
     padding: 16px 0;
 }
@@ -245,7 +247,7 @@ footer {
 
 a.footer-social-link {
     background-color: white;
-    color: var(--secondary-dark-grey);
+    color: var(--darkgrey);
     text-decoration: none;
     border-radius: 50%;
     font-size: 16px;
@@ -266,7 +268,7 @@ footer address {
 
 .contact-us-btn {
     display: flex;
-    background-color: var(--primary-blue);
+    background-color: var(--blue);
     color: white;
     text-decoration: none;
     padding: 20px 24px;
@@ -276,7 +278,7 @@ footer address {
 }
 
 .contact-us-btn:hover {
-    background-color: var(--btn-orange);
+    background-color: var(--orange);
 }
 
 footer > hr {
@@ -290,7 +292,7 @@ footer > hr {
     font-size: 12px;
     gap: 16px;
     width: 100%;
-    max-width: 1000px;
+    max-width: var(--page-max-width);
     margin: 0 auto 20px auto;
     padding: 16px 0;
 }
@@ -322,11 +324,11 @@ footer > hr {
     padding: 8px;
     border-radius: 6px;
     /* border: solid 1px black; */
-    background-color: var(--primary-blue);
+    background-color: var(--blue);
     color: white;
     font-weight: normal;
     position: absolute;
-    z-index: 1;
+    z-index: 500;
     cursor: unset;
     /* margin-left: 8px; */
     font-size: 0.9rem;
@@ -338,6 +340,10 @@ footer > hr {
 
 .tooltip .tooltiptext a {
     color: white;
+}
+
+.tooltip > i {
+    font-size: 14px;
 }
 
 ul {
@@ -374,7 +380,15 @@ table.lined {
 table.lined td {
     border: solid 1px lightgrey;
     border-collapse:collapse;
-    padding:5px;
+    padding: 8px;
+}
+
+tr > td:first-child {
+    min-width: 120px;
+}
+
+td > table.lined:last-child {
+    margin-bottom: 0;
 }
 
 .features-list {
@@ -391,10 +405,10 @@ table.lined td {
 
 .pagination-btn {
     background-color: white;
-    color: var(--primary-blue);
+    color: var(--blue);
     cursor: pointer;
     border-radius: 0;
-    border: 1px solid var(--primary-blue);
+    border: 1px solid var(--blue);
     /* width: 30px; */
     /* height: 30px; */
     font-size: 14px;
@@ -414,12 +428,12 @@ table.lined td {
 }
 
 .pagination-btn.current-page, .pagination-btn.current-page:hover {
-    background-color: var(--primary-blue-dark);
+    background-color: var(--darkblue);
     color: white;
 }
 
 .pagination-btn:hover {
-    background-color: var(--primary-blue);
+    background-color: var(--blue);
     color: white;
 }
 
@@ -440,5 +454,22 @@ table.lined td {
 /* map */
 #map {
     height: 500px;
-    margin-bottom: 20px;
+    margin: 20px 0px;
+}
+
+.type-container {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 12px;
+    font-size: small;
+    gap: 8px;
+}
+
+.type {
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-uri {
+    font-size: 18px;
 }

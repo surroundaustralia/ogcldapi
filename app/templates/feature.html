@@ -2,148 +2,180 @@
 {% set active_page = "collections" %}
 {% block content %}
 <div id="maincontent">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+  {% if feature.geometries.asGeoJSON is not none %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+  {% endif %}
   <h1>{{ feature.title }}</h1>
+  {% for property in type %}
+    <div class="type-container">
+      <div>
+        {% if property.label is not none %}
+            <span class="tooltip">{{ property.label }}
+              <span class="tooltiptext">
+                <a href="{{ property.uri }}">
+                  {% if property.prefix is not none %}
+                    {{ property.prefix }}
+                  {% else %}
+                    {{ property.uri }}
+                  {% endif %}
+                </a>
+              </span>
+            </span>
+          {% else %}
+            {{ property.uri }}
+          {% endif %}
+      </div>
+      <div class="type">
+        {% for object in property.objects %}
+          {% if object.label is not none %}
+            <span class="tooltip">{{ object.label }}
+              <span class="tooltiptext">
+                <a href="{{ object.value }}">
+                  {% if object.prefix is not none %}
+                    {{ object.prefix }}
+                  {% else %}
+                    {{ object.value }}
+                  {% endif %}
+                </a>
+              </span>
+            </span>
+          {% else %}
+            <span>{{ object.value }}</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+  <div><a href="" class="feature-uri">{{ feature.uri }}</a> 
+    <span class="tooltip"><i class="far fa-external-link"></i>
+      <span class="tooltiptext">
+        <a href="{{ feature.uri }}">{{ feature.uri }}</a>
+      </span>
+    </span>
+  </div>
   {% if feature.description is not none %}
     <div>{{ feature.description|safe }}</div>
   {% endif %}
-  {% if feature.geometries is not none %}
+  {% if feature.geometries.asGeoJSON is not none %}
     <div id="map"></div>
-    <table class="lined">
-      <tr>
-        <td>
-          <p>Feature URI</p>
-        </td>
-        <td colspan="2">
-          {{ feature.uri }}
-        </td>
-      </tr>
-    {% for property in feature.properties %}
-      <tr>
-        <td>
-          {% if "p1Label" in property.keys() %}
-            <span class="tooltip">{{ property.p1Label }}
-              <span class="tooltiptext">
-                <a href="{{ property.p1 }}">{{ property.p1Prefixed }}</a>
-              </span>
-            </span>
-          {% else %}
-            {{ property.p1 }}
-          {% endif %}
-        </td>
-        <td colspan="2">
-          {% if "o1Label" in property.keys() %}
-            <span class="tooltip">{{ property.o1Label }}
-              <span class="tooltiptext">
-                <a href="{{ property.o1 }}">{{ property.o1Prefixed }}</a>
-              </span>
-            </span>
-          {% else %}
-            {{ property.o1 }}
-          {% endif %}
-        </td>
-      </tr>
-    {% endfor %}
-    {% for p1, nested_dict in feature.bnode_properties.items() %}
-      <tr>
-        <td rowspan="{{ nested_dict.nestedItems | length }}">
-          {% if "p1Prefixed" and "p1Label" in nested_dict.keys() %}
-            <span class="tooltip">{{ nested_dict.p1Label }}
-              <span class="tooltiptext">
-                <a href="{{ p1 }}">{{ nested_dict.p1Prefixed }}</a>
-              </span>
-            </span>
-          {% else %}
-            {{ p1 }}
-          {% endif %}
-        </td>
-        <td>
-          {% if "p2Prefixed" and "p2Label" in nested_dict.nestedItems[0].keys() %}
-            <span class="tooltip">{{ nested_dict.nestedItems[0].p2Label }}
-              <span class="tooltiptext">
-                <a href="{{ nested_dict.nestedItems[0].p2 }}">{{ nested_dict.nestedItems[0].p2Prefixed }}</a>
-              </span>
-            </span>
-          {% else %}
-            {{ nested_dict.nestedItems[0].p2 }}
-          {% endif %}
-        </td>
-        <td>
-          {% if "o2Prefixed" and "o2Label" in nested_dict.nestedItems[0].keys() %}
-            <span class="tooltip">{{ nested_dict.nestedItems[0].o2Label }}
-              <span class="tooltiptext">
-                <a href="{{ nested_dict.nestedItems[0].o2 }}">{{ nested_dict.nestedItems[0].o2Prefixed }}</a>
-              </span>
-            </span>
-          {% else %}
-            {{ nested_dict.nestedItems[0].o2 }}
-          {% endif %}
-        </td>
-        {% for item in nested_dict.nestedItems %}
-          {% if loop.index0 > 0 %}
-            <tr>
-              <td>
-                {% if "p2Prefixed" and "p2Label" in item.keys() %}
-                  <span class="tooltip">{{ item.p2Label }}
-                    <span class="tooltiptext">
-                      <a href="{{ item.p2 }}">{{ item.p2Prefixed }}</a>
-                    </span>
-                  </span>
-                {% else %}
-                  {{ item.p2 }}
-                {% endif %}
-              </td>
-              <td>
-                {% if "o2Prefixed" and "o2Label" in item.keys() %}
-                  <span class="tooltip">{{ item.o2Label }}
-                    <span class="tooltiptext">
-                      <a href="{{ item.o2 }}">{{ item.o2Prefixed }}</a>
-                    </span>
-                  </span>
-                {% else %}
-                  {{ item.o2 }}
-                {% endif %}
-              </td>
-            </tr>
-          {% endif %}
-        {% endfor %}
-      </tr>
-    {% endfor %}
-    {% for geom_type, geometry in feature.geometries.items() %}
-      <tr>
-        <td>{{ geometry.label }}</td>
-        <td colspan="2">
-          <code>
-            {% if geometry.coordinates.split()|length > 6 %}
-              {{ ' '.join(geometry.coordinates.split()[:6]+[' ... ']+geometry.coordinates.split()[-6:]) }}
-            {% else %}
-              {{ geometry.coordinates }}
-            {% endif %}
-          </code>
-        </td>
-      </tr>
-    {% endfor %}
-    </table>
   {% endif %}
-  <script>
-    const data = '{{ feature.geometries["asGeoJSON"].coordinates | tojson }}';
-    const map = L.map('map');
+  <table class="lined">
+    {% for property in feature_properties %}
+      <tr>
+        <td>
+          {% if property.label is not none %}
+            <span class="tooltip">{{ property.label }}
+              <span class="tooltiptext">
+                <a href="{{ property.uri }}">
+                  {% if property.prefix is not none %}
+                    {{ property.prefix }}
+                  {% else %}
+                    {{ property.uri }}
+                  {% endif %}
+                </a>
+              </span>
+            </span>
+          {% else %}
+            {{ property.uri }}
+          {% endif %}
+        </td>
+        <td>
+          {% if property.objects is not none %}
+            {% for object in property.objects %}
+              {% if object.label is not none %}
+                <span class="tooltip">{{ object.label }}
+                  <span class="tooltiptext">
+                    <a href="{{ object.value }}">
+                      {% if object.prefix is not none %}
+                        {{ object.prefix }}
+                      {% else %}
+                        {{ object.value }}
+                      {% endif %}
+                    </a>
+                  </span>
+                </span>
+              {% else %}
+                {{ object.value }}
+              {% endif %}
+              <br/>
+            {% endfor %}
+          {% elif property.bnodes is not none %}
+            {% for bnode in property.bnodes.values() %}
+              <table class="lined">
+                {% for object in bnode %}
+                  <tr>
+                    <td>
+                      {% if object.pLabel is not none %}
+                        <span class="tooltip">{{ object.pLabel }}
+                          <span class="tooltiptext">
+                            <a href="{{ object.pUri }}">
+                              {% if object.pPrefix is not none %}
+                                {{ object.pPrefix }}
+                              {% else %}
+                                {{ object.pUri }}
+                              {% endif %}
+                            </a>
+                          </span>
+                        </span>
+                      {% else %}
+                        {{ object.pUri }}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if object.oLabel is not none %}
+                        <span class="tooltip">{{ object.oLabel }}
+                          <span class="tooltiptext">
+                            <a href="{{ oValue }}">
+                              {% if object.oPrefix is not none %}
+                                {{ object.oPrefix }}
+                              {% else %}
+                                {{ object.oValue }}
+                              {% endif %}
+                            </a>
+                          </span>
+                        </span>
+                      {% else %}
+                        {{ object.oValue }}
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </table>
+            {% endfor %}
+          {% else %} {# geometry #}
+            <code>
+              {% if property.geometry.split()|length > 6 %}
+                {{ ' '.join(property.geometry.split()[:6]+[' ... ']+property.geometry.split()[-6:]) }}
+              {% else %}
+                {{ property.geometry }}
+              {% endif %}
+            </code>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  {% if feature.geometries.asGeoJSON is not none %}
+    <script>
+      const data = '{{ feature.geometries.asGeoJSON.coordinates | tojson }}';
+      const map = L.map('map');
 
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
-      accessToken: 'pk.eyJ1IjoiamFtaWVmZWlzcyIsImEiOiJja3Exb3U5anAwZ3lrMnBrMXFlMXUxazZ2In0.2rBPhgnwrWJKNl2GsXV5HQ',
-      maxZoom: 18,
-      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-        '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-      id: 'mapbox/streets-v11',
-      tileSize: 512,
-      zoomOffset: -1
-    }).addTo(map);
+      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        accessToken: 'pk.eyJ1IjoiamFtaWVmZWlzcyIsImEiOiJja3Exb3U5anAwZ3lrMnBrMXFlMXUxazZ2In0.2rBPhgnwrWJKNl2GsXV5HQ',
+        maxZoom: 18,
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+          '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+          'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1
+      }).addTo(map);
 
-    const geojsonLayer = L.geoJson(JSON.parse(data.slice(1, data.length - 1))).addTo(map);
-    map.fitBounds(geojsonLayer.getBounds());
-  </script>
+      const geojsonLayer = L.geoJson(JSON.parse(data.slice(1, data.length - 1))).addTo(map);
+      map.fitBounds(geojsonLayer.getBounds());
+    </script>
+  {% endif %}
 </div>
 {% include 'page_altprofiles.html' %}
 {% endblock %}

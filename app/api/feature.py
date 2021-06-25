@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from geojson_rewind import rewind
 from geomet import wkt
 from rdflib import Graph
-from rdflib import URIRef, Literal, BNode
+from rdflib import URIRef, Literal, BNode, Namespace
 from rdflib.namespace import DCTERMS, RDF, RDFS
 
 from api.link import *
@@ -124,6 +124,15 @@ class Feature(object):
                 for k, v in property.copy().items():
                     if isinstance(v, URIRef):
                         property[f"{k}Prefixed"] = v.n3(self.graph_namespaces.namespace_manager)
+                keys = property.keys()
+                for node in ['p1', 'p2', 'o1', 'o2']:
+                    if node in keys and f'{node}Label' not in keys:
+                        label = self.get_label(property[node])
+                        if label:
+                            property[f"{node}Label"] = label
+                # check for p1 label, if not, use function to try find one from context
+                # if o1 / p2 / o2 in proerty.keys()
+                # use function to check for label with these
 
         # for bnodes,
         # 1. collect "property 1's"
@@ -149,16 +158,17 @@ class Feature(object):
         self.properties = [i for i in non_bnode_results]
         self.bnode_properties = new_bnode_results
 
+        self.bnode_properties_results = bnode_results
+
         self.identifier = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.identifier)
         self.title = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.title)
         self.description = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.description)
-        self.label = self.graph_namespaces.value(URIRef(self.uri), RDFS.label)
+        # self.label = self.graph_namespaces.value(URIRef(self.uri), RDFS.label)
         self.isPartOf = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.isPartOf)
         if not self.title:
-            if self.label:
-                self.title = self.label
-            else:
-                self.title = f"Feature {self.identifier}"
+            self.title = f"Feature {self.identifier}"
+
+        self.geometries_dict = geom_results
 
         geom_names = {
             'asWKT': {"crs": CRS.WGS84},
@@ -346,14 +356,162 @@ class FeatureRenderer(Renderer):
 
     def _render_oai_html(self):
         if "asGeoJSON" not in self.feature.geometries.keys():
-            self.feature.geometries["asGeoJSON"] = self.feature.to_geo_json_dict
+            self.feature.geometries["asGeoJSON"] = self.feature.to_geo_json_dict()
+
+        # need geosparql namespace for prefixes
+        GEO = Namespace("http://www.opengis.net/ont/geosparql#")
+
+        # property dicts
+        type = {}
+        properties = {}
+        geometries = {}
+        spatial = {}
+        relations = {}
+        other = {}
+
+        # list of property order per group
+        type_order = [RDF.type]
+        properties_order = [
+            DCTERMS.identifier,
+            DCTERMS.isPartOf,
+            GEO.hasGeometry
+        ]
+        geometries_order = [
+            GEO.asDGGS,
+            GEO.asGeoJSON,
+            GEO.asWKT
+        ]
+        spatial_order = [GEO.hasArea]
+        relations_order = [
+            GEO.sfWithin,
+            GEO.sfContains,
+            GEO.sfOverlaps
+        ]
+
+        def add_property(prop: dict, dict: dict, mode: str) -> None:
+            """Adds a property to a group dict"""
+            object = None
+            bnode = None
+            geometry = None
+            prop_name = "p1"
+
+            if mode == "prop":
+                object = {
+                    "value": prop["o1"],
+                    "prefix": prop.get("o1Prefixed"),
+                    "label": prop.get("o1Label")
+                }
+            elif mode == "bnode":
+                bnode = {
+                    "pUri": prop["p2"],
+                    "pPrefix": prop.get("p2Prefixed"),
+                    "pLabel": prop.get("p2Label"),
+                    "oValue": prop["o2"],
+                    "oPrefix": prop.get("o2Prefixed"),
+                    "oLabel": prop.get("o2Label"),
+                }
+            else: # geom
+                prop_name = "p2"
+                geometry = prop["o2"]
+
+            if dict.get(prop[prop_name]): # if prop exists, append child
+                if mode == "prop":
+                    dict[prop[prop_name]]["objects"].append(object)
+                elif mode == "bnode":
+                    bnode_list = dict[prop[prop_name]]["bnodes"].get(prop["o1"])
+                    if bnode_list: # if bnode exists
+                        bnode_list.append(bnode)
+                    else:
+                        dict[prop[prop_name]]["bnodes"][prop["o1"]] = [bnode]
+            else: # create prop
+                dict[prop[prop_name]] = {
+                    "uri": prop[prop_name],
+                    "prefix": prop.get(f"{prop_name}Prefixed"),
+                    "label": prop.get(f"{prop_name}Label"),
+                    "objects": [object] if object is not None else None,
+                    "bnodes": {prop["o1"]: [bnode]} if bnode is not None else None,
+                    "geometry": geometry if geometry is not None else None
+                }
+
+        # dicts to match keys of order list in switch statement
+        dicts = {
+            "type_order": type_order,
+            "properties_order": properties_order,
+            "geometries_order": geometries_order,
+            "spatial_order": spatial_order,
+            "relations_order": relations_order
+        }
+
+        # switch statement
+        def switch(case: str, prop: dict, mode: str) -> None:
+            """Switch statement matching case of which order list the property is in"""
+            cases = {
+                "type_order": lambda: add_property(prop, type, mode),
+                "properties_order": lambda: add_property(prop, properties, mode),
+                "geometries_order": lambda: add_property(prop, geometries, mode),
+                "spatial_order": lambda: add_property(prop, spatial, mode),
+                "relations_order": lambda: add_property(prop, relations, mode)
+            }
+            cases.get(case, lambda: add_property(prop, other, mode))()
+
+        # properties loop
+        for property in self.feature.properties:
+            matched = False
+            for key, value in dicts.items():
+                if property["p1"] in value:
+                    switch(key, property, "prop")
+                    matched = True
+                    break
+            if not matched:
+                switch("other", property, "prop")
+
+        # bnode properties loop
+        for property in self.feature.bnode_properties_results:
+            # omit SpatialMeasure from hasArea
+            if property["p1"] == GEO.hasArea and property["o2"] == GEO.SpatialMeasure:
+                continue
+            matched = False
+            for key, value in dicts.items():
+                if property["p1"] in value:
+                    switch(key, property, "bnode")
+                    matched = True
+                    break
+            if not matched:
+                switch("other", property, "bnode")
+
+        # geometries loop
+        for property in self.feature.geometries_dict:
+            matched = False
+            for key, value in dicts.items():
+                if property["p2"] in value: # p2 is the property URI used for geometries (p1 is hasGeometry - redundant)
+                    switch(key, property, "geom")
+                    matched = True
+                    break
+            if not matched:
+                switch("other", property, "geom")
+
+        def order_properties(key: str, dict: dict, order_list: List[URIRef]) -> int:
+            """Orders the properties of a group dict according to the corresponding order list"""
+            if key in order_list:
+                return order_list.index(key)
+            else:
+                return len(dict.keys())
+
+        feature_properties = []
+        feature_properties.extend(sorted(properties.values(), key=lambda p: order_properties(p["uri"], properties, properties_order)))
+        feature_properties.extend(sorted(geometries.values(), key=lambda p: order_properties(p["uri"], geometries, geometries_order)))
+        feature_properties.extend(sorted(spatial.values(), key=lambda p: order_properties(p["uri"], spatial, spatial_order)))
+        feature_properties.extend(sorted(relations.values(), key=lambda p: order_properties(p["uri"], relations, relations_order)))
+        feature_properties.extend(sorted(other.values(), key=lambda p: order_properties(p["uri"], other, [])))
 
         _template_context = {
             "links": self.links,
             "feature": self.feature,
             "request": self.request,
-            "api_title": f"{self.feature.title} - {API_TITLE}"
-            }
+            "api_title": f"{self.feature.title} - {API_TITLE}",
+            "type": sorted(type.values(), key=lambda p: order_properties(p["uri"], type, type_order)),
+            "feature_properties": feature_properties
+        }
 
         return templates.TemplateResponse(name="feature.html",
                                           context=_template_context,
