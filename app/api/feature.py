@@ -86,7 +86,7 @@ class Feature(object):
             PREFIX dcterms: <http://purl.org/dc/terms/> 
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
-            SELECT ?p1 ?p1Label ?p2 ?p2Label ?o2 ?o2Label {{
+            SELECT ?p1 ?p1Label ?p2 ?p2Label ?o2 ?o2Label ?o1 {{
                 <{self.uri}> ?p1 ?o1 .
                 ?o1 ?p2 ?o2
                 OPTIONAL {{ 
@@ -124,46 +124,14 @@ class Feature(object):
                 for k, v in property.copy().items():
                     if isinstance(v, URIRef):
                         property[f"{k}Prefixed"] = v.n3(self.graph_namespaces.namespace_manager)
-                keys = property.keys()
-                for node in ['p1', 'p2', 'o1', 'o2']:
-                    if node in keys and f'{node}Label' not in keys:
-                        label = self.get_label(property[node])
-                        if label:
-                            property[f"{node}Label"] = label
-                # check for p1 label, if not, use function to try find one from context
-                # if o1 / p2 / o2 in proerty.keys()
-                # use function to check for label with these
-
-        # for bnodes,
-        # 1. collect "property 1's"
-        # 2. create a dicitonary per property 1
-        # (within this dictionary:)
-        # 3. add the property 1's attributes
-        # 4. add the property 1's (1:many) values as a list
-        p1_vals = []
-        for result in bnode_results:
-            p1_vals.append(result['p1'])
-        unique_p1_vals = list(set(p1_vals))
-        new_bnode_results = {}
-        for val in unique_p1_vals:
-            new_bnode_results[val] = {"nestedItems": []}
-            for result in bnode_results:
-                if result['p1'] == val:
-                    new_bnode_results[val]["nestedItems"].append({k: v for k, v in result.items() if k != 'p1'})
-                    if 'p1Prefixed' in result.keys():
-                        new_bnode_results[val]["p1Prefixed"] = result["p1Prefixed"]
-                    if 'p1Label' in result.keys():
-                        new_bnode_results[val]["p1Label"] = result["p1Label"]
 
         self.properties = [i for i in non_bnode_results]
-        self.bnode_properties = new_bnode_results
 
-        self.bnode_properties_results = bnode_results
+        self.bnode_properties = bnode_results
 
         self.identifier = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.identifier)
         self.title = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.title)
         self.description = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.description)
-        # self.label = self.graph_namespaces.value(URIRef(self.uri), RDFS.label)
         self.isPartOf = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.isPartOf)
         if not self.title:
             self.title = f"Feature {self.identifier}"
@@ -285,14 +253,6 @@ class Feature(object):
                     ))
 
         return local_g
-
-    # def get_label(self, node):
-    #     preflabel_from_context = self.graph_namespaces.preferredLabel(node)
-    #     label_from_context = self.graph_namespaces.label(node)
-    #     if preflabel_from_context:
-    #         return preflabel_from_context[0][1]
-    #     elif label_from_context:
-    #         return label_from_context[0][1]
 
 
 class FeatureRenderer(Renderer):
@@ -466,7 +426,7 @@ class FeatureRenderer(Renderer):
                 switch("other", property, "prop")
 
         # bnode properties loop
-        for property in self.feature.bnode_properties_results:
+        for property in self.feature.bnode_properties:
             # omit SpatialMeasure from hasArea
             if property["p1"] == GEO.hasArea and property["o2"] == GEO.SpatialMeasure:
                 continue
