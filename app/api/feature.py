@@ -202,9 +202,9 @@ class Feature(object):
           },
         """
         if "GeoJSON" in self.geometries.keys():
-            geojson_geometry = self.geometries["GeoJSON"].coordinates
+            geojson_geometry = self.geometries["asGeoJSON"].coordinates
         else:
-            geojson_geometry = self.geometries["WKT"].to_geo_json_dict()
+            geojson_geometry = self.geometries["asWKT"].to_geo_json_dict()
 
         properties = {"title": self.title, "isPartOf": self.isPartOf}
         if self.description is not None:
@@ -230,7 +230,8 @@ class Feature(object):
             local_g.add((f, GEO.hasGeometry, this_geom))
             local_g.add((this_geom, RDFS.label, Literal(geom.label)))
             local_g.add((this_geom, GEOX.hasRole, URIRef(geom.role.value)))
-            local_g.add((this_geom, GEOX.inCRS, URIRef(geom.crs.value)))
+            # inSRS not added as part of GeoSPARQL 1.1
+            # local_g.add((this_geom, GEOX.inSRS, URIRef(geom.crs.value)))
             if geom.crs == CRS.TB16PIX:
                 local_g.add(
                     (
