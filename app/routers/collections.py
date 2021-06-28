@@ -18,21 +18,25 @@ router = fastapi.APIRouter()
 g = utils.g
 
 
-@router.get("/collections",
-            summary="Collections Page",
-            responses={
-                200: {"description": "Collections page correctly loaded."},
-                400: {"description": "Parameter not found or not valid."},
-            })
-def collection(request: Request,
-               _view: Optional[str] = None,
-               _profile: Optional[str] = None,
-               _format: Optional[str] = None,
-               _mediatype: Optional[str] = None,
-               page: Optional[str] = None,
-               per_page: Optional[str] = None,
-               limit: Optional[str] = None,
-               bbox: Optional[str] = None):
+@router.get(
+    "/collections",
+    summary="Collections Page",
+    responses={
+        200: {"description": "Collections page correctly loaded."},
+        400: {"description": "Parameter not found or not valid."},
+    },
+)
+def collection(
+    request: Request,
+    _view: Optional[str] = None,
+    _profile: Optional[str] = None,
+    _format: Optional[str] = None,
+    _mediatype: Optional[str] = None,
+    page: Optional[str] = None,
+    per_page: Optional[str] = None,
+    limit: Optional[str] = None,
+    bbox: Optional[str] = None,
+):
     try:
         logging.info(f"Collections Render request: {request.path_params}")
         return CollectionsRenderer(request).render()
@@ -40,28 +44,34 @@ def collection(request: Request,
         return HTTPException(detail=e, status_code=500)
 
 
-@router.get("/collections/{collection_id}",
-            summary="Collection Id Page",
-            responses={
-                200: {"description": "Collection Id page correctly loaded."},
-                400: {"description": "Parameter not found or not valid."},
-            })
-def collection_id(request: Request,
-                  collection_id: str = None,
-                  _profile: Optional[str] = None,
-                  _mediatype: Optional[str] = None):
+@router.get(
+    "/collections/{collection_id}",
+    summary="Collection Id Page",
+    responses={
+        200: {"description": "Collection Id page correctly loaded."},
+        400: {"description": "Parameter not found or not valid."},
+    },
+)
+def collection_id(
+    request: Request,
+    collection_id: str = None,
+    _profile: Optional[str] = None,
+    _mediatype: Optional[str] = None,
+):
 
     # get the URI for the Collection using the ID
     logging.info(f"Collection ID request: {request.path_params}")
     collection_uri = None
-    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)):
+    for s in g.subjects(
+        predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)
+    ):
         collection_uri = s
 
     if collection_uri is None:
         return Response(
             "You have entered an unknown Collection ID",
             status_code=400,
-            media_type="text/plain"
+            media_type="text/plain",
         )
     try:
         return CollectionRenderer(request, collection_uri).render()
@@ -69,60 +79,72 @@ def collection_id(request: Request,
         return HTTPException(detail=e, status_code=500)
 
 
-@router.get("/collections/{collection_id}/items",
-            summary="Collection Id Items Page",
-            responses={
-                200: {"description": "Collection Id Items page correctly loaded."},
-                400: {"description": "Parameter not found or not valid."},
-            })
-def collection_id_items(request: Request,
-                        collection_id: str = None,
-                        page: Optional[str] = None,
-                        per_page: Optional[str] = None,
-                        limit: Optional[str] = None,
-                        bbox: Optional[str] = None,
-                        _profile: Optional[str] = None,
-                        _mediatype: Optional[str] = None):
+@router.get(
+    "/collections/{collection_id}/items",
+    summary="Collection Id Items Page",
+    responses={
+        200: {"description": "Collection Id Items page correctly loaded."},
+        400: {"description": "Parameter not found or not valid."},
+    },
+)
+def collection_id_items(
+    request: Request,
+    collection_id: str = None,
+    page: Optional[str] = None,
+    per_page: Optional[str] = None,
+    limit: Optional[str] = None,
+    bbox: Optional[str] = None,
+    _profile: Optional[str] = None,
+    _mediatype: Optional[str] = None,
+):
     logging.info(f"Collection ID Item request: {request.path_params}")
     return FeaturesRenderer(request, collection_id).render()
 
 
-@router.get("/collections/{collection_id}/items/{item_id}",
-            summary="Item per Collection Page",
-            responses={
-                200: {"description": "Item per Collection page correctly loaded."},
-                400: {"description": "Parameter not found or not valid."},
-            })
-def collection_id_items_id(request: Request,
-                           collection_id: str = None,
-                           item_id: str = None,
-                           _profile: Optional[str] = None,
-                           _mediatype: Optional[str] = None):
+@router.get(
+    "/collections/{collection_id}/items/{item_id}",
+    summary="Item per Collection Page",
+    responses={
+        200: {"description": "Item per Collection page correctly loaded."},
+        400: {"description": "Parameter not found or not valid."},
+    },
+)
+def collection_id_items_id(
+    request: Request,
+    collection_id: str = None,
+    item_id: str = None,
+    _profile: Optional[str] = None,
+    _mediatype: Optional[str] = None,
+):
 
     # get the URI for the Collection using the ID
     logging.info(f"Collection ID Item ID request: {request.path_params}")
     collection_uri = None
-    for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)):
+    for s in g.subjects(
+        predicate=DCTERMS.identifier, object=Literal(collection_id, datatype=XSD.token)
+    ):
         collection_uri = s
 
     if collection_uri is None:
         return Response(
             "You have entered an unknown Collection ID",
             status_code=400,
-            media_type="text/plain"
+            media_type="text/plain",
         )
 
-    result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+    result = g.query(
+        f"""PREFIX dcterms: <http://purl.org/dc/terms/>
                          PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                          SELECT ?feature
                             {{?feature dcterms:identifier "{item_id}"^^xsd:token ;
                                        dcterms:isPartOf <{collection_uri}> .
                             }}
-                          """)
+                          """
+    )
     feature = str(list(result.bindings[0].values())[0])
-    return FeatureRenderer(request=request,
-                           feature_uri=str(feature),
-                           collection_id=collection_id).render()
+    return FeatureRenderer(
+        request=request, feature_uri=str(feature), collection_id=collection_id
+    ).render()
 
     # get URIs for things with this ID  - IDs may not be unique across Collections
     # for s in g.subjects(predicate=DCTERMS.identifier, object=Literal(item_id, datatype=XSD.token)):
@@ -135,5 +157,5 @@ def collection_id_items_id(request: Request,
     return Response(
         "The Feature you have entered the ID for is not part of the Collection you entered the ID for",
         status_code=400,
-        media_type="text/plain"
+        media_type="text/plain",
     )

@@ -12,11 +12,7 @@ templates = Jinja2Templates(directory="templates")
 
 
 class ApiDescRenderer(Renderer):
-    def __init__(
-            self,
-            request,
-            paths
-    ):
+    def __init__(self, request, paths):
         """
         "/search/find_dggs_by_geojson": {
             "parameters": [
@@ -101,7 +97,7 @@ class ApiDescRenderer(Renderer):
                         "application/json",
                         "application/xml",
                         "text/xml",
-                        "text/html"
+                        "text/html",
                     ],
                 },
                 "parameters": [
@@ -117,10 +113,12 @@ class ApiDescRenderer(Renderer):
                     #     ],
                     #     "collectionFormat": "multi"
                     # },
-                ]
+                ],
             }
 
-        super().__init__(request, LANDING_PAGE_URL + "/api", {"oai": profile_openapi}, "oai")
+        super().__init__(
+            request, LANDING_PAGE_URL + "/api", {"oai": profile_openapi}, "oai"
+        )
 
     def render(self):
         # try returning alt profile
@@ -128,7 +126,10 @@ class ApiDescRenderer(Renderer):
         if response is not None:
             return response
         elif self.profile == "oai":
-            if self.mediatype == "application/json" or self.mediatype == "application/vnd.oai.openapi+json;version=3.0":
+            if (
+                self.mediatype == "application/json"
+                or self.mediatype == "application/vnd.oai.openapi+json;version=3.0"
+            ):
                 return self._render_oai_json()
             else:
                 return self._render_oai_html()
@@ -170,10 +171,7 @@ class ApiDescRenderer(Renderer):
         page_json = {
             "swagger": "2.0",
             "basePath": LANDING_PAGE_URL + "/api",
-            "info": {
-                "title": API_TITLE,
-                "version": VERSION
-            },
+            "info": {"title": API_TITLE, "version": VERSION},
             "paths": self.paths,
         }
 
@@ -186,9 +184,9 @@ class ApiDescRenderer(Renderer):
     def _render_oai_html(self):
         _template_context = {
             "uri": LANDING_PAGE_URL + "/api",
-            "api_title": f"API Description - {API_TITLE}"
+            "api_title": f"API Description - {API_TITLE}",
         }
 
-        return templates.TemplateResponse(name="api.html",
-                                          context=_template_context,
-                                          headers=self.headers)
+        return templates.TemplateResponse(
+            name="api.html", context=_template_context, headers=self.headers
+        )

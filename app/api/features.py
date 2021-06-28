@@ -24,7 +24,9 @@ class FeaturesList:
     def __init__(self, request, collection_id):
         self.request = request
         self.page = (
-            int(request.query_params.get("page")) if request.query_params.get("page") is not None else 1
+            int(request.query_params.get("page"))
+            if request.query_params.get("page") is not None
+            else 1
         )
         self.per_page = (
             int(request.query_params.get("per_page"))
@@ -34,8 +36,10 @@ class FeaturesList:
 
         # get Collection
         self.collection = Collection
-        result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
-                             SELECT ?collection {{?collection dcterms:identifier "{collection_id}"^^xsd:token}}""")
+        result = g.query(
+            f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
+                             SELECT ?collection {{?collection dcterms:identifier "{collection_id}"^^xsd:token}}"""
+        )
         collection = str(list(result.bindings[0].values())[0])
         self.collection = Collection(collection)
 
@@ -44,12 +48,19 @@ class FeaturesList:
             # work out what sort of BBOX filter it is and filter by that type
             features_uris = self.get_feature_uris_by_bbox()
         else:
-            result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
-                                 SELECT (COUNT(?s) as ?count) {{?s dcterms:isPartOf <{self.collection.uri}>}}""")
+            result = g.query(
+                f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
+                                 SELECT (COUNT(?s) as ?count) {{?s dcterms:isPartOf <{self.collection.uri}>}}"""
+            )
         self.feature_count = int(list(result.bindings[0].values())[0])
-        self.limit = int(request.query_params.get("limit")) if request.query_params.get("limit") is not None else None
+        self.limit = (
+            int(request.query_params.get("limit"))
+            if request.query_params.get("limit") is not None
+            else None
+        )
 
-        result = g.query(f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+        result = g.query(
+            f"""PREFIX dcterms: <http://purl.org/dc/terms/>
                              PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                              SELECT ?feature ?identifier ?title ?description
                                 {{?feature dcterms:isPartOf <{self.collection.uri}> ;
@@ -57,14 +68,22 @@ class FeaturesList:
                                     OPTIONAL {{?feature dcterms:title ?title}}
                                     OPTIONAL {{?feature dcterms:description ?description}}
                                 }} LIMIT {self.per_page} OFFSET {(self.page-1)*self.per_page}
-                              """)
+                              """
+        )
 
         result = [{str(k): v for k, v in i.items()} for i in result.bindings]
         features = [str(i["feature"]) for i in result]
-        descriptions = [i["description"] if "description" in i.keys() else None for i in result]
-        identifiers = [str(i["identifier"]) if "identifier" in i.keys() else None for i in result]
+        descriptions = [
+            i["description"] if "description" in i.keys() else None for i in result
+        ]
+        identifiers = [
+            str(i["identifier"]) if "identifier" in i.keys() else None for i in result
+        ]
         # use the title if it's available, otherwise use "Feature {identifier}"
-        titles = [i["title"] if "title" in i.keys() else f"Feature {i['identifier']}" for i in result]
+        titles = [
+            i["title"] if "title" in i.keys() else f"Feature {i['identifier']}"
+            for i in result
+        ]
         self.features = list(zip(features, identifiers, titles, descriptions))
         self.bbox_type = None
 
@@ -74,7 +93,7 @@ class FeaturesList:
             # Lat Longs, e.g. 160.6,-55.95,-170,-25.89
             "cell_id": r"([A-Z][0-9]{0,15})$",  # single DGGS Cell ID, e.g. R1234
             "cell_ids": r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
-            }
+        }
         for k, v in allowed_bbox_formats.items():
             if re.match(v, self.request.query_params.get("bbox")):
                 self.bbox_type = k
@@ -123,13 +142,15 @@ class FeaturesList:
                     '''^^geo:wktLiteral))
             }}
             ORDER BY ?f
-            """.format(**{
-            "collection_uri": self.collection.uri,
-            "tl_lon": parts[0],
-            "tl_lat": parts[1],
-            "br_lon": parts[2],
-            "br_lat": parts[3]
-            })
+            """.format(
+            **{
+                "collection_uri": self.collection.uri,
+                "tl_lon": parts[0],
+                "tl_lat": parts[1],
+                "br_lon": parts[2],
+                "br_lat": parts[3],
+            }
+        )
         # TODO FILTER
         features_uris = []
         for r in get_graph().query(q):
@@ -152,7 +173,9 @@ class FeaturesList:
 
                 FILTER CONTAINS(STR(?dggs), "{}")
             }}
-            """.format(self.collection.uri, self.request.query_params.get("bbox"))
+            """.format(
+            self.collection.uri, self.request.query_params.get("bbox")
+        )
 
         # TODO: update as RDFlib updates
         # for r in get_graph().query(q):
@@ -210,15 +233,15 @@ class FeaturesRenderer(ContainerRenderer):
                     LANDING_PAGE_URL + "/collections.json",
                     rel=RelType.SELF.value,
                     type=MediaType.JSON.value,
-                    title="This Document"
-                    ),
+                    title="This Document",
+                ),
                 Link(
                     LANDING_PAGE_URL + "/collections.html",
                     rel=RelType.SELF.value,
                     type=MediaType.HTML.value,
-                    title="This Document in HTML"
-                    ),
-                ]
+                    title="This Document in HTML",
+                ),
+            ]
             if other_links is not None:
                 self.links.extend(other_links)
 
@@ -226,49 +249,82 @@ class FeaturesRenderer(ContainerRenderer):
 
             super().__init__(
                 request,
-                LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items",
+                LANDING_PAGE_URL
+                + "/collections/"
+                + self.feature_list.collection.identifier
+                + "/items",
                 "Features",
-                "The Features of Collection {}".format(self.feature_list.collection.identifier),
+                "The Features of Collection {}".format(
+                    self.feature_list.collection.identifier
+                ),
                 None,
                 None,
-                [(LANDING_PAGE_URL + "/collections/" + self.feature_list.collection.identifier + "/items/" + x[1], x[2])
-                 for x in self.feature_list.features],
+                [
+                    (
+                        LANDING_PAGE_URL
+                        + "/collections/"
+                        + self.feature_list.collection.identifier
+                        + "/items/"
+                        + x[1],
+                        x[2],
+                    )
+                    for x in self.feature_list.features
+                ],
                 self.feature_list.feature_count,
                 profiles={"oai": profile_openapi, "geosp": profile_geosparql},
-                default_profile_token="oai"
-                )
-            
+                default_profile_token="oai",
+            )
+
             # override last_page variable (pyldapi's last_page calculation is incorrect)
-            ceiling = lambda a,b : a//b + bool(a%b)
+            ceiling = lambda a, b: a // b + bool(a % b)
             self.last_page = ceiling(self.feature_list.feature_count, self.per_page)
 
     def _valid_parameters(self):
-        allowed_params = ["_profile", "_view", "_mediatype", "_format", "page", "per_page", "limit", "bbox"]
+        allowed_params = [
+            "_profile",
+            "_view",
+            "_mediatype",
+            "_format",
+            "page",
+            "per_page",
+            "limit",
+            "bbox",
+        ]
 
         allowed_bbox_formats = [
             r"([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+),([0-9\.\-]+)",  # Lat Longs, e.g. 160.6,-55.95,-170,-25.89
             r"([A-Z][0-9]{0,15})$",  # single DGGS Cell ID, e.g. R1234
             r"([A-Z][0-9]{0,15}),([A-Z][0-9]{0,15})",  # two DGGS cells, e.g. R123,R456
-            ]
+        ]
 
         for p in self.request.query_params.keys():
             if p not in allowed_params:
-                return False, \
-                       "The parameter {} you supplied is not allowed. " \
-                       "For this API endpoint, you may only use one of '{}'".format(p, "', '".join(allowed_params)),
+                return (
+                    False,
+                    "The parameter {} you supplied is not allowed. "
+                    "For this API endpoint, you may only use one of '{}'".format(
+                        p, "', '".join(allowed_params)
+                    ),
+                )
 
         if self.request.query_params.get("limit") is not None:
             try:
                 int(self.request.query_params.get("limit"))
             except ValueError:
-                return False, "The parameter 'limit' you supplied is invalid. It must be an integer"
+                return (
+                    False,
+                    "The parameter 'limit' you supplied is invalid. It must be an integer",
+                )
 
         if self.request.query_params.get("bbox") is not None:
             for p in allowed_bbox_formats:
                 if re.match(p, self.request.query_params.get("bbox")):
                     return True, None
-            return False, "The parameter 'bbox' you supplied is invalid. Must be either two pairs of long/lat values, " \
-                          "a DGGS Cell ID or a pair of DGGS Cell IDs"
+            return (
+                False,
+                "The parameter 'bbox' you supplied is invalid. Must be either two pairs of long/lat values, "
+                "a DGGS Cell ID or a pair of DGGS Cell IDs",
+            )
 
         return True, None
 
@@ -276,11 +332,8 @@ class FeaturesRenderer(ContainerRenderer):
         # return without rendering anything if there is an error with the parameters
         if not self.valid[0]:
             return Response(
-                self.valid[1],
-                status=400,
-                mimetype="text/plain",
-                headers=self.headers
-                )
+                self.valid[1], status=400, mimetype="text/plain", headers=self.headers
+            )
 
         # try returning alt profile
         response = super().render()
@@ -305,26 +358,26 @@ class FeaturesRenderer(ContainerRenderer):
             "links": [x.__dict__ for x in self.links],
             "collection": self.feature_list.collection.to_dict(),
             "items": self.members,
-            }
+        }
 
         return JSONResponse(
             page_json,
             media_type=str(MediaType.JSON.value),
             headers=self.headers,
-            )
+        )
 
     def _render_oai_geojson(self):
         page_json = {
             "links": [x.__dict__ for x in self.links],
             "collection": self.feature_list.collection.to_geo_json_dict(),
             "items": self.members,
-            }
+        }
 
         return JSONResponse(
             page_json,
             media_type=str(MediaType.GEOJSON.value),
             headers=self.headers,
-            )
+        )
 
     def _render_oai_html(self):
         # generate link QSAs from the FeaturesRenderer attributes
@@ -332,7 +385,9 @@ class FeaturesRenderer(ContainerRenderer):
         for link_type in ["first_page", "next_page", "prev_page", "last_page"]:
             page = getattr(self, link_type)
             if page:
-                links[link_type] = f"{self.instance_uri}?per_page={self.per_page}&page={page}"
+                links[
+                    link_type
+                ] = f"{self.instance_uri}?per_page={self.per_page}&page={page}"
 
         _template_context = {
             "links": self.links,
@@ -343,28 +398,40 @@ class FeaturesRenderer(ContainerRenderer):
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page,
-            "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}"
+            "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}",
         }
 
+        if (
+            self.request.query_params.get("bbox") is not None
+        ):  # it it exists at this point, it must be valid
+            _template_context["bbox"] = (
+                self.feature_list.bbox_type,
+                self.request.query_params.get("bbox"),
+            )
 
-        if self.request.query_params.get("bbox") is not None:  # it it exists at this point, it must be valid
-            _template_context["bbox"] = (self.feature_list.bbox_type, self.request.query_params.get("bbox"))
-
-        return templates.TemplateResponse(name="features.html",
-                                          context=_template_context,
-                                          headers=self.headers)
+        return templates.TemplateResponse(
+            name="features.html", context=_template_context, headers=self.headers
+        )
 
     def _render_geosp_rdf(self):
         g = Graph()
 
-        LDP = Namespace('http://www.w3.org/ns/ldp#')
-        g.bind('ldp', LDP)
+        LDP = Namespace("http://www.w3.org/ns/ldp#")
+        g.bind("ldp", LDP)
 
-        XHV = Namespace('https://www.w3.org/1999/xhtml/vocab#')
-        g.bind('xhv', XHV)
+        XHV = Namespace("https://www.w3.org/1999/xhtml/vocab#")
+        g.bind("xhv", XHV)
 
-        page_uri_str = self.request.uri + '?per_page=' + str(self.per_page) + '&page=' + str(self.page)
-        page_uri_str_nonum = self.request.uri + '?per_page=' + str(self.per_page) + '&page='
+        page_uri_str = (
+            self.request.uri
+            + "?per_page="
+            + str(self.per_page)
+            + "&page="
+            + str(self.page)
+        )
+        page_uri_str_nonum = (
+            self.request.uri + "?per_page=" + str(self.per_page) + "&page="
+        )
         page_uri = URIRef(page_uri_str)
 
         # pagination
@@ -373,7 +440,7 @@ class FeaturesRenderer(ContainerRenderer):
         g.add((page_uri, LDP.pageOf, URIRef(self.feature_list.collection.uri)))
 
         # links to other pages
-        g.add((page_uri, XHV.first, URIRef(page_uri_str_nonum + '1')))
+        g.add((page_uri, XHV.first, URIRef(page_uri_str_nonum + "1")))
         g.add((page_uri, XHV.last, URIRef(page_uri_str_nonum + str(self.last_page))))
 
         if self.page != 1:
@@ -383,24 +450,40 @@ class FeaturesRenderer(ContainerRenderer):
             g.add((page_uri, XHV.next, URIRef(page_uri_str_nonum + str(self.page + 1))))
 
         g = g + self.feature_list.collection.to_geosp_graph()
-        g.add((
-            URIRef(self.feature_list.collection.uri),
-            GEOX.featureCount,
-            Literal(self.feature_list.feature_count, datatype=XSD.integer)
-            ))
+        g.add(
+            (
+                URIRef(self.feature_list.collection.uri),
+                GEOX.featureCount,
+                Literal(self.feature_list.feature_count, datatype=XSD.integer),
+            )
+        )
 
         for f in self.feature_list.features:
             g = g + Feature(f[0]).to_geosp_graph()
-            g.add((URIRef(f[0]), DCTERMS.isPartOf, URIRef(self.feature_list.collection.uri)))
+            g.add(
+                (
+                    URIRef(f[0]),
+                    DCTERMS.isPartOf,
+                    URIRef(self.feature_list.collection.uri),
+                )
+            )
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return JSONResponse(g.serialize(format="json-ld"), media_type=self.mediatype, headers=self.headers)
+            return JSONResponse(
+                g.serialize(format="json-ld"),
+                media_type=self.mediatype,
+                headers=self.headers,
+            )
         elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
-            return Response(g.serialize(format=self.mediatype), media_type=self.mediatype, headers=self.headers)
+            return Response(
+                g.serialize(format=self.mediatype),
+                media_type=self.mediatype,
+                headers=self.headers,
+            )
         else:
             return Response(
                 "The Media Type you requested cannot be serialized to",
                 status_code=400,
-                media_type="text/plain"
-                )
+                media_type="text/plain",
+            )

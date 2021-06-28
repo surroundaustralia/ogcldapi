@@ -6,9 +6,14 @@ profile_openapi = Profile(
     "http://www.opengis.net/spec/ogcapi-features-1/1.0/req/oas30",
     label="OpenAPI 3.0",
     comment="The OpenAPI Specification (OAS) defines a standard, language-agnostic interface to RESTful APIs which "
-            "allows both humans and computers to discover and understand the capabilities of the service without "
-            "access to source code, documentation, or through network traffic inspection.",
-    mediatypes=["text/html", "application/geo+json", "application/json", "application/vnd.oai.openapi+json;version=3.0"],
+    "allows both humans and computers to discover and understand the capabilities of the service without "
+    "access to source code, documentation, or through network traffic inspection.",
+    mediatypes=[
+        "text/html",
+        "application/geo+json",
+        "application/json",
+        "application/vnd.oai.openapi+json;version=3.0",
+    ],
     default_mediatype="application/geo+json",
     languages=["en"],  # default 'en' only for now
     default_language="en",

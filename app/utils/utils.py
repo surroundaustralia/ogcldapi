@@ -6,11 +6,12 @@ from rdflib import Graph
 
 g = None
 
+
 def get_graph():
     global g
 
     if TEST_GRAPH:
-        with open(TEST_GRAPH, 'rb') as handle:
+        with open(TEST_GRAPH, "rb") as handle:
             g = pickle.load(handle)
     else:
         logging.debug("get_graph() for {}".format(SPARQL_ENDPOINT))

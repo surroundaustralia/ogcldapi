@@ -19,10 +19,12 @@ from api import collections as collections_api
 from api import feature as feature_api
 from api import features as features_api
 
-api = FastAPI(docs_url='/docs',
-              version='1.0',
-              title=API_TITLE,
-              description=f"Open API Documentation for this {API_TITLE}")
+api = FastAPI(
+    docs_url="/docs",
+    version="1.0",
+    title=API_TITLE,
+    description=f"Open API Documentation for this {API_TITLE}",
+)
 
 # logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))
 # api.add_middleware(LoggingMiddleware)
@@ -74,19 +76,22 @@ def configure_data():
 
 
 def configure_routing():
-    api.mount('/static', StaticFiles(directory='static'), name='static')
+    api.mount("/static", StaticFiles(directory="static"), name="static")
     api.include_router(landing_page.router)
     api.include_router(conformance.router)
     api.include_router(collections.router)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.info("Running main function")
     configure()
-    uvicorn.run(api,
-                port=PORT,
-                host=HOST,
-                log_config=logging_config.configure_logging(service="Uvicorn") # comment out this line to disable logging
+    uvicorn.run(
+        api,
+        port=PORT,
+        host=HOST,
+        log_config=logging_config.configure_logging(
+            service="Uvicorn"
+        ),  # comment out this line to disable logging
     )
 else:
     logging.info("Running uvicorn function")

@@ -25,13 +25,14 @@ class HrefLang(Enum):
 
 class Link(object):
     def __init__(
-            self,
-            href: str,
-            rel: RelType = None,
-            type: MediaType = None,
-            hreflang: HrefLang = None,
-            title: str = None,
-            length: int = None):
+        self,
+        href: str,
+        rel: RelType = None,
+        type: MediaType = None,
+        hreflang: HrefLang = None,
+        title: str = None,
+        length: int = None,
+    ):
         self.href = href
         self.rel = rel
         self.type = type

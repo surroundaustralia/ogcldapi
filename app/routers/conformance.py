@@ -13,19 +13,22 @@ router = fastapi.APIRouter()
 g = utils.g
 
 
-@router.get("/conformance",
-            summary="Conformance Page",
-            responses={
-                200: {"description": "Conformance page correctly loaded."},
-                400: {"description": "Parameter not found or not valid."},
-            })
-def conformance(request: Request,
-                _view: Optional[str] = None,
-                _profile: Optional[str] = None,
-                _format: Optional[str] = None,
-                _mediatype: Optional[str] = None,
-                version: Optional[str] = None
-                ):
+@router.get(
+    "/conformance",
+    summary="Conformance Page",
+    responses={
+        200: {"description": "Conformance page correctly loaded."},
+        400: {"description": "Parameter not found or not valid."},
+    },
+)
+def conformance(
+    request: Request,
+    _view: Optional[str] = None,
+    _profile: Optional[str] = None,
+    _format: Optional[str] = None,
+    _mediatype: Optional[str] = None,
+    version: Optional[str] = None,
+):
     # q = """
     #     PREFIX dcterms: <http://purl.org/dc/terms/>
     #     PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcapi/>

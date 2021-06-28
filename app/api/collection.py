@@ -21,9 +21,9 @@ g = utils.g
 
 class Collection(object):
     def __init__(
-            self,
-            uri: str,
-            other_links: List[Link] = None,
+        self,
+        uri: str,
+        other_links: List[Link] = None,
     ):
         self.uri = uri
         # Feature properties
@@ -44,10 +44,12 @@ class Collection(object):
         self.extent_spatial = None
         self.extent_temporal = None
         self.links = [
-            Link(LANDING_PAGE_URL + "/collections/" + self.identifier + "/items",
-                 rel=RelType.ITEMS.value,
-                 type=MediaType.GEOJSON.value,
-                 title=self.title)
+            Link(
+                LANDING_PAGE_URL + "/collections/" + self.identifier + "/items",
+                rel=RelType.ITEMS.value,
+                type=MediaType.GEOJSON.value,
+                title=self.title,
+            )
         ]
         if other_links is not None:
             self.links.extend(other_links)
@@ -76,29 +78,13 @@ class Collection(object):
 
         c = URIRef(self.uri)
 
-        g.add((
-            c,
-            RDF.type,
-            DCTERMS.Collection
-        ))
+        g.add((c, RDF.type, DCTERMS.Collection))
 
-        g.add((
-            c,
-            DCTERMS.identifier,
-            Literal(self.identifier)
-        ))
+        g.add((c, DCTERMS.identifier, Literal(self.identifier)))
 
-        g.add((
-            c,
-            DCTERMS.title,
-            Literal(self.title)
-        ))
+        g.add((c, DCTERMS.title, Literal(self.title)))
 
-        g.add((
-            c,
-            DCTERMS.description,
-            Literal(self.description)
-        ))
+        g.add((c, DCTERMS.description, Literal(self.description)))
 
         return g
 
@@ -111,13 +97,13 @@ class CollectionRenderer(Renderer):
                 LANDING_PAGE_URL + "/collections.json",
                 rel=RelType.SELF.value,
                 type=MediaType.JSON.value,
-                title="This Document"
+                title="This Document",
             ),
             Link(
                 LANDING_PAGE_URL + "/collections.html",
                 rel=RelType.SELF.value,
                 type=MediaType.HTML.value,
-                title="This Document in HTML"
+                title="This Document in HTML",
             ),
         ]
         if other_links is not None:
@@ -128,7 +114,7 @@ class CollectionRenderer(Renderer):
             LANDING_PAGE_URL + "/collections/" + self.collection.identifier,
             profiles={"oai": profile_openapi},
             default_profile_token="oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES
+            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_mediatype", "version"]
@@ -136,7 +122,10 @@ class CollectionRenderer(Renderer):
     def render(self):
         for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
-                return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
+                return Response(
+                    "The parameter {} you supplied is not allowed".format(v[0]),
+                    status=400,
+                )
 
         # try returning alt profile
         response = super().render()
@@ -151,7 +140,7 @@ class CollectionRenderer(Renderer):
     def _render_oai_json(self):
         page_json = {
             "links": [x.__dict__ for x in self.links],
-            "collection": self.collection.to_dict()
+            "collection": self.collection.to_dict(),
         }
 
         return JSONResponse(
@@ -162,13 +151,13 @@ class CollectionRenderer(Renderer):
 
     def _render_oai_html(self):
         _template_context = {
-            'uri': self.instance_uri,
+            "uri": self.instance_uri,
             "links": self.links,
             "collection": self.collection,
             "request": self.request,
-            "api_title": f"{self.collection.title} - {API_TITLE}"
+            "api_title": f"{self.collection.title} - {API_TITLE}",
         }
 
-        return templates.TemplateResponse(name="collection.html",
-                                          context=_template_context,
-                                          headers=self.headers)
+        return templates.TemplateResponse(
+            name="collection.html", context=_template_context, headers=self.headers
+        )

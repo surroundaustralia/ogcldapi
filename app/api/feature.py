@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from geojson_rewind import rewind
 from geomet import wkt
 from rdflib import Graph
-from rdflib import URIRef, Literal, BNode, Namespace
+from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS
 
 from api.link import *
@@ -46,7 +46,7 @@ class Geometry(object):
             "role": self.role.value,
             "label": self.label,
             "crs": self.crs.value,
-            }
+        }
 
     def to_geo_json_dict(self):
         # this only works for WGS84 coordinates, no differentiation on role for now
@@ -57,10 +57,7 @@ class Geometry(object):
 
 
 class Feature(object):
-    def __init__(
-            self,
-            uri: str,
-            other_links: List[Link] = None):
+    def __init__(self, uri: str, other_links: List[Link] = None):
         self.uri = uri
         self.geometries = {}
 
@@ -69,7 +66,8 @@ class Feature(object):
         self.graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""").graph
         # self.graph_namespaces.bind('geo', Namespace('http://www.opengis.net/ont/geosparql#'))
 
-        non_bnode_query = g.query(f"""
+        non_bnode_query = g.query(
+            f"""
             PREFIX dcterms: <http://purl.org/dc/terms/> 
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
             SELECT ?p1 ?p1Label ?o1 ?o1Label {{
@@ -79,10 +77,14 @@ class Feature(object):
                 OPTIONAL {{ 
                     {{?o1 rdfs:label ?o1Label}} FILTER(lang(?o1Label) = "" || lang(?o1Label) = "en") }}
                 FILTER(!ISBLANK(?o1))
-                }}""")
-        non_bnode_results = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
+                }}"""
+        )
+        non_bnode_results = [
+            {str(k): v for k, v in i.items()} for i in non_bnode_query.bindings
+        ]
 
-        bnode_query = g.query(f"""
+        bnode_query = g.query(
+            f"""
             PREFIX dcterms: <http://purl.org/dc/terms/> 
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
@@ -97,10 +99,14 @@ class Feature(object):
                     {{?o2 rdfs:label ?o2Label}} FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
                 FILTER(ISBLANK(?o1))
                 FILTER(?p1!=geo:hasGeometry)
-                }}""")
-        bnode_results = [{str(k): v for k, v in i.items()} for i in bnode_query.bindings]
+                }}"""
+        )
+        bnode_results = [
+            {str(k): v for k, v in i.items()} for i in bnode_query.bindings
+        ]
 
-        geom_query = g.query(f"""
+        geom_query = g.query(
+            f"""
             PREFIX dcterms: <http://purl.org/dc/terms/> 
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
@@ -115,7 +121,8 @@ class Feature(object):
                     {{?o2 rdfs:label ?o2Label}} FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
                 FILTER(ISBLANK(?o1))
                 FILTER(?p1=geo:hasGeometry)
-                }}""")
+                }}"""
+        )
         geom_results = [{str(k): v for k, v in i.items()} for i in geom_query.bindings]
 
         # add prefixed URIs (e.g. "skos:prefLabel") to the properties (for display as tooltips in the UI)
@@ -123,15 +130,21 @@ class Feature(object):
             for property in result_set:
                 for k, v in property.copy().items():
                     if isinstance(v, URIRef):
-                        property[f"{k}Prefixed"] = v.n3(self.graph_namespaces.namespace_manager)
+                        property[f"{k}Prefixed"] = v.n3(
+                            self.graph_namespaces.namespace_manager
+                        )
 
         self.properties = [i for i in non_bnode_results]
 
         self.bnode_properties = bnode_results
 
-        self.identifier = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.identifier)
+        self.identifier = self.graph_namespaces.value(
+            URIRef(self.uri), DCTERMS.identifier
+        )
         self.title = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.title)
-        self.description = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.description)
+        self.description = self.graph_namespaces.value(
+            URIRef(self.uri), DCTERMS.description
+        )
         self.isPartOf = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.isPartOf)
         if not self.title:
             self.title = f"Feature {self.identifier}"
@@ -139,32 +152,34 @@ class Feature(object):
         self.geometries_dict = geom_results
 
         geom_names = {
-            'asWKT': {"crs": CRS.WGS84},
-            'asDGGS': {"crs": CRS.TB16PIX},
-            'asGeoJSON': {"crs": CRS.WGS84}
-            }
+            "asWKT": {"crs": CRS.WGS84},
+            "asDGGS": {"crs": CRS.TB16PIX},
+            "asGeoJSON": {"crs": CRS.WGS84},
+        }
 
         for result in geom_results:
-            geom_type = result["p2"].split('#')[1]
+            geom_type = result["p2"].split("#")[1]
             geom_literal = result["o2"]
-            if geom_literal.find('>') > 0:
-                geom_literal = geom_literal.split('> ')[1]
+            if geom_literal.find(">") > 0:
+                geom_literal = geom_literal.split("> ")[1]
             self.geometries[geom_type] = Geometry(
                 geom_literal,
                 GeometryRole.Boundary,
                 result["p2Label"],
-                geom_names[geom_type]["crs"]
-                )
+                geom_names[geom_type]["crs"],
+            )
 
         # Feature other properties
         self.extent_spatial = None
         self.extent_temporal = None
         self.links = [
-            Link(LANDING_PAGE_URL + "/collections/" + self.identifier + "/items",
-                 rel=RelType.ITEMS.value,
-                 type=MediaType.GEOJSON.value,
-                 title=self.title)
-            ]
+            Link(
+                LANDING_PAGE_URL + "/collections/" + self.identifier + "/items",
+                rel=RelType.ITEMS.value,
+                type=MediaType.GEOJSON.value,
+                title=self.title,
+            )
+        ]
         if other_links is not None:
             self.links.extend(other_links)
 
@@ -191,10 +206,7 @@ class Feature(object):
         else:
             geojson_geometry = self.geometries["WKT"].to_geo_json_dict()
 
-        properties = {
-            "title": self.title,
-            "isPartOf": self.isPartOf
-            }
+        properties = {"title": self.title, "isPartOf": self.isPartOf}
         if self.description is not None:
             properties["description"] = self.description
 
@@ -202,8 +214,8 @@ class Feature(object):
             "id": self.uri,
             "type": "Feature",
             "geometry": rewind(geojson_geometry),
-            "properties": properties
-            }
+            "properties": properties,
+        }
 
     def to_geosp_graph(self):
         local_g = Graph()
@@ -212,51 +224,41 @@ class Feature(object):
         local_g.bind("geox", GEOX)
 
         f = URIRef(self.uri)
-        local_g.add((
-            f,
-            RDF.type,
-            GEO.Feature
-            ))
+        local_g.add((f, RDF.type, GEO.Feature))
         for geom in self.geometries.values():
             this_geom = BNode()
-            local_g.add((
-                f,
-                GEO.hasGeometry,
-                this_geom
-                ))
-            local_g.add((
-                this_geom,
-                RDFS.label,
-                Literal(geom.label)
-                ))
-            local_g.add((
-                this_geom,
-                GEOX.hasRole,
-                URIRef(geom.role.value)
-                ))
-            local_g.add((
-                this_geom,
-                GEOX.inCRS,
-                URIRef(geom.crs.value)
-                ))
+            local_g.add((f, GEO.hasGeometry, this_geom))
+            local_g.add((this_geom, RDFS.label, Literal(geom.label)))
+            local_g.add((this_geom, GEOX.hasRole, URIRef(geom.role.value)))
+            local_g.add((this_geom, GEOX.inCRS, URIRef(geom.crs.value)))
             if geom.crs == CRS.TB16PIX:
-                local_g.add((
-                    this_geom,
-                    GEOX.asDGGS,
-                    Literal(geom.coordinates, datatype=GEOX.DggsLiteral)
-                    ))
+                local_g.add(
+                    (
+                        this_geom,
+                        GEOX.asDGGS,
+                        Literal(geom.coordinates, datatype=GEOX.DggsLiteral),
+                    )
+                )
             else:  # WGS84
-                local_g.add((
-                    this_geom,
-                    GEO.asWKT,
-                    Literal(geom.coordinates, datatype=GEO.WktLiteral)
-                    ))
+                local_g.add(
+                    (
+                        this_geom,
+                        GEO.asWKT,
+                        Literal(geom.coordinates, datatype=GEO.WktLiteral),
+                    )
+                )
 
         return local_g
 
 
 class FeatureRenderer(Renderer):
-    def __init__(self, request, feature_uri: str, collection_id: str, other_links: List[Link] = None):
+    def __init__(
+        self,
+        request,
+        feature_uri: str,
+        collection_id: str,
+        other_links: List[Link] = None,
+    ):
         self.feature = Feature(feature_uri)
         self.links = []
         if other_links is not None:
@@ -264,18 +266,25 @@ class FeatureRenderer(Renderer):
 
         super().__init__(
             request=request,
-            instance_uri=LANDING_PAGE_URL + "/collections/" + collection_id + "/items/" + self.feature.identifier,
+            instance_uri=LANDING_PAGE_URL
+            + "/collections/"
+            + collection_id
+            + "/items/"
+            + self.feature.identifier,
             profiles={"oai": profile_openapi, "geosp": profile_geosparql},
             default_profile_token="oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES
-            )
+            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
+        )
 
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "version"]
 
     def render(self):
         for v in self.request.query_params.items():
             if v[0] not in self.ALLOWED_PARAMS:
-                return Response("The parameter {} you supplied is not allowed".format(v[0]), status=400)
+                return Response(
+                    "The parameter {} you supplied is not allowed".format(v[0]),
+                    status=400,
+                )
 
         # try returning alt profile
         response = super().render()
@@ -294,14 +303,14 @@ class FeatureRenderer(Renderer):
     def _render_oai_json(self):
         page_json = {
             "links": [x.__dict__ for x in self.links],
-            "feature": self.feature.to_geo_json_dict()
-            }
+            "feature": self.feature.to_geo_json_dict(),
+        }
 
         return JSONResponse(
             page_json,
             media_type=str(MediaType.JSON.value),
             headers=self.headers,
-            )
+        )
 
     def _render_oai_geojson(self):
         page_json = self.feature.to_geo_json_dict()
@@ -312,7 +321,7 @@ class FeatureRenderer(Renderer):
             page_json,
             media_type=str(MediaType.GEOJSON.value),
             headers=self.headers,
-            )
+        )
 
     def _render_oai_html(self):
         if "asGeoJSON" not in self.feature.geometries.keys():
@@ -331,22 +340,10 @@ class FeatureRenderer(Renderer):
 
         # list of property order per group
         type_order = [RDF.type]
-        properties_order = [
-            DCTERMS.identifier,
-            DCTERMS.isPartOf,
-            GEO.hasGeometry
-        ]
-        geometries_order = [
-            GEO.asDGGS,
-            GEO.asGeoJSON,
-            GEO.asWKT
-        ]
+        properties_order = [DCTERMS.identifier, DCTERMS.isPartOf, GEO.hasGeometry]
+        geometries_order = [GEO.asDGGS, GEO.asGeoJSON, GEO.asWKT]
         spatial_order = [GEO.hasArea]
-        relations_order = [
-            GEO.sfWithin,
-            GEO.sfContains,
-            GEO.sfOverlaps
-        ]
+        relations_order = [GEO.sfWithin, GEO.sfContains, GEO.sfOverlaps]
 
         def add_property(prop: dict, dict: dict, mode: str) -> None:
             """Adds a property to a group dict"""
@@ -359,7 +356,7 @@ class FeatureRenderer(Renderer):
                 object = {
                     "value": prop["o1"],
                     "prefix": prop.get("o1Prefixed"),
-                    "label": prop.get("o1Label")
+                    "label": prop.get("o1Label"),
                 }
             elif mode == "bnode":
                 bnode = {
@@ -370,27 +367,27 @@ class FeatureRenderer(Renderer):
                     "oPrefix": prop.get("o2Prefixed"),
                     "oLabel": prop.get("o2Label"),
                 }
-            else: # geom
+            else:  # geom
                 prop_name = "p2"
                 geometry = prop["o2"]
 
-            if dict.get(prop[prop_name]): # if prop exists, append child
+            if dict.get(prop[prop_name]):  # if prop exists, append child
                 if mode == "prop":
                     dict[prop[prop_name]]["objects"].append(object)
                 elif mode == "bnode":
                     bnode_list = dict[prop[prop_name]]["bnodes"].get(prop["o1"])
-                    if bnode_list: # if bnode exists
+                    if bnode_list:  # if bnode exists
                         bnode_list.append(bnode)
                     else:
                         dict[prop[prop_name]]["bnodes"][prop["o1"]] = [bnode]
-            else: # create prop
+            else:  # create prop
                 dict[prop[prop_name]] = {
                     "uri": prop[prop_name],
                     "prefix": prop.get(f"{prop_name}Prefixed"),
                     "label": prop.get(f"{prop_name}Label"),
                     "objects": [object] if object is not None else None,
                     "bnodes": {prop["o1"]: [bnode]} if bnode is not None else None,
-                    "geometry": geometry if geometry is not None else None
+                    "geometry": geometry if geometry is not None else None,
                 }
 
         # dicts to match keys of order list in switch statement
@@ -399,7 +396,7 @@ class FeatureRenderer(Renderer):
             "properties_order": properties_order,
             "geometries_order": geometries_order,
             "spatial_order": spatial_order,
-            "relations_order": relations_order
+            "relations_order": relations_order,
         }
 
         # switch statement
@@ -410,7 +407,7 @@ class FeatureRenderer(Renderer):
                 "properties_order": lambda: add_property(prop, properties, mode),
                 "geometries_order": lambda: add_property(prop, geometries, mode),
                 "spatial_order": lambda: add_property(prop, spatial, mode),
-                "relations_order": lambda: add_property(prop, relations, mode)
+                "relations_order": lambda: add_property(prop, relations, mode),
             }
             cases.get(case, lambda: add_property(prop, other, mode))()
 
@@ -443,7 +440,9 @@ class FeatureRenderer(Renderer):
         for property in self.feature.geometries_dict:
             matched = False
             for key, value in dicts.items():
-                if property["p2"] in value: # p2 is the property URI used for geometries (p1 is hasGeometry - redundant)
+                if (
+                    property["p2"] in value
+                ):  # p2 is the property URI used for geometries (p1 is hasGeometry - redundant)
                     switch(key, property, "geom")
                     matched = True
                     break
@@ -458,37 +457,69 @@ class FeatureRenderer(Renderer):
                 return len(dict.keys())
 
         feature_properties = []
-        feature_properties.extend(sorted(properties.values(), key=lambda p: order_properties(p["uri"], properties, properties_order)))
-        feature_properties.extend(sorted(geometries.values(), key=lambda p: order_properties(p["uri"], geometries, geometries_order)))
-        feature_properties.extend(sorted(spatial.values(), key=lambda p: order_properties(p["uri"], spatial, spatial_order)))
-        feature_properties.extend(sorted(relations.values(), key=lambda p: order_properties(p["uri"], relations, relations_order)))
-        feature_properties.extend(sorted(other.values(), key=lambda p: order_properties(p["uri"], other, [])))
+        feature_properties.extend(
+            sorted(
+                properties.values(),
+                key=lambda p: order_properties(p["uri"], properties, properties_order),
+            )
+        )
+        feature_properties.extend(
+            sorted(
+                geometries.values(),
+                key=lambda p: order_properties(p["uri"], geometries, geometries_order),
+            )
+        )
+        feature_properties.extend(
+            sorted(
+                spatial.values(),
+                key=lambda p: order_properties(p["uri"], spatial, spatial_order),
+            )
+        )
+        feature_properties.extend(
+            sorted(
+                relations.values(),
+                key=lambda p: order_properties(p["uri"], relations, relations_order),
+            )
+        )
+        feature_properties.extend(
+            sorted(other.values(), key=lambda p: order_properties(p["uri"], other, []))
+        )
 
         _template_context = {
             "links": self.links,
             "feature": self.feature,
             "request": self.request,
             "api_title": f"{self.feature.title} - {API_TITLE}",
-            "type": sorted(type.values(), key=lambda p: order_properties(p["uri"], type, type_order)),
-            "feature_properties": feature_properties
+            "type": sorted(
+                type.values(),
+                key=lambda p: order_properties(p["uri"], type, type_order),
+            ),
+            "feature_properties": feature_properties,
         }
 
-        return templates.TemplateResponse(name="feature.html",
-                                          context=_template_context,
-                                          headers=self.headers)
+        return templates.TemplateResponse(
+            name="feature.html", context=_template_context, headers=self.headers
+        )
 
     def _render_geosp_rdf(self):
         g = self.feature.to_geosp_graph()
 
         # serialise in the appropriate RDF format
         if self.mediatype in ["application/rdf+json", "application/json"]:
-            return JSONResponse(g.serialize(format="json-ld"), media_type=self.mediatype, headers=self.headers)
+            return JSONResponse(
+                g.serialize(format="json-ld"),
+                media_type=self.mediatype,
+                headers=self.headers,
+            )
         elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
-            return PlainTextResponse(g.serialize(format=self.mediatype), media_type=self.mediatype,
-                                     headers=self.headers)
+            return PlainTextResponse(
+                g.serialize(format=self.mediatype),
+                media_type=self.mediatype,
+                headers=self.headers,
+            )
         else:
             return Response(
                 "The Media Type you requested cannot be serialized to",
                 status_code=400,
-                media_type="text/plain"
-                )
+                media_type="text/plain",
+            )
