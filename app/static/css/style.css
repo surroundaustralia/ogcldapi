@@ -3,6 +3,8 @@
     --darkblue: #104f5f;
     --darkgrey: #2F2F2F;
     --orange: #A33F1F;
+    --lightgrey: #eeeeee;
+    --lightlightgrey: #f6f6f6;
 
     --page-max-width: 1200px;
 }
@@ -15,6 +17,7 @@ body, html {
     margin: 0;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     height: 100vh;
+    letter-spacing: 0.01rem;
 }
 
 #main-container {
@@ -360,7 +363,7 @@ dl > dt {
 }
 
 table.layout {
-    font-size: 0.9rem;
+    border-collapse: collapse;
 }
 
 table.layout th {
@@ -368,30 +371,44 @@ table.layout th {
 }
 
 table.layout th, table.layout td {
-    padding: 6px;
+    padding: 8px;
 }
 
-table.lined {
+table.props {
     border-collapse:collapse;
     margin-bottom: 10px;
     word-break: break-word;
 }
 
-table.lined td {
-    border: solid 1px lightgrey;
-    border-collapse:collapse;
-    padding: 8px;
+table.props td {
+    border-collapse: collapse;
+    padding: 10px;
 }
 
-tr > td:first-child {
+table.props:not(.bnode-props) > tbody > tr:nth-child(odd),
+table.layout > tbody > tr:nth-child(even) {
+    background-color: var(--lightgrey);
+}
+
+table.props table.bnode-props:nth-child(even) {
+    background-color: var(--lightlightgrey);
+}
+
+table.props tr > td:first-child {
+    font-weight: bold;
+    color: var(--blue);
     min-width: 120px;
 }
 
-td > table.lined:last-child {
+table.bnode-props {
+    font-size: 14px;   
+}
+
+td > table.bnode-props:last-child {
     margin-bottom: 0;
 }
 
-.features-list {
+.features-list, .collections-list {
     margin-bottom: 12px;
 }
 

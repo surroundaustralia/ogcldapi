@@ -19,15 +19,15 @@ class Collections:
 
         collections_query = g.query(
             f"""PREFIX dcterms: <http://purl.org/dc/terms/>
-                             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                             PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcldapi/>
-                             SELECT ?fc ?identifier ?title ?description
-                                {{?fc a ogcapi:FeatureCollection ;
-                                    dcterms:identifier ?identifier ;
-                                    dcterms:title ?title
-                                    OPTIONAL {{?fc dcterms:description ?description}}
-                                }}
-                              """
+                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcldapi/>
+                SELECT ?fc ?identifier ?title ?description
+                {{?fc a ogcapi:FeatureCollection ;
+                    dcterms:identifier ?identifier ;
+                    dcterms:title ?title ;
+                    OPTIONAL {{?fc dcterms:description ?description}}
+                }} LIMIT {self.per_page} OFFSET {(self.page - 1) * self.per_page}
+                """
         )
         collections_query = [
             {str(k): v for k, v in i.items()} for i in collections_query.bindings
@@ -177,7 +177,7 @@ class CollectionsRenderer(ContainerRenderer):
         _template_context = {
             "links": self.links,
             "page_links": links,
-            "collections": self.members,
+            "collections": sorted(self.members, key=lambda m: m[1]),
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page,
