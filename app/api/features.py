@@ -31,7 +31,7 @@ class FeaturesList:
         self.per_page = (
             int(request.query_params.get("per_page"))
             if request.query_params.get("per_page") is not None
-            else 20
+            else 100
         )
 
         # get Collection
@@ -52,7 +52,8 @@ class FeaturesList:
         else:
             result = g.query(
                 f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
-                                 SELECT (COUNT(?s) as ?count) {{?s dcterms:isPartOf <{self.collection.uri}>}}"""
+                    SELECT (COUNT(?s) as ?count)
+                    {{?s dcterms:isPartOf <{self.collection.uri}>}}"""
             )
         self.feature_count = int(list(result.bindings[0].values())[0])
         self.limit = (
@@ -275,6 +276,13 @@ class FeaturesRenderer(ContainerRenderer):
                 self.feature_list.feature_count,
                 profiles={"oai": profile_openapi, "geosp": profile_geosparql},
                 default_profile_token="oai",
+            )
+
+            # overridden in ContinerRenderer in pyldapi, need to re-set here
+            self.per_page = (
+                int(request.query_params.get("per_page"))
+                if request.query_params.get("per_page") is not None
+                else 100
             )
 
             # override last_page variable (pyldapi's last_page calculation is incorrect)

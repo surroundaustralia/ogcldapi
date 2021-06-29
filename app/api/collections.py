@@ -15,7 +15,17 @@ g = utils.g
 
 
 class Collections:
-    def __init__(self):
+    def __init__(self, request):
+        self.page = (
+            int(request.query_params.get("page"))
+            if request.query_params.get("page") is not None
+            else 1
+        )
+        self.per_page = (
+            int(request.query_params.get("per_page"))
+            if request.query_params.get("per_page") is not None
+            else 100
+        )
 
         collections_query = g.query(
             f"""PREFIX dcterms: <http://purl.org/dc/terms/>
@@ -44,6 +54,14 @@ class Collections:
         titles = [i["title"] for i in collections_query]
         self.collections = list(zip(fc, identifiers, titles, descriptions))
 
+        result = g.query(
+            f"""PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcldapi/>
+                SELECT (COUNT(?fc) as ?count)
+                {{?fc a ogcapi:FeatureCollection}}"""
+        )
+
+        self.collection_count = int(list(result.bindings[0].values())[0])
+
 
 class CollectionsRenderer(ContainerRenderer):
     def __init__(self, request, other_links: List[Link] = None):
@@ -63,7 +81,7 @@ class CollectionsRenderer(ContainerRenderer):
         ]
         if other_links is not None:
             self.links.extend(other_links)
-
+        
         self.page = (
             int(request.query_params.get("page"))
             if request.query_params.get("page") is not None
@@ -72,7 +90,7 @@ class CollectionsRenderer(ContainerRenderer):
         self.per_page = (
             int(request.query_params.get("per_page"))
             if request.query_params.get("per_page") is not None
-            else 20
+            else 100
         )
         # limit
         self.limit = (
@@ -81,16 +99,17 @@ class CollectionsRenderer(ContainerRenderer):
             else None
         )
 
-        self.collections = Collections().collections
+        temp_collections = Collections(request)
+        self.collections = temp_collections.collections
 
-        self.collections_count = len(self.collections)
+        self.collections_count = temp_collections.collection_count
 
         # if limit is set, ignore page & per_page
         if self.limit is not None:
             self.collections = self.collections[0 : self.limit]
-
+        
         requested_collections = self.collections
-
+        
         super().__init__(
             request,
             LANDING_PAGE_URL + "/collections",
@@ -120,6 +139,13 @@ class CollectionsRenderer(ContainerRenderer):
             "bbox",
             "version",
         ]
+
+        # overridden in ContinerRenderer in pyldapi, need to re-set here
+        self.per_page = (
+            int(request.query_params.get("per_page"))
+            if request.query_params.get("per_page") is not None
+            else 100
+        )
 
         # override last_page variable (pyldapi's last_page calculation is incorrect)
         ceiling = lambda a, b: a // b + bool(a % b)
@@ -173,7 +199,7 @@ class CollectionsRenderer(ContainerRenderer):
                 links[
                     link_type
                 ] = f"{self.instance_uri}?per_page={self.per_page}&page={page}"
-
+        
         _template_context = {
             "links": self.links,
             "page_links": links,
