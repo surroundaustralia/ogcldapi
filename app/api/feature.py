@@ -61,17 +61,24 @@ class Feature(object):
         self.uri = uri
         self.geometries = {}
 
-        # get graph namespaces + geosparql namespaces as we want their prefixes for display
-        # self.graph_namespaces = geo_context
+        # get graph namespaces to use for prefixes
         self.graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""").graph
-        # self.graph_namespaces.bind('geo', Namespace('http://www.opengis.net/ont/geosparql#'))
 
         non_bnode_query = g.query(
             f"""
             PREFIX dcterms: <http://purl.org/dc/terms/> 
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
-            SELECT ?p1 ?p1Label ?o1 ?o1Label {{
-                <{self.uri}> ?p1 ?o1 
+            PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+            PREFIX ogcldapi: <https://data.surroundaustralia.com/def/ogcldapi/>
+            SELECT ?p1 ?p1Label ?o1 ?o1Label ?feature_collection ?feature_id ?feature_fc_id {{
+                <{self.uri}> ?p1 ?o1
+                VALUES (?feature ?fc) {{(geo:Feature ogcldapi:FeatureCollection)}}
+                OPTIONAL {{?o1 a ?feature ; 
+                               dcterms:identifier ?feature_id ;
+                               dcterms:isPartOf / dcterms:identifier ?feature_fc_id .
+                }}
+                OPTIONAL {{?o1 a ?fc ;
+                               dcterms:identifier ?feature_collection}}
                 OPTIONAL {{ 
                     {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL {{ 
