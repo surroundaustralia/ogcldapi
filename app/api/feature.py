@@ -398,7 +398,7 @@ class FeatureRenderer(Renderer):
                     "label": prop.get(f"{prop_name}Label"),
                     "objects": [object] if object is not None else None,
                     "bnodes": {prop["o1"]: [bnode]} if bnode is not None else None,
-                    "geometry": geometry if geometry is not None else None,
+                    "geometry": geometry if geometry is not None else None
                 }
 
         # dicts to match keys of order list in switch statement
