@@ -60,7 +60,7 @@
   {% if feature.geometries.asGeoJSON is not none %}
     <div id="map"></div>
   {% endif %}
-  <table class="lined">
+  <table class="props">
     {% for property in feature_properties %}
       <tr>
         <td>
@@ -102,7 +102,7 @@
             {% endfor %}
           {% elif property.bnodes is not none %}
             {% for bnode in property.bnodes.values() %}
-              <table class="lined">
+              <table class="props bnode-props">
                 {% for object in bnode %}
                   <tr>
                     <td>

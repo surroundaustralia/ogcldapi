@@ -31,14 +31,16 @@ class FeaturesList:
         self.per_page = (
             int(request.query_params.get("per_page"))
             if request.query_params.get("per_page") is not None
-            else 20
+            else 100
         )
 
         # get Collection
         self.collection = Collection
         result = g.query(
             f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
-                             SELECT ?collection {{?collection dcterms:identifier "{collection_id}"^^xsd:token}}"""
+                SELECT ?collection 
+                {{?collection dcterms:identifier "{collection_id}"^^xsd:token}}
+                """
         )
         collection = str(list(result.bindings[0].values())[0])
         self.collection = Collection(collection)
@@ -50,7 +52,8 @@ class FeaturesList:
         else:
             result = g.query(
                 f"""PREFIX dcterms: <http://purl.org/dc/terms/> 
-                                 SELECT (COUNT(?s) as ?count) {{?s dcterms:isPartOf <{self.collection.uri}>}}"""
+                    SELECT (COUNT(?s) as ?count)
+                    {{?s dcterms:isPartOf <{self.collection.uri}>}}"""
             )
         self.feature_count = int(list(result.bindings[0].values())[0])
         self.limit = (
@@ -61,14 +64,14 @@ class FeaturesList:
 
         result = g.query(
             f"""PREFIX dcterms: <http://purl.org/dc/terms/>
-                             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                             SELECT ?feature ?identifier ?title ?description
-                                {{?feature dcterms:isPartOf <{self.collection.uri}> ;
-                                    dcterms:identifier ?identifier ;
-                                    OPTIONAL {{?feature dcterms:title ?title}}
-                                    OPTIONAL {{?feature dcterms:description ?description}}
-                                }} LIMIT {self.per_page} OFFSET {(self.page-1)*self.per_page}
-                              """
+                PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+                SELECT ?feature ?identifier ?title ?description
+                {{?feature dcterms:isPartOf <{self.collection.uri}> ;
+                    dcterms:identifier ?identifier ;
+                    OPTIONAL {{?feature dcterms:title ?title}}
+                    OPTIONAL {{?feature dcterms:description ?description}}
+                }} LIMIT {self.per_page} OFFSET {(self.page - 1) * self.per_page}
+                """
         )
 
         result = [{str(k): v for k, v in i.items()} for i in result.bindings]
@@ -275,6 +278,13 @@ class FeaturesRenderer(ContainerRenderer):
                 default_profile_token="oai",
             )
 
+            # overridden in ContinerRenderer in pyldapi, need to re-set here
+            self.per_page = (
+                int(request.query_params.get("per_page"))
+                if request.query_params.get("per_page") is not None
+                else 100
+            )
+
             # override last_page variable (pyldapi's last_page calculation is incorrect)
             ceiling = lambda a, b: a // b + bool(a % b)
             self.last_page = ceiling(self.feature_list.feature_count, self.per_page)
@@ -394,7 +404,7 @@ class FeaturesRenderer(ContainerRenderer):
             "collection": self.feature_list.collection,
             "members_total_count": self.members_total_count,
             "page_links": links,
-            "members": self.members,
+            "members": sorted(self.members, key=lambda m: m[1]),
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page,

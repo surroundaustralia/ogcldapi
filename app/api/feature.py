@@ -174,7 +174,7 @@ class Feature(object):
             self.geometries[geom_type] = Geometry(
                 geom_literal,
                 GeometryRole.Boundary,
-                result["p2Label"],
+                result.get("p2Label"),
                 geom_names[geom_type]["crs"],
             )
 
