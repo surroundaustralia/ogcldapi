@@ -367,6 +367,7 @@ class FeatureRenderer(Renderer):
                     "value": prop["o1"],
                     "prefix": prop.get("o1Prefixed"),
                     "label": prop.get("o1Label"),
+                    "system_url": prop.get("system_url")
                 }
             elif mode == "bnode":
                 bnode = {
