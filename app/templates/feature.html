@@ -84,7 +84,12 @@
           {% if property.objects is not none %}
             {% for object in property.objects %}
               {% if object.label is not none %}
-                <span class="tooltip">{{ object.label }}
+                <span class="tooltip">
+                  {% if object.system_url is not none %}
+                    <a href="{{ object.system_url }}">{{ object.label }}</a>
+                  {% else %}
+                    {{ object.label }}
+                  {% endif %}
                   <span class="tooltiptext">
                     <a href="{{ object.value }}">
                       {% if object.prefix is not none %}
@@ -96,7 +101,11 @@
                   </span>
                 </span>
               {% else %}
-                {{ object.value }}
+                {% if object.system_url is not none %}
+                  <a href="{{ object.system_url }}">{{ object.value }}</a>
+                {% else %}
+                  {{ object.value }}
+                {% endif %}
               {% endif %}
               <br/>
             {% endfor %}
