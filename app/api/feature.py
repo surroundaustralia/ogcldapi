@@ -70,17 +70,17 @@ class Feature(object):
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
             PREFIX ogcldapi: <https://data.surroundaustralia.com/def/ogcldapi/>
-            SELECT ?p1 ?p1Label ?o1 ?o1Label ?feature_url ?fc_url {{
+            SELECT ?p1 ?p1Label ?o1 ?o1Label ?system_url {{
                 <{self.uri}> ?p1 ?o1
                 VALUES (?feature ?fc) {{(geo:Feature ogcldapi:FeatureCollection)}}
                 OPTIONAL {{?o1 a ?feature ; 
                                dcterms:identifier ?feature_id ;
                                dcterms:isPartOf / dcterms:identifier ?feature_fc_id .
-                           BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_fc_id, "/items/", ?feature_id) AS ?feature_url)
+                           BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_fc_id, "/items/", ?feature_id) AS ?system_url)
                 }}
                 OPTIONAL {{?o1 a ?fc ;
                                dcterms:identifier ?feature_collection
-                           BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_collection) AS ?fc_url)}}
+                           BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_collection) AS ?system_url)}}
                 OPTIONAL {{ 
                     {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL {{ 
