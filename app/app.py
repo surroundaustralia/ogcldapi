@@ -9,7 +9,7 @@ from utils import utils
 
 from starlette.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
-from routers import landing_page, conformance, collections
+from routers import landing_page, conformance, collections, sparql
 from monitoring import logging_config
 from middlewares.correlation_id_middleware import CorrelationIdMiddleware
 from middlewares.logging_middleware import LoggingMiddleware
@@ -18,6 +18,7 @@ from api import collection as collection_api
 from api import collections as collections_api
 from api import feature as feature_api
 from api import features as features_api
+from api import sparql as sparql_api
 
 api = FastAPI(
     docs_url="/docs",
@@ -71,6 +72,7 @@ def configure_data():
     features_api.g = utils.g
     conformance.g = utils.g
     collections.g = utils.g
+    sparql_api.g = utils.g
     renderer.MEDIATYPE_NAMES = MEDIATYPE_NAMES
     renderer_container.MEDIATYPE_NAMES = MEDIATYPE_NAMES
 
@@ -80,6 +82,7 @@ def configure_routing():
     api.include_router(landing_page.router)
     api.include_router(conformance.router)
     api.include_router(collections.router)
+    api.include_router(sparql.router)
 
 
 if __name__ == "__main__":

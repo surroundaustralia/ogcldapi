@@ -15,6 +15,7 @@ def get_graph():
             g = pickle.load(handle)
     else:
         logging.debug("get_graph() for {}".format(SPARQL_ENDPOINT))
+        print("get graph")
         g = Graph("SPARQLStore")
         g.open(SPARQL_ENDPOINT)
     return g

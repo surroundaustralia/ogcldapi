@@ -1,0 +1,20 @@
+{% extends "page.html" %}
+{% set active_page = "sparql" %}
+{% block content %}
+  <div id="maincontent">
+    <h1>SPARQL Endpoint</h1>
+    <p>This is the SPARQL endpoint</p>
+    <h2>Interactive UI</h2>
+    <p>Enter SPARQL queries in the text box below to lodge them interactively:</p>
+    <div id="yasgui" style="margin-bottom: 25px;"></div>
+  </div>
+  <link href='https://unpkg.com/@triply/yasgui/build/yasgui.min.css' rel='stylesheet' type='text/css'/>
+  <script src='https://unpkg.com/@triply/yasgui/build/yasgui.min.js'></script>
+  <script type="text/javascript">
+      const yasgui = new Yasgui(document.getElementById("yasgui"), {
+        requestConfig: { endpoint: "/sparql" },
+        copyEndpointOnNewTab: false
+      });
+  </script>
+  {% include 'page_altprofiles.html' %}
+{% endblock %}
