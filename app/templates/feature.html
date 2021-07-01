@@ -104,7 +104,11 @@
                 {% if object.system_url is not none %}
                   <a href="{{ object.system_url }}">{{ object.value }}</a>
                 {% else %}
-                  {{ object.value }}
+                  {% if object.value.startswith("http") %}
+                    <a href="{{ object.value }}">{{ object.value }}</a>
+                  {% else %}
+                    {{ object.value }}
+                  {% endif %}
                 {% endif %}
               {% endif %}
               <br/>
@@ -145,7 +149,11 @@
                           </span>
                         </span>
                       {% else %}
-                        {{ object.oValue }}
+                        {% if object.oValue.startswith("http") %}
+                          <a href="{{ object.oValue }}">{{ object.oValue }}</a>
+                        {% else %}
+                          {{ object.oValue }}
+                        {% endif %}
                       {% endif %}
                     </td>
                   </tr>

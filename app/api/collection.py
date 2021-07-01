@@ -252,7 +252,7 @@ class CollectionRenderer(Renderer):
             }
             cases.get(case, lambda: add_property(prop, other, mode))()
 
-        geometry = ""
+        geometry = None
 
         # properties loop
         for property in self.collection.properties:
