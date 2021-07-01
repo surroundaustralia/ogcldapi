@@ -40,3 +40,13 @@ profile_geosparql = Profile(
     languages=["en"],  # default 'en' only for now
     default_language="en",
 )
+
+profile_mem = Profile(
+    "https://w3id.org/profile/mem",
+    label="Members Profile",
+    comment="A very basic RDF data model-only profile that lists the sub-items (members) of collections (rdf:Bag)",
+    mediatypes=["text/html"],
+    default_mediatype="text/html",
+    languages=["en"],  # default 'en' only for now
+    default_language="en",
+)
