@@ -3,6 +3,7 @@ from typing import Optional, List
 import io
 import fastapi
 import logging
+import requests
 from urllib.parse import unquote, parse_qs
 from fastapi import Request, HTTPException
 from fastapi.templating import Jinja2Templates
@@ -12,11 +13,9 @@ from rdflib import Graph
 
 from api.sparql import SparqlRenderer
 from config import *
-from utils import utils
 
 router = fastapi.APIRouter()
 templates = Jinja2Templates(directory="templates")
-g = utils.g
 
 def _best_match(types: List[str], accept: str, default: Optional[str] = None) -> str:
     """Emulates the behaviour of Flask's best_match() method"""
@@ -165,10 +164,10 @@ async def endpoint(
             "Accept": media_type,
             "Accept-Encoding": "UTF-8",
         }
-        # if config.SPARQL_USERNAME is not None and config.SPARQL_PASSWORD is not None:
-        #     auth = (config.SPARQL_USERNAME, config.SPARQL_PASSWORD)
-        # else:
-        #     auth = None
+        if SPARQL_USERNAME is not None and SPARQL_PASSWORD is not None:
+            auth = (SPARQL_USERNAME, SPARQL_PASSWORD)
+        else:
+            auth = None
 
         try:
             logging.debug(
@@ -176,25 +175,16 @@ async def endpoint(
                     SPARQL_ENDPOINT, data, headers
                 )
             )
-            print("endpoint={}\ndata={}\nheaders={}".format(
-                    SPARQL_ENDPOINT, data, headers
-                )
-            )
-            # if auth is not None:
-            #     r = requests.post(
-            #         config.SPARQL_ENDPOINT, auth=auth, data=data, headers=headers, timeout=60
-            #     )
-            # else:
-            #     r = requests.post(
-            #         config.SPARQL_ENDPOINT, data=data, headers=headers, timeout=60
-            #     )
-            try:
-                r = g.query(q)
-                print(f"r: {r}")
-            except Exception as e:
-                print(e)
             
-            print("response: {}".format(r.__dict__))
+            if auth is not None:
+                r = requests.post(
+                    SPARQL_ENDPOINT, auth=auth, data=data, headers=headers, timeout=60
+                )
+            else:
+                r = requests.post(
+                    SPARQL_ENDPOINT, data=data, headers=headers, timeout=60
+                )
+            
             logging.debug("response: {}".format(r.__dict__))
             return r.content.decode("utf-8")
         except Exception as ex:
@@ -204,10 +194,8 @@ async def endpoint(
 
     # Query submitted
     if request.method == "POST":
-        print("is POST")
         """Pass on the SPARQL query to the underlying endpoint defined in config"""
         if "application/x-www-form-urlencoded" in request.headers["content-type"]:
-            print("0")
             request_body = _form_urlencoded_to_dict(await request.body())
             """
             https://www.w3.org/TR/2013/REC-sparql11-protocol-20130321/#query-via-post-urlencoded
@@ -222,7 +210,6 @@ async def endpoint(
                     request_body.get("query") is None
                     or len(request_body.get("query")) < 5
             ):
-                print("1")
                 return Response(
                     "Your POST request to the SPARQL endpoint must contain a 'query' parameter if form posting "
                     "is used.",
@@ -230,10 +217,8 @@ async def endpoint(
                     media_type="text/plain",
                 )
             else:
-                print("2")
                 query = unquote(request_body.get("query"))
         elif "application/sparql-query" in request.headers["content-type"]:
-            print("3")
             """
             https://www.w3.org/TR/2013/REC-sparql11-protocol-20130321/#query-via-post-direct
             2.1.3 query via POST directly
@@ -246,14 +231,12 @@ async def endpoint(
             """
             query = request.data.decode("utf-8")  # get the raw request
             if query is None:
-                print("4")
                 return Response(
                     "Your POST request to this SPARQL endpoint must contain the query in plain text in the "
                     "POST body if the Content-Type 'application/sparql-query' is used.",
                     status_code=400,
                 )
         else:
-            print("5")
             return Response(
                 "Your POST request to this SPARQL endpoint must either the 'application/x-www-form-urlencoded' or"
                 "'application/sparql-query' ContentType.",
@@ -261,9 +244,7 @@ async def endpoint(
             )
 
         try:
-            print("6")
             if "CONSTRUCT" in query:
-                print("7")
                 format_mimetype = "text/turtle"
                 return Response(
                     sparql_query2(
@@ -273,25 +254,20 @@ async def endpoint(
                     media_type=format_mimetype,
                 )
             else:
-                print("8")
                 return Response(
                     sparql_query2(query, format_mimetype),
                     status_code=200,
                 )
         except ValueError as e:
-            print("9")
             return Response(
                 "Input error for query {}.\n\nError message: {}".format(query, str(e)),
                 status_code=400,
                 media_type="text/plain",
             )
         except ConnectionError as e:
-            print("10")
             return Response(str(e), status_code=500)
     else:  # GET
-        print("11")
         if request.args.get("query") is not None:
-            print("12")
             # SPARQL GET request
             """
             https://www.w3.org/TR/2013/REC-sparql11-protocol-20130321/#query-via-get
@@ -304,7 +280,6 @@ async def endpoint(
             """
             query = request.args.get("query")
             if "CONSTRUCT" in query:
-                print("13")
                 acceptable_mimes = [x for x in Renderer.RDF_MEDIA_TYPES]
                 best = _best_match(acceptable_mimes, request.headers["accept"])
                 query_result = sparql_query2(
@@ -328,13 +303,11 @@ async def endpoint(
                     },
                 )
             else:
-                print("14")
                 query_result = sparql_query2(query)
                 return Response(
                     query_result, status_code=200, media_type="application/sparql-results+json"
                 )
         else:
-            print("15")
             # SPARQL Service Description
             """
             https://www.w3.org/TR/sparql11-service-description/#accessing
@@ -347,14 +320,11 @@ async def endpoint(
             acceptable_mimes = [x for x in Renderer.RDF_MEDIA_TYPES] + ["text/html"]
             best = _best_match(acceptable_mimes, request.headers["accept"])
             if best == "text/html":
-                print("16")
                 # show the SPARQL query form
                 return RedirectResponse(SparqlRenderer.instance_uri)
             elif best is not None:
-                print("17")
                 for item in Renderer.RDF_MEDIA_TYPES:
                     if item == best:
-                        print("18")
                         rdf_format = best
                         return Response(
                             get_sparql_service_description(
@@ -369,7 +339,6 @@ async def endpoint(
                     status_code=400,
                 )
             else:
-                print("19")
                 return Response(
                     "Accept header must be one of " + ", ".join(acceptable_mimes) + ".",
                     status_code=400,

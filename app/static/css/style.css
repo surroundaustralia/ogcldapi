@@ -17,7 +17,8 @@ body, html {
     margin: 0;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     height: 100vh;
-    letter-spacing: 0.01rem;
+    /* letter-spacing: 0.01rem; */
+    overflow-x: hidden;
 }
 
 #main-container {
@@ -489,4 +490,80 @@ td > table.bnode-props:last-child {
 
 .feature-uri {
     font-size: 18px;
+}
+
+/* sparql ui */
+.grip-container {
+    width: 100% !important;
+}
+
+table.dataTable tbody > tr:nth-child(odd) {
+    background-color: var(--lightgrey);
+}
+
+table.dataTable a, table.dataTable a:hover {
+    color: var(--blue);
+}
+
+.dataTables_wrapper .dataTables_paginate a.paginate_button,
+.dataTables_wrapper .dataTables_paginate span.ellipsis {
+    background-color: white !important;
+    color: var(--blue) !important;
+    cursor: pointer;
+    border-radius: 0;
+    border: 1px solid var(--blue) !important;
+    font-size: 14px;
+    padding: 6px 10px;
+    margin: 0 !important;
+
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate a.paginate_button.previous {
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    font-weight: bold;
+}
+
+.dataTables_wrapper .dataTables_paginate a.paginate_button.next {
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    font-weight: bold;
+}
+
+.dataTables_wrapper .dataTables_paginate span > a.paginate_button,
+.dataTables_wrapper .dataTables_paginate span > span.ellipsis {
+    border-left: none !important;
+}
+
+.dataTables_wrapper .dataTables_paginate span > a.paginate_button:last-child {
+    border-right: none !important;
+}
+
+.dataTables_wrapper .dataTables_paginate span.ellipsis {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 12px;
+    padding-top: 8px;
+    padding-bottom: 7px;
+    content: "\f141";
+    cursor: unset;
+}
+
+#contents .dataTables_wrapper .dataTables_paginate a.paginate_button:hover:not(.disabled) {
+    color: white !important;
+    background-color: var(--blue) !important;
+}
+
+#contents .dataTables_wrapper .dataTables_paginate a.paginate_button.disabled {
+    background-color: lightgrey !important;
+    color: white !important;
+}
+
+#contents .dataTables_wrapper .dataTables_paginate a.paginate_button.current,
+#contents .dataTables_wrapper .dataTables_paginate a.paginate_button.current:hover {
+    background-color: var(--darkblue) !important;
+    color: white !important;
+    cursor: unset;
+    text-decoration: none !important;
 }

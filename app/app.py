@@ -18,7 +18,6 @@ from api import collection as collection_api
 from api import collections as collections_api
 from api import feature as feature_api
 from api import features as features_api
-from api import sparql as sparql_api
 
 api = FastAPI(
     docs_url="/docs",
@@ -72,7 +71,6 @@ def configure_data():
     features_api.g = utils.g
     conformance.g = utils.g
     collections.g = utils.g
-    sparql_api.g = utils.g
     renderer.MEDIATYPE_NAMES = MEDIATYPE_NAMES
     renderer_container.MEDIATYPE_NAMES = MEDIATYPE_NAMES
 
