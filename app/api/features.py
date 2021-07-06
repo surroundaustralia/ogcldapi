@@ -68,7 +68,7 @@ class FeaturesList:
                 SELECT ?feature ?identifier ?title ?description
                 {{?feature dcterms:isPartOf <{self.collection.uri}> ;
                     dcterms:identifier ?identifier ;
-                    OPTIONAL {{?feature dcterms:title ?title}}
+                    OPTIONAL {{?feature rdfs:label ?title}}
                     OPTIONAL {{?feature dcterms:description ?description}}
                 }} LIMIT {self.per_page} OFFSET {(self.page - 1) * self.per_page}
                 """

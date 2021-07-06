@@ -26,7 +26,7 @@ api = FastAPI(
     description=f"Open API Documentation for this {API_TITLE}",
 )
 
-LOGGING = False
+LOGGING = True
 
 if LOGGING:
     logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))

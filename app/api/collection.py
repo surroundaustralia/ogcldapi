@@ -1,14 +1,13 @@
-import pickle
-from pathlib import Path
 from typing import List
 
-import markdown
 from fastapi import Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from geomet import wkt
+import json
 from pyldapi.fastapi_framework import Renderer
 from rdflib import URIRef, Literal, Graph
-from rdflib.namespace import DCTERMS, RDF, DCAT
+from rdflib.namespace import DCTERMS, RDF, DCAT, RDFS
 
 from api.link import *
 from api.profiles import *
@@ -73,7 +72,7 @@ class Collection(object):
         # Feature properties
         collection_graph = g.query(f"""DESCRIBE <{self.uri}>""").graph
         self.identifier = collection_graph.value(URIRef(self.uri), DCTERMS.identifier)
-        self.title = collection_graph.value(URIRef(self.uri), DCTERMS.title)
+        self.title = collection_graph.value(URIRef(self.uri), RDFS.label)
         self.description = collection_graph.value(URIRef(self.uri), DCTERMS.description)
 
         # for p, o in g.predicate_objects(subject=URIRef(self.uri)):
@@ -126,7 +125,7 @@ class Collection(object):
 
         g.add((c, DCTERMS.identifier, Literal(self.identifier)))
 
-        g.add((c, DCTERMS.title, Literal(self.title)))
+        g.add((c, RDFS.label, Literal(self.title)))
 
         g.add((c, DCTERMS.description, Literal(self.description)))
 
@@ -256,10 +255,14 @@ class CollectionRenderer(Renderer):
 
         # properties loop
         for property in self.collection.properties:
-            if property["p1"] == DCTERMS.title or property["p1"] == DCTERMS.description:
+            if property["p1"] == RDFS.label or property["p1"] == DCTERMS.description:
                 continue
-            elif property["p1"] == URIRef("http://www.w3.org/ns/locn#geometry"):
-                geometry = property["o1"]
+            elif property["p1"] == DCAT.bbox:
+                # is dcat:bbox what we should be using for a bounding box? (vs geo:bbox if that's a thing)
+                # does bounding box have wkt AND geojson formats? (i.e. asWKT & asGeoJSON)
+                # dcat:bbox seems to be only WKT, but the map expects geoJSON
+                # locn:geometry is also a bounding box in geoJSON, but unsure if we're using that
+                geometry = json.dumps(wkt.loads(property["o1"]))
             matched = False
             for key, value in dicts.items():
                 if property["p1"] in value:

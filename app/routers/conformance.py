@@ -6,7 +6,7 @@ from fastapi import Request
 from utils import utils
 
 from config import *
-from rdflib.namespace import DCTERMS, RDF
+from rdflib.namespace import RDF, RDFS
 from api.conformance import ConformanceRenderer
 
 router = fastapi.APIRouter()
@@ -43,7 +43,7 @@ def conformance(
     conformance_classes = []
     for s in g.subjects(predicate=RDF.type, object=OGCAPI.ConformanceTarget):
         uri = str(s)
-        for o in g.objects(subject=s, predicate=DCTERMS.title):
+        for o in g.objects(subject=s, predicate=RDFS.label):
             title = str(o)
         conformance_classes.append((uri, title))
     return ConformanceRenderer(request, conformance_classes).render()

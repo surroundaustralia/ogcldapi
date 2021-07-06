@@ -8,7 +8,6 @@ from geomet import wkt
 from rdflib import Graph
 from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS
-import os
 from api.link import *
 from api.profiles import *
 from config import *
@@ -150,7 +149,7 @@ class Feature(object):
         self.identifier = self.graph_namespaces.value(
             URIRef(self.uri), DCTERMS.identifier
         )
-        self.title = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.title)
+        self.title = self.graph_namespaces.value(URIRef(self.uri), RDFS.label)
         self.description = self.graph_namespaces.value(
             URIRef(self.uri), DCTERMS.description
         )

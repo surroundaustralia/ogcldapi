@@ -10,7 +10,7 @@ from fastapi.templating import Jinja2Templates
 from pyldapi.fastapi_framework import Renderer
 
 from rdflib import URIRef, Literal, Graph
-from rdflib.namespace import DCAT, DCTERMS, RDF
+from rdflib.namespace import DCAT, DCTERMS, RDF, RDFS
 
 import markdown
 import logging
@@ -31,7 +31,7 @@ class LandingPage:
         self.description = None
 
         dataset_triples = g.query(f"""DESCRIBE <{self.dataset_uri}>""").graph
-        self.title = dataset_triples.value(URIRef(self.dataset_uri), DCTERMS.title)
+        self.title = dataset_triples.value(URIRef(self.dataset_uri), RDFS.label)
         self.description = dataset_triples.value(
             URIRef(self.dataset_uri), DCTERMS.description
         )
@@ -195,7 +195,7 @@ class LandingPageRenderer(Renderer):
         g.add(
             (
                 URIRef(self.landing_page.uri),
-                DCTERMS.title,
+                RDFS.label,
                 Literal(self.landing_page.title),
             )
         )

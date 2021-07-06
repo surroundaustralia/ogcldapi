@@ -17,14 +17,14 @@ body, html {
     margin: 0;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     height: 100vh;
-    /* letter-spacing: 0.01rem; */
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
 #main-container {
     display: flex;
     flex-direction: column;
     height: 100%;
+    overflow-x: hidden;
 }
 
 header {
@@ -376,13 +376,16 @@ table.layout th, table.layout td {
 }
 
 table.props {
-    border-collapse:collapse;
+    border-collapse: collapse;
     margin-bottom: 10px;
     word-break: break-word;
 }
 
+table.props:not(.bnode-props) {
+    margin-top: 10px;
+}
+
 table.props td {
-    border-collapse: collapse;
     padding: 10px;
 }
 
@@ -427,8 +430,6 @@ td > table.bnode-props:last-child {
     cursor: pointer;
     border-radius: 0;
     border: 1px solid var(--blue);
-    /* width: 30px; */
-    /* height: 30px; */
     font-size: 14px;
     padding: 6px 10px;
 
@@ -472,7 +473,8 @@ td > table.bnode-props:last-child {
 /* map */
 #map {
     height: 500px;
-    margin: 20px 0px;
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
 .type-container {

@@ -34,7 +34,7 @@ class Collections:
                 SELECT ?fc ?identifier ?title ?description
                 {{?fc a ogcapi:FeatureCollection ;
                     dcterms:identifier ?identifier ;
-                    dcterms:title ?title ;
+                    rdfs:label ?title ;
                     OPTIONAL {{?fc dcterms:description ?description}}
                 }} LIMIT {self.per_page} OFFSET {(self.page - 1) * self.per_page}
                 """
