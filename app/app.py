@@ -26,16 +26,20 @@ api = FastAPI(
     description=f"Open API Documentation for this {API_TITLE}",
 )
 
-# logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))
-# api.add_middleware(LoggingMiddleware)
-# api.add_middleware(CorrelationIdMiddleware)
-#
-# api.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=['*'],
-#     allow_credentials=False,
-#     allow_methods=["GET", "POST", "OPTIONS"],
-#     allow_headers=["x-apigateway-header", "Content-Type", "X-Amz-Date"])
+LOGGING = False
+
+if LOGGING:
+    logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))
+    api.add_middleware(LoggingMiddleware)
+
+api.add_middleware(CorrelationIdMiddleware)
+
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["x-apigateway-header", "Content-Type", "X-Amz-Date"])
 
 
 @api.get("/spec", summary="API Description Page")
@@ -86,14 +90,21 @@ def configure_routing():
 if __name__ == "__main__":
     logging.info("Running main function")
     configure()
-    uvicorn.run(
-        api,
-        port=PORT,
-        host=HOST,
-        log_config=logging_config.configure_logging(
-            service="Uvicorn"
-        ),  # comment out this line to disable logging
-    )
+    if LOGGING:
+        uvicorn.run(
+            api,
+            port=PORT,
+            host=HOST,
+            log_config=logging_config.configure_logging(
+                service="Uvicorn"
+            )
+        )
+    else:
+        uvicorn.run(
+            api,
+            port=PORT,
+            host=HOST
+        )
 else:
     logging.info("Running uvicorn function")
     configure()

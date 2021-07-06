@@ -1,5 +1,4 @@
 from typing import List
-import time
 from config import *
 from api.link import *
 from api.profiles import *
