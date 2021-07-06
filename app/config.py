@@ -25,6 +25,8 @@ DATASET_URI = os.getenv("DATASET_URI", "https://linked.data.gov.au/dataset/flood
 SPARQL_ENDPOINT = os.getenv(
     "SPARQL_ENDPOINT", "http://fuseki.surroundaustralia.com/floods"
 )
+SPARQL_USERNAME = os.getenv("SPARQL_USERNAME", None)
+SPARQL_PASSWORD = os.getenv("SPARQL_PASSWORD", None)
 TEST_GRAPH = os.getenv("TEST_GRAPH", None)
 
 MEDIATYPE_NAMES = {

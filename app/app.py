@@ -9,7 +9,7 @@ from utils import utils
 
 from starlette.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
-from routers import landing_page, conformance, collections
+from routers import landing_page, conformance, collections, sparql
 from monitoring import logging_config
 from middlewares.correlation_id_middleware import CorrelationIdMiddleware
 from middlewares.logging_middleware import LoggingMiddleware
@@ -80,6 +80,7 @@ def configure_routing():
     api.include_router(landing_page.router)
     api.include_router(conformance.router)
     api.include_router(collections.router)
+    api.include_router(sparql.router)
 
 
 if __name__ == "__main__":

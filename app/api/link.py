@@ -8,6 +8,7 @@ class RelType(Enum):
     CONFORMANCE = "conformance"
     DATA = "data"
     ITEMS = "items"
+    SPARQL = "sparql"
 
 
 class MediaType(Enum):

@@ -76,6 +76,13 @@ class LandingPage:
                 hreflang=HrefLang.EN,
                 title="Information about the feature collections",
             ),
+            Link(
+                LANDING_PAGE_URL + "/sparql",
+                rel=RelType.SPARQL,
+                type=MediaType.JSON,
+                hreflang=HrefLang.EN,
+                title="SPARQL endpoint",
+            ),
         ]
         # Others
         if other_links is not None:
