@@ -28,11 +28,12 @@ class Collections:
         )
 
         collections_query = g.query(
-            f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+            f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                PREFIX dcterms: <http://purl.org/dc/terms/>
                 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-                PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcldapi/>
+                PREFIX geo: <http://www.opengis.net/ont/geosparql#>
                 SELECT ?fc ?identifier ?title ?description
-                {{?fc a ogcapi:FeatureCollection ;
+                {{?fc a geo:FeatureCollection ;
                     dcterms:identifier ?identifier ;
                     rdfs:label ?title ;
                     OPTIONAL {{?fc dcterms:description ?description}}
@@ -55,9 +56,9 @@ class Collections:
         self.collections = list(zip(fc, identifiers, titles, descriptions))
 
         result = g.query(
-            f"""PREFIX ogcapi: <https://data.surroundaustralia.com/def/ogcldapi/>
+            f"""PREFIX geo: <http://www.opengis.net/ont/geosparql#>
                 SELECT (COUNT(?fc) as ?count)
-                {{?fc a ogcapi:FeatureCollection}}"""
+                {{?fc a geo:FeatureCollection}}"""
         )
 
         self.collection_count = int(list(result.bindings[0].values())[0])

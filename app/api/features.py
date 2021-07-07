@@ -63,7 +63,8 @@ class FeaturesList:
         )
 
         result = g.query(
-            f"""PREFIX dcterms: <http://purl.org/dc/terms/>
+            f"""PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                PREFIX dcterms: <http://purl.org/dc/terms/>
                 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
                 SELECT ?feature ?identifier ?title ?description
                 {{?feature dcterms:isPartOf <{self.collection.uri}> ;

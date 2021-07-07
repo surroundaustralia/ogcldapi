@@ -65,6 +65,7 @@ class Feature(object):
 
         non_bnode_query = g.query(
             f"""
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX dcterms: <http://purl.org/dc/terms/> 
             PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
             PREFIX geo: <http://www.opengis.net/ont/geosparql#>
