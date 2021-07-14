@@ -167,16 +167,17 @@ class Feature(object):
         }
 
         for result in geom_results:
-            geom_type = result["p2"].split("#")[1]
-            geom_literal = result["o2"]
-            if geom_literal.find(">") > 0:
-                geom_literal = geom_literal.split("> ")[1]
-            self.geometries[geom_type] = Geometry(
-                geom_literal,
-                GeometryRole.Boundary,
-                result.get("p2Label"),
-                geom_names[geom_type]["crs"],
-            )
+            if result["p2Label"] != Literal('type'): # ignore the typing of the blank nodes
+                geom_type = result["p2"].split("#")[1]
+                geom_literal = result["o2"]
+                # if geom_literal.find(">") > 0:
+                #     geom_literal = geom_literal.split("> ")[1]
+                self.geometries[geom_type] = Geometry(
+                    geom_literal,
+                    GeometryRole.Boundary,
+                    result.get("p2Label"),
+                    geom_names[geom_type]["crs"],
+                )
 
         # Feature other properties
         self.extent_spatial = None
