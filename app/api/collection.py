@@ -1,21 +1,18 @@
+import json
 from typing import List
 
 from fastapi import Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from geomet import wkt
-import json
-from pyldapi.fastapi_framework import Renderer
 from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCTERMS, RDF, DCAT, RDFS
 
 from api.link import *
 from api.profiles import *
 from config import *
-from utils import utils
 
 templates = Jinja2Templates(directory="templates")
-g = utils.g
 
 
 class Collection(object):
@@ -27,7 +24,7 @@ class Collection(object):
         self.uri = uri
 
         # get graph namespaces to use for prefixes
-        self.graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""").graph
+        self.graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""", initNs=prefixes).graph
 
         # sparql query to get props
         non_bnode_query = g.query(

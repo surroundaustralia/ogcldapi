@@ -75,6 +75,13 @@ def configure_data():
     features_api.g = utils.g
     conformance.g = utils.g
     collections.g = utils.g
+    landing_page_api.prefixes = utils.prefixes
+    collection_api.prefixes = utils.prefixes
+    collections_api.prefixes = utils.prefixes
+    feature_api.prefixes = utils.prefixes
+    features_api.prefixes = utils.prefixes
+    conformance.prefixes = utils.prefixes
+    collections.prefixes = utils.prefixes
     renderer.MEDIATYPE_NAMES = MEDIATYPE_NAMES
     renderer_container.MEDIATYPE_NAMES = MEDIATYPE_NAMES
 

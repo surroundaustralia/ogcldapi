@@ -1,0 +1,11 @@
+# The API will utilise the prefixes specified below when displaying tooltip hyperlinks.
+# Additional dataset specific prefixes can be defined in a named graph <https://preferred-prefixes> that is added
+# to the triplestore. These will also be included by the API.
+
+<http://www.opengis.net/ont/geosparql#> <https://preferredPrefix> "geo" .
+<http://purl.org/dc/terms/> <https://preferredPrefix> "dcterms" .
+<http://www.w3.org/2002/07/owl#> <https://preferredPrefix> "owl" .
+<http://www.w3.org/2001/XMLSchema#> <https://preferredPrefix> "xsd" .
+<http://www.w3.org/2000/01/rdf-schema#> <https://preferredPrefix> "rdfs" .
+<https://schema.org/> <https://preferredPrefix> "sdo" .
+<http://www.w3.org/2004/02/skos/core#> <https://preferredPrefix> "skos" .

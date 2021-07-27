@@ -8,13 +8,12 @@ from geomet import wkt
 from rdflib import Graph
 from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS
+
 from api.link import *
 from api.profiles import *
 from config import *
-from utils import utils
 
 templates = Jinja2Templates(directory="templates")
-g = utils.g
 
 
 class GeometryRole(Enum):
@@ -61,7 +60,7 @@ class Feature(object):
         self.geometries = {}
 
         # get graph namespaces to use for prefixes
-        self.graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""").graph
+        self.graph_namespaces = g.query(f"""DESCRIBE <{self.uri}>""", initNs=prefixes).graph
 
         non_bnode_query = g.query(
             f"""
@@ -170,8 +169,6 @@ class Feature(object):
             if result["p2Label"] != Literal('type'): # ignore the typing of the blank nodes
                 geom_type = result["p2"].split("#")[1]
                 geom_literal = result["o2"]
-                # if geom_literal.find(">") > 0:
-                #     geom_literal = geom_literal.split("> ")[1]
                 self.geometries[geom_type] = Geometry(
                     geom_literal,
                     GeometryRole.Boundary,
