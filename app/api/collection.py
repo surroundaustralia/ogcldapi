@@ -37,11 +37,6 @@ class Collection(object):
             SELECT ?p1 ?p1Label ?o1 ?o1Label ?system_url {{
                 <{self.uri}> ?p1 ?o1
                 VALUES (?feature ?fc) {{(geo:Feature ogcldapi:FeatureCollection)}}
-                OPTIONAL {{?o1 a ?feature ; 
-                               dcterms:identifier ?feature_id ;
-                               dcterms:isPartOf / dcterms:identifier ?feature_fc_id .
-                           BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_fc_id, "/items/", ?feature_id) AS ?system_url)
-                }}
                 OPTIONAL {{?o1 a ?fc ;
                                dcterms:identifier ?feature_collection .
                            BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_collection) AS ?system_url)}}
@@ -50,6 +45,10 @@ class Collection(object):
                 OPTIONAL {{ 
                     {{?o1 rdfs:label ?o1Label}} FILTER(lang(?o1Label) = "" || lang(?o1Label) = "en") }}
                 FILTER(!ISBLANK(?o1))
+                MINUS {{ <{self.uri}> a ?o1 .
+                  MINUS {{ <{self.uri}> a ?o1 .
+                      ?o1 rdfs:subClassOf* geo:FeatureCollection }} 
+                }}
                 }}"""
         )
         non_bnode_results = [

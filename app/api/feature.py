@@ -77,14 +77,15 @@ class Feature(object):
                                dcterms:isPartOf / dcterms:identifier ?feature_fc_id .
                            BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_fc_id, "/items/", ?feature_id) AS ?system_url)
                 }}
-                OPTIONAL {{?o1 a ?fc ;
-                               dcterms:identifier ?feature_collection
-                           BIND(CONCAT("{LANDING_PAGE_URL}/collections/", ?feature_collection) AS ?system_url)}}
                 OPTIONAL {{ 
                     {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
                 OPTIONAL {{ 
                     {{?o1 rdfs:label ?o1Label}} FILTER(lang(?o1Label) = "" || lang(?o1Label) = "en") }}
                 FILTER(!ISBLANK(?o1))
+                MINUS {{ <{self.uri}> a ?o1 .
+                  MINUS {{ <{self.uri}> a ?o1 .
+                      ?o1 rdfs:subClassOf* geo:Feature }} 
+                }}
                 }}"""
         )
         non_bnode_results = [
