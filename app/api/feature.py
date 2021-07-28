@@ -12,6 +12,7 @@ from rdflib.namespace import DCTERMS, RDF, RDFS
 from api.link import *
 from api.profiles import *
 from config import *
+from utils.sparql_queries import feature_class_label_sparql
 
 templates = Jinja2Templates(directory="templates")
 
@@ -156,7 +157,8 @@ class Feature(object):
         )
         self.isPartOf = self.graph_namespaces.value(URIRef(self.uri), DCTERMS.isPartOf)
         if not self.title:
-            self.title = f"Feature {self.identifier}"
+            constructed_title = g.query(feature_class_label_sparql.substitute({"URI": self.uri}))
+            self.title = str(list(constructed_title.bindings[0].values())[0])
 
         self.geometries_dict = geom_results
 

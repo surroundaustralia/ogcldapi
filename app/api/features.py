@@ -15,6 +15,7 @@ from api.link import *
 from api.profiles import *
 from config import *
 from utils import utils
+from utils.sparql_queries import feature_class_label_sparql
 
 templates = Jinja2Templates(directory="templates")
 g = utils.g
@@ -83,11 +84,19 @@ class FeaturesList:
         identifiers = [
             str(i["identifier"]) if "identifier" in i.keys() else None for i in result
         ]
-        # use the title if it's available, otherwise use "Feature {identifier}"
-        titles = [
-            i["title"] if "title" in i.keys() else f"Feature {i['identifier']}"
-            for i in result
-        ]
+        # use the title if it's available, otherwise use "<class_label> {identifier}"
+
+        if "title" in result[0].keys():
+            titles = [i["title"] for i in result]
+        else:
+            # take the class label for the first feature (assuming all features in a feature collection have the same
+            # class) to not make this assumption *all* features would have to be queried for their class' label - this
+            # would be expensive!
+            query_result = g.query(feature_class_label_sparql.substitute({"URI": str(result[0]["feature"])}))
+            class_label = str(list(query_result.bindings[0].values())[1])
+            titles = [f"{class_label} {i['identifier']}" for i in result]
+
+
         self.features = list(zip(features, identifiers, titles, descriptions))
         self.bbox_type = None
 
