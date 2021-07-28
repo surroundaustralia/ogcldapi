@@ -36,6 +36,30 @@ class LandingPage:
             URIRef(self.dataset_uri), DCTERMS.description
         )
 
+        non_bnode_query = g.query(
+            f"""
+            PREFIX dcat: <http://www.w3.org/ns/dcat#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+            PREFIX dcterms: <http://purl.org/dc/terms/> 
+            SELECT ?p1 ?p1Label ?o1 ?o1Label {{
+                <{self.dataset_uri}> ?p1 ?o1 .
+                OPTIONAL {{ 
+                    {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
+                OPTIONAL {{ 
+                    {{?o1 rdfs:label ?o1Label}} FILTER(lang(?o1Label) = "" || lang(?o1Label) = "en") }}
+                VALUES ?feature {{ dcterms:creator dcterms:created dcterms:publisher dcterms:modified dcat:keyword dcat:theme }}
+  				FILTER(?p1=?feature)
+                }}"""
+        )
+        self.properties = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
+
+        for property in self.properties:
+            for k, v in property.copy().items():
+                if isinstance(v, URIRef):
+                    property[f"{k}Prefixed"] = v.n3(
+                        dataset_triples.namespace_manager
+                    )
+
         logging.debug("LandingPage() RDF loops")
 
         # make links
