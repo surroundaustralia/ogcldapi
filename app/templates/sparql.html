@@ -17,44 +17,42 @@
       </div>
       <div>
         <h3>Example Queries</h3>
-        <h4>Concept Count</h4>
+          <h4>Count of Features</h4>
+        <p>This example counts the number of Features (geo:Feature) in a Dataset</p>
+        <p><pre>
+PREFIX geo: &lt;http://www.opengis.net/ont/geosparql#&gt;
+
+SELECT (COUNT(?features) AS ?features_count) { ?features a geo:Feature }
+        </pre></p>
+        <h4>Feature within a Feature Collection and Dataset</h4>
         <p>
-          Here is an example query you can copy 'n paste into the Query UI text area above to test with. It counts the number of
-          vocabulary <em>Concepts</em> in the all vocabularies in this system and will return an integer:
+          Here is an example query that selects the name of five Features, their parent Feature Collections, and the Feature Collections' parent Dataset.
+            Features in Datasets which conform to the OGC LD API specification must be part of (dcterms:isPartOf) a
+            Feature Collection (geo:FeatureCollection), which in turn must be part of a Dataset (dcat:Dataset).
         </p>
         <p><pre>
-PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX dcterms: &lt;http://purl.org/dc/terms/&gt;
+PREFIX geo: &lt;http://www.opengis.net/ont/geosparql#&gt;
+PREFIX rdfs: &lt;http://www.w3.org/2000/01/rdf-schema#&gt;
 
-SELECT (COUNT(?c) AS ?count)
-WHERE {
-    ?c a skos:Concept .
-}
-        </pre></p>
-        <h4>Concepts</h4>
-        <p>Here is another example. It returns the URI and prefLabel(s) of 5 random Concepts on this system:</p>
-        <p><pre>
-PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
-
-SELECT ?c ?pl
-WHERE {
-    ?c a skos:Concept ;
-      skos:prefLabel ?pl .
-}
+SELECT ?feature_label ?fc_label ?dataset_label {
+  ?feature a geo:Feature ;
+  		   rdfs:label ?feature_label ;
+       	   dcterms:isPartOf ?featureCollection .
+  ?featureCollection rdfs:label ?fc_label ;
+           dcterms:isPartOf ?dataset .
+  ?dataset rdfs:label ?dataset_label
+  }
 LIMIT 5
         </pre></p>
-        <h4>Direct Querying</h4>
+        <h4>Feature Description</h4>
         <p>
-          This query returns a sorted list of ConceptSchemes' (vocabularies) URIs and their titles (prefLabels):
+          This query describes the properties of a Feature:
         </p>
         <p><pre>
-PREFIX skos: &lt;http://www.w3.org/2004/02/skos/core#&gt;
+PREFIX geo: &lt;http://www.opengis.net/ont/geosparql#&gt;
 
-SELECT ?c ?pl
-WHERE {
-    ?c a skos:ConceptScheme ;
-      skos:prefLabel ?pl .
-}
-ORDER BY ?pl
+DESCRIBE ?feature { ?feature a geo:Feature } LIMIT 1
         </pre></p>
       </div>
       <div>
