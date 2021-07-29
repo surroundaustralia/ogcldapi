@@ -61,10 +61,6 @@
     <div id="map"></div>
   {% endif %}
   <table class="props">
-    <tr>
-      <td>Members</td>
-      <td><a href="{{uri}}/items">Items</a></td>
-    </tr>
     {% for property in properties %}
       <tr>
         <td>
@@ -129,6 +125,13 @@
         </td>
       </tr>
     {% endfor %}
+    <tr>
+      <td>Members</td>
+      <td>
+        <a href="{{uri}}/items" class="btn">Items</a>
+        <span class="items-btn-caption">Click to view list of features</span>
+      </td>
+    </tr>
   </table>
   {% if geometry is not none %}
     <script>

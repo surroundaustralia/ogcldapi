@@ -572,3 +572,56 @@ table.dataTable a, table.dataTable a:hover {
     cursor: unset;
     text-decoration: none !important;
 }
+
+.btn,
+button#url_encode,
+button#url_decode {
+    padding: 6px 8px;
+    color: white;
+    display: inline-block;
+    background-color: var(--blue);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.btn:hover,
+button#url_encode:hover,
+button#url_decode:hover {
+    background-color: var(--darkblue);
+    text-decoration: none;
+}
+
+.items-btn-caption {
+    font-size: 12px;
+    color: grey;
+    margin: 6px 0px;
+}
+
+button#url_encode,
+button#url_decode {
+    margin-top: 6px;
+    margin-right: 6px;
+}
+
+.collapse {
+    display: none;
+}
+
+.collapse.show {
+    display: inline;
+}
+
+.collapse-button {
+    border: 1px solid var(--blue);
+    color: var(--blue);
+    margin-top: 6px;
+    cursor: pointer;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.collapse-button:hover {
+    color: white;
+    background-color: var(--blue);
+}

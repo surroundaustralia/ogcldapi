@@ -8,12 +8,11 @@
         <h4>Filtered by {{ bbox[0] }}: <code>{{ bbox[1] }}</code></h4>
     {% endif %}
     <div class="features-list">
-        <h3>Members</h3>
-            <ul>
+        <ul>
             {%- for member in members -%}
-            <li><a href="{{ member[0] }}">{{ member[1] }}</a></li>
+                <li><a href="{{ member[0] }}">{{ member[1] }}</a></li>
             {%- endfor -%}
-            </ul>
+        </ul>
     </div>
     <div class="pagination">
         {% set lastPageNumber = page_links.last_page.split("&page=")[1] | int %}
