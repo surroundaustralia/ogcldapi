@@ -6,7 +6,18 @@
     <div class="collections-list">
       <ul>
         {%- for collection in collections -%}
-        <li><a href="{{ collection[0] }}">{{ collection[1] }}</a></li>
+        <li class="collection-item">
+          <a href="{{ collection[0][0] }}">{{ collection[0][1] }}</a>
+          {% if collection[1][3] is not none%}
+            <p class="collection-desc">
+              {% if collection[1][3] | length > 100 %}
+                {{ collection[1][3][:100] }}...
+              {% else %}
+                {{ collection[1][3] }}
+              {% endif %}
+            </p>
+          {% endif %}
+        </li>
         {%- endfor -%}
         </ul>
     </div>

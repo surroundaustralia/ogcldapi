@@ -198,11 +198,107 @@ class LandingPageRenderer(Renderer):
         )
 
     def _render_oai_html(self):
+        # print(self.landing_page.properties)
+
+        # property dicts
+        type = {}
+        properties = {}
+        other = {}
+
+        # list of property order per group
+        type_order = [RDF.type]
+        properties_order = [
+            DCTERMS.identifier,
+            # DCTERMS.isPartOf,
+            # DCAT.bbox
+        ]
+
+        def add_property(prop: dict, dict: dict, mode: str) -> None:
+            """Adds a property to a group dict"""
+            object = None
+            prop_name = "p1"
+
+            if mode == "prop":
+                object = {
+                    "value": prop["o1"],
+                    "prefix": prop.get("o1Prefixed"),
+                    "label": prop.get("o1Label"),
+                    "system_url": prop.get("system_url")
+                }
+            
+            if dict.get(prop[prop_name]):  # if prop exists, append child
+                if mode == "prop":
+                    dict[prop[prop_name]]["objects"].append(object)
+                
+            else:  # create prop
+                dict[prop[prop_name]] = {
+                    "uri": prop[prop_name],
+                    "prefix": prop.get(f"{prop_name}Prefixed"),
+                    "label": prop.get(f"{prop_name}Label"),
+                    "objects": [object] if object is not None else None,
+                }
+
+        # dicts to match keys of order list in switch statement
+        dicts = {
+            "type_order": type_order,
+            "properties_order": properties_order
+        }
+
+        # switch statement
+        def switch(case: str, prop: dict, mode: str) -> None:
+            """Switch statement matching case of which order list the property is in"""
+            cases = {
+                "type_order": lambda: add_property(prop, type, mode),
+                "properties_order": lambda: add_property(prop, properties, mode),
+            }
+            cases.get(case, lambda: add_property(prop, other, mode))()
+
+        geometry = None
+
+        # properties loop
+        for property in self.landing_page.properties:
+            if property["p1"] == RDFS.label or property["p1"] == DCTERMS.description:
+                continue
+            # elif property["p1"] == DCAT.bbox:
+            #     geometry = json.dumps(wkt.loads(property["o1"]))
+            matched = False
+            for key, value in dicts.items():
+                if property["p1"] in value:
+                    switch(key, property, "prop")
+                    matched = True
+                    break
+            if not matched:
+                switch("other", property, "prop")
+
+        def order_properties(key: str, dict: dict, order_list: List[URIRef]) -> int:
+            """Orders the properties of a group dict according to the corresponding order list"""
+            if key in order_list:
+                return order_list.index(key)
+            else:
+                return len(dict.keys())
+
+        dataset_properties = []
+        dataset_properties.extend(
+            sorted(
+                properties.values(),
+                key=lambda p: order_properties(p["uri"], properties, properties_order),
+            )
+        )
+        dataset_properties.extend(
+            sorted(other.values(), key=lambda p: order_properties(p["uri"], other, []))
+        )
+
         _template_context = {
             "uri": self.landing_page.uri,
             "title": self.landing_page.title,
             "landing_page": self.landing_page,
             "request": self.request,
+            "properties": dataset_properties,
+            "type": sorted(
+                type.values(),
+                key=lambda p: order_properties(p["uri"], type, type_order),
+            ),
+            "geometry": None,
             "api_title": API_TITLE,
         }
 

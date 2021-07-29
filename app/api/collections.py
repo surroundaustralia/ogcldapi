@@ -192,6 +192,7 @@ class CollectionsRenderer(ContainerRenderer):
         )
 
     def _render_oai_html(self):
+        zipped_collections = list(zip(self.members, self.collections))
         # generate link QSAs from the CollectionsRenderer attributes
         links = {}
         for link_type in ["first_page", "next_page", "prev_page", "last_page"]:
@@ -204,7 +205,8 @@ class CollectionsRenderer(ContainerRenderer):
         _template_context = {
             "links": self.links,
             "page_links": links,
-            "collections": sorted(self.members, key=lambda m: m[1]),
+            # "collections": sorted(self.members, key=lambda m: m[1]),
+            "collections": sorted(zipped_collections, key=lambda m: m[0][1]),
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page,

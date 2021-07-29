@@ -414,6 +414,11 @@ td > table.bnode-props:last-child {
     margin-bottom: 12px;
 }
 
+.collection-desc {
+    font-size: 12px;
+    color: grey;
+}
+
 /* pagination */
 .pagination {
     margin-top: auto;

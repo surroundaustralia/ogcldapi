@@ -11,7 +11,7 @@
     <div class="type-container">
       <div>
         {% if property.label is not none %}
-            <span class="tooltip">{{ property.label }}
+            <span class="tooltip">{{ property.label | title }}
               <span class="tooltiptext">
                 <a href="{{ property.uri }}">
                   {% if property.prefix is not none %}
@@ -69,7 +69,13 @@
       <tr>
         <td>
           {% if property.label is not none %}
-            <span class="tooltip">{{ property.label }}
+            {# iterate over each word in label, apply title() only for lowercase words #}
+            {# preserves acronyms like DGGS and GeoJSON #}
+            {% set property_label = [] %}
+            {% for s in property.label.split() %}
+              {{ property_label.append(s.title()) | default("", True) if s.islower() else property_label.append(s) | default("", True) }}
+            {% endfor %}
+            <span class="tooltip">{{ " ".join(property_label) }}
               <span class="tooltiptext">
                 <a href="{{ property.uri }}">
                   {% if property.prefix is not none %}
