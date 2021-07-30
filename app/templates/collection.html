@@ -156,6 +156,15 @@
       map.fitBounds(geojsonLayer.getBounds());
     </script>
   {% endif %}
+  <script>
+    const collapseBtns = document.querySelectorAll(".collapse-button");
+    collapseBtns.forEach(btn => {
+      btn.addEventListener("click", e => {
+        const collapsibles = Array.from(btn.parentNode.children).filter(child => child.classList.contains("collapse"));
+        collapsibles.forEach(item => item.classList.toggle("show"));
+      });
+    });
+  </script>
 </div>
 {% include 'page_altprofiles.html' %}
 {% endblock %}
