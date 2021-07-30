@@ -90,7 +90,7 @@
           {% if property.objects is not none %}
             {% for object in property.objects %}
               {% if object.label is not none %}
-                <span class="tooltip">
+                <span class="tooltip {% if loop.index > 10 %}collapse{% endif %}">
                   {% if object.system_url is not none %}
                     <a href="{{ object.system_url }}">{{ object.label }}</a>
                   {% else %}
@@ -108,19 +108,22 @@
                 </span>
               {% else %}
                 {% if object.system_url is not none %}
-                  <a href="{{ object.system_url }}">{{ object.value }}</a>
+                  <a href="{{ object.system_url }}" class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</a>
                 {% else %}
                   {% if object.value.startswith("http") %}
-                    <a href="{{ object.value }}">{{ object.value }}</a>
+                    <a href="{{ object.value }}" class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</a>
                   {% elif object.value.startswith("{") or object.value.startswith("POLYGON") %}
-                    <code>{{ object.value }}</code>
+                    <code class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</code>
                   {% else %}
-                    {{ object.value }}
+                    <span class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</span>
                   {% endif %}
                 {% endif %}
               {% endif %}
-              <br/>
+              <br class="{% if loop.index > 10 %}collapse{% endif %}"/>
             {% endfor %}
+            {% if property.objects | length > 10 %}
+                <button class="collapse-button">...</button>
+            {% endif %}
           {% endif %}
         </td>
       </tr>

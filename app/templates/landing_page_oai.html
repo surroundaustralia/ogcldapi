@@ -87,7 +87,7 @@
           {% if property.objects is not none %}
             {% for object in property.objects %}
               {% if object.label is not none %}
-                <span class="tooltip">
+                <span class="tooltip {% if loop.index > 10 %}collapse{% endif %}">
                   {% if object.system_url is not none %}
                     <a href="{{ object.system_url }}">{{ object.label }}</a>
                   {% else %}
@@ -105,40 +105,101 @@
                 </span>
               {% else %}
                 {% if object.system_url is not none %}
-                  <a href="{{ object.system_url }}">{{ object.value }}</a>
+                  <a href="{{ object.system_url }}" class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</a>
                 {% else %}
                   {% if object.value.startswith("http") %}
-                    <a href="{{ object.value }}">{{ object.value }}</a>
+                    <a href="{{ object.value }}" class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</a>
                   {% elif object.value.startswith("{") or object.value.startswith("POLYGON") %}
-                    <code>{{ object.value }}</code>
+                    <code class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</code>
                   {% else %}
-                    {{ object.value }}
+                    <span class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</span>
                   {% endif %}
                 {% endif %}
               {% endif %}
-              <br/>
+              <br class="{% if loop.index > 10 %}collapse{% endif %}"/>
             {% endfor %}
+            {% if property.objects | length > 10 %}
+                <button class="collapse-button">...</button>
+            {% endif %}
+          {% elif property.bnodes is not none %}
+            {% for bnode in property.bnodes.values() %}
+              <table class="props bnode-props">
+                {% for object in bnode %}
+                  <tr>
+                    <td>
+                      {% if object.pLabel is not none %}
+                        {# iterate over each word in label, apply title() only for lowercase words #}
+                        {# preserves acronyms like DGGS and GeoJSON #}
+                        {% set property_label = [] %}
+                        {% for s in object.pLabel.split() %}
+                          {{ property_label.append(s.title()) | default("", True) if s.islower() else property_label.append(s) | default("", True) }}
+                        {% endfor %}
+                        <span class="tooltip">{{ " ".join(property_label) }}
+                          <span class="tooltiptext">
+                            <a href="{{ object.pUri }}">
+                              {% if object.pPrefix is not none %}
+                                {{ object.pPrefix }}
+                              {% else %}
+                                {{ object.pUri }}
+                              {% endif %}
+                            </a>
+                          </span>
+                        </span>
+                      {% else %}
+                        {{ object.pUri }}
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if object.oLabel is not none %}
+                        <span class="tooltip">{{ object.oLabel }}
+                          <span class="tooltiptext">
+                            <a href="{{ oValue }}">
+                              {% if object.oPrefix is not none %}
+                                {{ object.oPrefix }}
+                              {% else %}
+                                {{ object.oValue }}
+                              {% endif %}
+                            </a>
+                          </span>
+                        </span>
+                      {% else %}
+                        {% if object.oValue.startswith("http") %}
+                          <a href="{{ object.oValue }}">{{ object.oValue }}</a>
+                        {% elif object.oValue.startswith("{") or object.oValue.startswith("POLYGON") %}
+                          <code>{{ object.oValue }}</code>
+                        {% else %}
+                          {{ object.oValue }}
+                        {% endif %}
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </table>
+            {% endfor %}
+          {% else %} {# geometry #}
+            <code>
+              {% if property.geometry.split()|length > 6 %}
+                {{ ' '.join(property.geometry.split()[:6]+[' ... ']+property.geometry.split()[-6:]) }}
+              {% else %}
+                {{ property.geometry }}
+              {% endif %}
+            </code>
           {% endif %}
         </td>
       </tr>
     {% endfor %}
   </table>
   <h2>Links</h2>
-  <ul>
+  <div class="landing-page-links">
     {% for link in landing_page.links %}
-    <li>
+      <div class="landing-page-link">
         <a href="{{ link['href'] }}">{% if link["title"] is not none %}{{ link["title"] }}{% else %}{{ link["href"] }}{% endif %}</a>
-        {% if link["rel"] is not none or link["rel"] is not none or link["type"] is not none or link["hreflang"] is not none or link["length"] is not none %}
-          <ul>
-            {% if link["rel"] is not none %}<li>rel: {{ link["rel"].value }}</li>{% endif %}
-            {% if link["type"] is not none %}<li>type: {{ link["type"].value }}</li>{% endif %}
-            {% if link["hreflang"] is not none %}<li>hreflang: {{ link["hreflang"].value }}</li>{% endif %}
-            {% if link["length"] is not none %}<li>length: {{ link["length"].value }}</li>{% endif %}
-        {% endif %}
-        </ul>
-    </li>
+      </div>
+      {% if loop.index < landing_page.links | length %}
+        <span>|</span>
+      {% endif %}
     {% endfor %}
-  </ul>
+  </div>
   {% if geometry is not none %}
     <script>
       const data = '{{ geometry | tojson }}';
@@ -159,6 +220,15 @@
       map.fitBounds(geojsonLayer.getBounds());
     </script>
   {% endif %}
+  <script>
+    const collapseBtns = document.querySelectorAll(".collapse-button");
+    collapseBtns.forEach(btn => {
+      btn.addEventListener("click", e => {
+        const collapsibles = Array.from(btn.parentNode.children).filter(child => child.classList.contains("collapse"));
+        collapsibles.forEach(item => item.classList.toggle("show"));
+      });
+    });
+  </script>
 </div>
 {% include 'page_altprofiles.html' %}
 {% endblock %}

@@ -625,3 +625,19 @@ button#url_decode {
     color: white;
     background-color: var(--blue);
 }
+
+.landing-page-links {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    gap: 10px;
+    align-items: center;
+/*     flex-wrap: wrap; */
+}
+
+.landing-page-link {
+    text-align: center;
+    flex-basis: 0;
+    flex-grow: 1;
+    font-size: 14px;
+}
