@@ -36,7 +36,11 @@ class ConformanceRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"Conformance - {API_TITLE}",
+            "theme": THEME
+        }
+        response = super().render(template_context)
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -64,6 +68,7 @@ class ConformanceRenderer(Renderer):
             "conformance_classes": self.conformance_classes,
             "request": self.request,
             "api_title": f"Conformance - {API_TITLE}",
+            "theme": THEME
         }
 
         return templates.TemplateResponse(

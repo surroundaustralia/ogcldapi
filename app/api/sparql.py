@@ -33,7 +33,11 @@ class SparqlRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"SPARQL - {API_TITLE}",
+            "theme": THEME
+        }
+        response = super().render(template_context)
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -60,6 +64,7 @@ class SparqlRenderer(Renderer):
             "uri": LANDING_PAGE_URL + "/sparql",
             "request": self.request,
             "api_title": f"SPARQL - {API_TITLE}",
+            "theme": THEME
         }
 
         return templates.TemplateResponse(

@@ -174,7 +174,11 @@ class LandingPageRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": API_TITLE,
+            "theme": THEME
+        }
+        response = super().render(template_context)
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -362,6 +366,7 @@ class LandingPageRenderer(Renderer):
             ),
             "geometry": geometry,
             "api_title": API_TITLE,
+            "theme": THEME
         }
 
         return templates.TemplateResponse(

@@ -28,6 +28,7 @@ SPARQL_ENDPOINT = os.getenv(
 SPARQL_USERNAME = os.getenv("SPARQL_USERNAME", None)
 SPARQL_PASSWORD = os.getenv("SPARQL_PASSWORD", None)
 TEST_GRAPH = os.getenv("TEST_GRAPH", None)
+THEME = os.getenv("THEME", "ga")
 
 MEDIATYPE_NAMES = {
     "text/html": "HTML",

@@ -161,7 +161,11 @@ class CollectionsRenderer(ContainerRenderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"Collections - {API_TITLE}",
+            "theme": THEME
+        }
+        response = super().render(template_context)
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -211,6 +215,7 @@ class CollectionsRenderer(ContainerRenderer):
             "pageSize": self.per_page,
             "pageNumber": self.page,
             "api_title": f"Collections - {API_TITLE}",
+            "theme": THEME
         }
 
         return templates.TemplateResponse(

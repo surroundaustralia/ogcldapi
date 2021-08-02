@@ -298,7 +298,11 @@ class FeatureRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"{self.feature.title} - {API_TITLE}",
+            "theme": THEME
+        }
+        response = super().render(template_context)
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -507,6 +511,7 @@ class FeatureRenderer(Renderer):
                 key=lambda p: order_properties(p["uri"], type, type_order),
             ),
             "feature_properties": feature_properties,
+            "theme": THEME
         }
 
         return templates.TemplateResponse(

@@ -356,7 +356,11 @@ class FeaturesRenderer(ContainerRenderer):
             )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}",
+            "theme": THEME
+        }
+        response = super().render(template_context)
         if response is not None:
             return response
 
@@ -419,6 +423,7 @@ class FeaturesRenderer(ContainerRenderer):
             "pageSize": self.per_page,
             "pageNumber": self.page,
             "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}",
+            "theme": THEME
         }
 
         if (
