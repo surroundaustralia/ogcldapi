@@ -9,7 +9,7 @@ from geomet import wkt
 from fastapi import Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import Renderer
+from pyldapi import Renderer
 
 from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCAT, DCTERMS, RDF, RDFS
@@ -147,16 +147,12 @@ class LandingPageRenderer(Renderer):
     ):
         logging.debug("LandingPageRenderer()")
         self.landing_page = LandingPage(other_links=other_links)
-
         super().__init__(
             request,
             self.landing_page.uri,
             {"oai": profile_openapi, "dcat": profile_dcat},
-            "oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
-            LOCAL_URIS=LOCAL_URIS,
+            "oai"
         )
-
         # add OGC API Link headers to pyLDAPI Link headers
         self.headers["Link"] = self.headers["Link"] + ", ".join(
             [link.render_as_http_header() for link in self.landing_page.links]
@@ -178,7 +174,7 @@ class LandingPageRenderer(Renderer):
             "api_title": API_TITLE,
             "theme": THEME
         }
-        response = super().render(template_context)
+        response = super().render()
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -228,7 +224,6 @@ class LandingPageRenderer(Renderer):
         )
 
     def _render_oai_html(self):
-
         # property dicts
         type = {}
         properties = {}

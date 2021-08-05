@@ -1,7 +1,7 @@
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import Renderer
+from pyldapi import Renderer
 
 from api.link import *
 from api.profiles import *
@@ -17,9 +17,7 @@ class SparqlRenderer(Renderer):
             request,
             LANDING_PAGE_URL + "/sparql",
             {"oai": profile_openapi},
-            "oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
-            LOCAL_URIS=LOCAL_URIS,
+            "oai"
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format", "version"]
@@ -37,7 +35,7 @@ class SparqlRenderer(Renderer):
             "api_title": f"SPARQL - {API_TITLE}",
             "theme": THEME
         }
-        response = super().render(template_context)
+        response = super().render()
         if response is not None:
             return response
         elif self.profile == "oai":

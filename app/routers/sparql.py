@@ -8,7 +8,7 @@ from urllib.parse import unquote, parse_qs
 from fastapi import Request, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import Response, RedirectResponse
-from pyldapi.fastapi_framework import Renderer
+from pyldapi import Renderer, RDF_MEDIATYPES
 from rdflib import Graph
 
 from api.sparql import SparqlRenderer
@@ -76,12 +76,12 @@ async def sparql(
         "text/csv",
         "text/tab-separated-values",
     ]
-    QUERY_RESPONSE_MEDIA_TYPES = ["text/html"] + SPARQL_RESPONSE_MEDIA_TYPES + Renderer.RDF_MEDIA_TYPES
+    QUERY_RESPONSE_MEDIA_TYPES = ["text/html"] + SPARQL_RESPONSE_MEDIA_TYPES + RDF_MEDIATYPES
     accept_type = _best_match(QUERY_RESPONSE_MEDIA_TYPES, request.headers["accept"], "text/html")
     logging.debug("accept_type: " + accept_type)
 
     try:
-        if accept_type in SPARQL_RESPONSE_MEDIA_TYPES or accept_type in Renderer.RDF_MEDIA_TYPES:
+        if accept_type in SPARQL_RESPONSE_MEDIA_TYPES or accept_type in RDF_MEDIATYPES:
             # return data
             logging.info("returning endpoint()")
             return await endpoint(request)
@@ -280,7 +280,7 @@ async def endpoint(
             """
             query = request.args.get("query")
             if "CONSTRUCT" in query:
-                acceptable_mimes = [x for x in Renderer.RDF_MEDIA_TYPES]
+                acceptable_mimes = [x for x in RDF_MEDIATYPES]
                 best = _best_match(acceptable_mimes, request.headers["accept"])
                 query_result = sparql_query2(
                     query, media_type=best
@@ -317,13 +317,13 @@ async def endpoint(
             (X)HTML by way of RDFa, and should use content negotiation if available in other RDF representations.
             """
 
-            acceptable_mimes = [x for x in Renderer.RDF_MEDIA_TYPES] + ["text/html"]
+            acceptable_mimes = [x for x in RDF_MEDIATYPES] + ["text/html"]
             best = _best_match(acceptable_mimes, request.headers["accept"])
             if best == "text/html":
                 # show the SPARQL query form
                 return RedirectResponse(SparqlRenderer.instance_uri)
             elif best is not None:
-                for item in Renderer.RDF_MEDIA_TYPES:
+                for item in RDF_MEDIATYPES:
                     if item == best:
                         rdf_format = best
                         return Response(

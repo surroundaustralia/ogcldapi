@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from geomet import wkt
 from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCTERMS, RDF, DCAT, RDFS
+from pyldapi import Renderer
 
 from api.link import *
 from api.profiles import *
@@ -157,7 +158,6 @@ class CollectionRenderer(Renderer):
                 "mem": profile_mem
             },
             default_profile_token="oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_mediatype", "version"]
@@ -175,7 +175,7 @@ class CollectionRenderer(Renderer):
             "api_title": f"{self.collection.title} - {API_TITLE}",
             "theme": THEME
         }
-        response = super().render(template_context)
+        response = super().render()
         if response is not None:
             return response
         elif self.profile == "oai":

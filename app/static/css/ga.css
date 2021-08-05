@@ -1,0 +1,12 @@
+:root {
+    /* overrides */
+    --link-colour: #006983;
+    --btn-hover-colour: #104f5f;
+    --header-band-colour: var(--link-colour);
+    --table-bg: #eeeeee;
+    --subtable-bg: #f6f6f6;
+
+    /* custom */
+    --darkgrey: #2F2F2F;
+    --orange: #A33F1F;
+}

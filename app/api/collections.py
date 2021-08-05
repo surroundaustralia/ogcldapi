@@ -3,7 +3,7 @@ from typing import List
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import ContainerRenderer
+from pyldapi import ContainerRenderer
 
 from api.link import *
 from api.profiles import *
@@ -124,9 +124,7 @@ class CollectionsRenderer(ContainerRenderer):
             ],
             self.collections_count,
             profiles={"oai": profile_openapi},
-            default_profile_token="oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
-            LOCAL_URIS=LOCAL_URIS,
+            default_profile_token="oai"
         )
 
         self.ALLOWED_PARAMS = [
@@ -165,7 +163,7 @@ class CollectionsRenderer(ContainerRenderer):
             "api_title": f"Collections - {API_TITLE}",
             "theme": THEME
         }
-        response = super().render(template_context)
+        response = super().render()
         if response is not None:
             return response
         elif self.profile == "oai":

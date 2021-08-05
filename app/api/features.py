@@ -5,7 +5,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import ContainerRenderer
+from pyldapi import ContainerRenderer
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD, RDF
 
@@ -360,7 +360,7 @@ class FeaturesRenderer(ContainerRenderer):
             "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}",
             "theme": THEME
         }
-        response = super().render(template_context)
+        response = super().render()
         if response is not None:
             return response
 
@@ -500,7 +500,7 @@ class FeaturesRenderer(ContainerRenderer):
                 media_type=self.mediatype,
                 headers=self.headers,
             )
-        elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
+        elif self.mediatype in Renderer.RDF_MEDIATYPES:
             return Response(
                 g.serialize(format=self.mediatype),
                 media_type=self.mediatype,

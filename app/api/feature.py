@@ -8,6 +8,7 @@ from geomet import wkt
 from rdflib import Graph
 from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS
+from pyldapi import Renderer
 
 from api.link import *
 from api.profiles import *
@@ -284,7 +285,6 @@ class FeatureRenderer(Renderer):
             + self.feature.identifier,
             profiles={"oai": profile_openapi, "geosp": profile_geosparql},
             default_profile_token="oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "version"]
@@ -302,7 +302,7 @@ class FeatureRenderer(Renderer):
             "api_title": f"{self.feature.title} - {API_TITLE}",
             "theme": THEME
         }
-        response = super().render(template_context)
+        response = super().render()
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -528,7 +528,7 @@ class FeatureRenderer(Renderer):
                 media_type=self.mediatype,
                 headers=self.headers,
             )
-        elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
+        elif self.mediatype in Renderer.RDF_MEDIATYPES:
             return PlainTextResponse(
                 g.serialize(format=self.mediatype),
                 media_type=self.mediatype,

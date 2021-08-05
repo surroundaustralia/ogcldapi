@@ -1,11 +1,15 @@
 :root {
-    --blue: #006983;
-    --darkblue: #104f5f;
+    /* colours */
+    --link-colour: #006983;
+    --btn-hover-colour: #104f5f;
+    --header-band-colour: #222222;
+    --table-bg: #eeeeee;
+    --subtable-bg: #f6f6f6;
+
     --darkgrey: #2F2F2F;
     --orange: #A33F1F;
-    --lightgrey: #eeeeee;
-    --lightlightgrey: #f6f6f6;
 
+    /* sizing */
     --page-max-width: 1200px;
 }
 
@@ -67,7 +71,7 @@ header > hr {
 }
 
 .header-social-link {
-    background-color: var(--blue);
+    background-color: var(--link-colour);
     color: white;
     text-decoration: none;
     border-radius: 50%;
@@ -117,7 +121,7 @@ header > hr {
 
 #header-band {
     height: 40px;
-    background-color: var(--blue);
+    background-color: var(--header-band-colour);
     flex-shrink: 0;
 }
 
@@ -133,15 +137,15 @@ header > hr {
 
 #top-nav {
     margin-top: 12px;
-    border-top: 2px solid var(--blue);
-    border-bottom: 2px solid var(--blue);
+    border-top: 2px solid var(--link-colour);
+    border-bottom: 2px solid var(--link-colour);
     display: flex;
     flex-direction: row;
     justify-content: space-around;
 }
 
 a {
-    color: var(--blue);
+    color: var(--link-colour);
 }
 
 .top-nav-item {
@@ -157,13 +161,13 @@ a {
 }
 
 .top-nav-item:hover, .top-nav-item.active:hover  {
-    background-color: var(--blue);
+    background-color: var(--link-colour);
     color: white;
 }
 
 .top-nav-item.active {
     font-weight: bold;
-    color: var(--blue);
+    color: var(--link-colour);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -270,7 +274,7 @@ footer address {
 
 .contact-us-btn {
     display: flex;
-    background-color: var(--blue);
+    background-color: var(--link-colour);
     color: white;
     text-decoration: none;
     padding: 20px 24px;
@@ -326,7 +330,7 @@ footer > hr {
     padding: 8px;
     border-radius: 6px;
     /* border: solid 1px black; */
-    background-color: var(--blue);
+    background-color: var(--link-colour);
     color: white;
     font-weight: normal;
     position: absolute;
@@ -389,16 +393,16 @@ table.props td {
 
 table.props:not(.bnode-props) > tbody > tr:nth-child(odd),
 table.layout > tbody > tr:nth-child(even) {
-    background-color: var(--lightgrey);
+    background-color: var(--table-bg);
 }
 
 table.props table.bnode-props:nth-child(even) {
-    background-color: var(--lightlightgrey);
+    background-color: var(--subtable-bg);
 }
 
 table.props tr > td:first-child {
     font-weight: bold;
-    color: var(--blue);
+    color: var(--link-colour);
     min-width: 120px;
 }
 
@@ -429,10 +433,10 @@ td > table.bnode-props:last-child {
 
 .pagination-btn {
     background-color: white;
-    color: var(--blue);
+    color: var(--link-colour);
     cursor: pointer;
     border-radius: 0;
-    border: 1px solid var(--blue);
+    border: 1px solid var(--link-colour);
     font-size: 14px;
     padding: 6px 10px;
 
@@ -450,12 +454,12 @@ td > table.bnode-props:last-child {
 }
 
 .pagination-btn.current-page, .pagination-btn.current-page:hover {
-    background-color: var(--darkblue);
+    background-color: var(--btn-hover-colour);
     color: white;
 }
 
 .pagination-btn:hover {
-    background-color: var(--blue);
+    background-color: var(--link-colour);
     color: white;
 }
 
@@ -503,20 +507,20 @@ td > table.bnode-props:last-child {
 }
 
 table.dataTable tbody > tr:nth-child(odd) {
-    background-color: var(--lightgrey);
+    background-color: var(--table-bg);
 }
 
 table.dataTable a, table.dataTable a:hover {
-    color: var(--blue);
+    color: var(--link-colour);
 }
 
 .dataTables_wrapper .dataTables_paginate a.paginate_button,
 .dataTables_wrapper .dataTables_paginate span.ellipsis {
     background-color: white !important;
-    color: var(--blue) !important;
+    color: var(--link-colour) !important;
     cursor: pointer;
     border-radius: 0;
-    border: 1px solid var(--blue) !important;
+    border: 1px solid var(--link-colour) !important;
     font-size: 14px;
     padding: 6px 10px;
     margin: 0 !important;
@@ -557,7 +561,7 @@ table.dataTable a, table.dataTable a:hover {
 
 #contents .dataTables_wrapper .dataTables_paginate a.paginate_button:hover:not(.disabled) {
     color: white !important;
-    background-color: var(--blue) !important;
+    background-color: var(--link-colour) !important;
 }
 
 #contents .dataTables_wrapper .dataTables_paginate a.paginate_button.disabled {
@@ -567,7 +571,7 @@ table.dataTable a, table.dataTable a:hover {
 
 #contents .dataTables_wrapper .dataTables_paginate a.paginate_button.current,
 #contents .dataTables_wrapper .dataTables_paginate a.paginate_button.current:hover {
-    background-color: var(--darkblue) !important;
+    background-color: var(--btn-hover-colour) !important;
     color: white !important;
     cursor: unset;
     text-decoration: none !important;
@@ -579,7 +583,7 @@ button#url_decode {
     padding: 6px 8px;
     color: white;
     display: inline-block;
-    background-color: var(--blue);
+    background-color: var(--link-colour);
     border: none;
     cursor: pointer;
     text-decoration: none;
@@ -589,7 +593,7 @@ button#url_decode {
 .btn:hover,
 button#url_encode:hover,
 button#url_decode:hover {
-    background-color: var(--darkblue);
+    background-color: var(--btn-hover-colour);
     text-decoration: none;
 }
 
@@ -614,8 +618,8 @@ button#url_decode {
 }
 
 .collapse-button {
-    border: 1px solid var(--blue);
-    color: var(--blue);
+    border: 1px solid var(--link-colour);
+    color: var(--link-colour);
     margin-top: 6px;
     cursor: pointer;
     transition: color 0.2s ease, background-color 0.2s ease;
@@ -623,7 +627,7 @@ button#url_decode {
 
 .collapse-button:hover {
     color: white;
-    background-color: var(--blue);
+    background-color: var(--link-colour);
 }
 
 .landing-page-links {
