@@ -28,10 +28,10 @@ SPARQL_ENDPOINT = os.getenv(
 SPARQL_USERNAME = os.getenv("SPARQL_USERNAME", None)
 SPARQL_PASSWORD = os.getenv("SPARQL_PASSWORD", None)
 TEST_GRAPH = os.getenv("TEST_GRAPH", None)
-THEME = os.getenv("THEME", "ga")
-HEADER = os.getenv("HEADER", None)
+# THEME = os.getenv("THEME", "ga")
+HEADER = os.getenv("HEADER", "https://ogc-api-theming.s3.ap-southeast-2.amazonaws.com/abs-theme/header.html")
 FOOTER = os.getenv("FOOTER", None)
-STYLESHEET = os.getenv("STYLESHEET", None)
+STYLESHEET = os.getenv("STYLESHEET", "https://ogc-api-theming.s3.ap-southeast-2.amazonaws.com/abs-theme/style.css")
 
 MEDIATYPE_NAMES = {
     "text/html": "HTML",

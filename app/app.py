@@ -1,10 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
+import httpx
 import uuid
 import logging
 from config import *
-from pyldapi import renderer, renderer_container
+# from pyldapi import renderer, renderer_container
 from utils import utils
 
 from starlette.staticfiles import StaticFiles
@@ -26,7 +27,7 @@ api = FastAPI(
     description=f"Open API Documentation for this {API_TITLE}",
 )
 
-LOGGING = True
+LOGGING = False
 
 if LOGGING:
     logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))
@@ -82,8 +83,8 @@ def configure_data():
     features_api.prefixes = utils.prefixes
     conformance.prefixes = utils.prefixes
     collections.prefixes = utils.prefixes
-    renderer.MEDIATYPE_NAMES = MEDIATYPE_NAMES
-    renderer_container.MEDIATYPE_NAMES = MEDIATYPE_NAMES
+    # renderer.MEDIATYPE_NAMES = MEDIATYPE_NAMES
+    # renderer_container.MEDIATYPE_NAMES = MEDIATYPE_NAMES
 
 
 def configure_routing():
@@ -92,6 +93,27 @@ def configure_routing():
     api.include_router(conformance.router)
     api.include_router(collections.router)
     api.include_router(sparql.router)
+    get_theming()
+
+def get_theming():
+    """
+    Gets and downloads theming files to disk using links as env variables
+    
+    Theming files are currently stored in S3, with a folder
+    for each theme, i.e. ga-theme/, abs-theme/, etc.
+    """
+    if HEADER:
+        r = httpx.get(HEADER)
+        with open("templates/header.html", "w") as f:
+            f.write(r.text)
+    if FOOTER:
+        r = httpx.get(FOOTER)
+        with open("templates/footer.html", "w") as f:
+            f.write(r.text)
+    if STYLESHEET:
+        r = httpx.get(STYLESHEET)
+        with open("static/css/stylesheet.css", "w") as f:
+            f.write(r.text)
 
 
 if __name__ == "__main__":

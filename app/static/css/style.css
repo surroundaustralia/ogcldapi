@@ -1,13 +1,10 @@
 :root {
     /* colours */
-    --link-colour: #006983;
-    --btn-hover-colour: #104f5f;
-    --header-band-colour: #222222;
+    --link-colour: #0f68ff;
+    --btn-hover-colour: #0c53cc;
+    --header-band-colour: black;
     --table-bg: #eeeeee;
     --subtable-bg: #f6f6f6;
-
-    --darkgrey: #2F2F2F;
-    --orange: #A33F1F;
 
     /* sizing */
     --page-max-width: 1200px;
@@ -29,102 +26,13 @@ body, html {
     height: 100%;
 }
 
-header {
-    display: flex;
-    flex-direction: column;
-}
-
-header > hr {
-    border: none;
-    border-bottom: 1px solid lightgrey;
-    margin: 0;
-}
-
-#header-top {
-    width: 100%;
-    max-width: var(--page-max-width);
-    /* flex-grow: 1; */
-    margin: 0 auto;
-    display: flex;
-}
-
-#header-top-content {
-    display: flex;
-    flex-direction: row;
-    margin-left: auto;
-    gap: 12px;
-    align-items: center;
-    padding: 6px;
-}
-
-#header-top-content > a {
-    color: black;
-    text-decoration: none;
-    font-size: 11px;
-}
-
-#header-socials {
-    display: flex;
-    flex-direction: row;
-    margin-left: auto;
-    gap: 8px;
-}
-
-.header-social-link {
-    background-color: var(--link-colour);
-    color: white;
-    text-decoration: none;
-    border-radius: 50%;
-    font-size: 12px;
-    display: flex;
-    width: 24px;
-    height: 24px;
-}
-
-.header-social-link > i {
-    margin: auto;
-}
-
-#header-bottom {
-    display: flex;
-    flex-direction: row;
-    gap: 40px;
-    width: 100%;
-    max-width: var(--page-max-width);
-    /* flex-grow: 1; */
-    margin: 20px auto;
-}
-
-#header-bottom > img {
-    width: 140px;
-}
-
-#header-bottom-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-    flex-grow: 1;
-}
-
-#header-nav {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#header-nav > a {
-    color: black;
-    text-decoration: none;
-}
-
 #header-band {
     height: 40px;
     background-color: var(--header-band-colour);
     flex-shrink: 0;
 }
 
+/* top nav */
 #gap-container {
     max-width: var(--page-max-width);
     margin: 0 auto;
@@ -211,109 +119,6 @@ h4 {
     flex-shrink: 0;
 }
 
-footer {
-    background-color: var(--darkgrey);
-    color: white;
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-}
-
-#footer-top {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    gap: 12px;
-    width: 100%;
-    max-width: var(--page-max-width);
-    margin: 0 auto;
-    padding: 16px 0;
-}
-
-.footer-content-col {
-    /* even width children */
-    flex-basis: 0;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.footer-content-col > h5 {
-    text-transform: uppercase;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.footer-content-col > a {
-    font-size: 12px;
-    color: white;
-    text-decoration: none;
-}
-
-a.footer-social-link {
-    background-color: white;
-    color: var(--darkgrey);
-    text-decoration: none;
-    border-radius: 50%;
-    font-size: 16px;
-    display: flex;
-    width: 30px;
-    height: 30px;
-}
-
-a.footer-social-link > i {
-    margin: auto;
-}
-
-footer address {
-    font-size: 12px;
-    font-style: normal;
-    line-height: 1.6;
-}
-
-.contact-us-btn {
-    display: flex;
-    background-color: var(--link-colour);
-    color: white;
-    text-decoration: none;
-    padding: 20px 24px;
-    align-items: center;
-    justify-content: space-between;
-    transition: background-color 0.2s ease;
-}
-
-.contact-us-btn:hover {
-    background-color: var(--orange);
-}
-
-footer > hr {
-    border-top: 1px solid white;
-    margin: 20px 0;
-}
-
-#footer-bottom {
-    display: flex;
-    flex-direction: column;
-    font-size: 12px;
-    gap: 16px;
-    width: 100%;
-    max-width: var(--page-max-width);
-    margin: 0 auto 20px auto;
-    padding: 16px 0;
-}
-
-#footer-bottom-links {
-    display: flex;
-    flex-direction: row;
-    gap: 12px;
-}
-
-#footer-bottom-links > a {
-    color: white;
-    text-decoration: none;
-}
-
 .tooltip {
     text-decoration-line: underline;
     text-decoration-style: dotted;
@@ -365,6 +170,7 @@ dl > dt {
     font-weight: bold;
 }
 
+/* tables */
 table.layout {
     border-collapse: collapse;
 }
@@ -609,6 +415,7 @@ button#url_decode {
     margin-right: 6px;
 }
 
+/* collapse */
 .collapse {
     display: none;
 }
@@ -630,6 +437,7 @@ button#url_decode {
     background-color: var(--link-colour);
 }
 
+/* landing page links */
 .landing-page-links {
     display: flex;
     flex-direction: row;

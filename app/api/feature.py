@@ -17,7 +17,6 @@ from utils.sparql_queries import feature_class_label_sparql
 
 templates = Jinja2Templates(directory="templates")
 
-
 class GeometryRole(Enum):
     Boundary = "https://linked.data.gov.au/def/geometry-roles/boundary"
     BoundingBox = "https://linked.data.gov.au/def/geometry-roles/bounding-box"
@@ -300,9 +299,14 @@ class FeatureRenderer(Renderer):
         # try returning alt profile
         template_context = {
             "api_title": f"{self.feature.title} - {API_TITLE}",
-            "theme": THEME
+            # "theme": THEME
+            "stylesheet": STYLESHEET,
+            "header": HEADER,
+            "footer": FOOTER
         }
-        response = super().render()
+        response = super().render(
+            additional_alt_template_context=template_context
+        )
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -511,7 +515,10 @@ class FeatureRenderer(Renderer):
                 key=lambda p: order_properties(p["uri"], type, type_order),
             ),
             "feature_properties": feature_properties,
-            "theme": THEME
+            # "theme": THEME
+            "stylesheet": STYLESHEET,
+            "header": HEADER,
+            "footer": FOOTER
         }
 
         return templates.TemplateResponse(

@@ -6,8 +6,8 @@
     <link rel="shortcut icon" href="{{ url_for('static', path='img/favicon.ico') }}">
     <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
     <link href="{{ url_for('static', path='css/style.css') }}" rel="stylesheet" type="text/css">
-    {% if theme == "abs" %}
-        <link href="{{ url_for('static', path='css/abs.css') }}" rel="stylesheet" type="text/css">
+    {% if stylesheet is not none %}
+        <link href="{{ url_for('static', path='css/stylesheet.css') }}" rel="stylesheet" type="text/css">
     {% endif %}
     <script src="https://kit.fontawesome.com/c112c4b9c0.js" crossorigin="anonymous"></script>
     <title>{% if api_title|length > 0 %}{{ api_title }}{% else %}{{ API_TITLE }}{% endif %}</title>
@@ -16,42 +16,11 @@
 <body>
     {% set active_page = active_page -%}
     <div id="main-container">
-        <header>
-            {% if theme == "abs" %}
-                <div id="header-content">
-                    <h1>ASGS</h1>
-                </div>
-            {% else %}
-                <div id="header-top">
-                    <div id="header-top-content">
-                        <a href="#">Careers</a>
-                        <a href="#">Contact Us</a>
-                        <a href="#">Skip to Content</a>
-                        <div id="header-socials">
-                            <a class="header-social-link" href="#"><i class="fab fa-twitter"></i></a>
-                            <a class="header-social-link" href="#"><i class="fab fa-facebook-f"></i></a>
-                            <a class="header-social-link" href="#"><i class="fab fa-youtube"></i></a>
-                            <a class="header-social-link" href="#"><i class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                </div>
-                <hr/>
-                <div id="header-bottom">
-                    <img src="{{ url_for('static', path='img/ga-logo.jpg') }}" alt="">
-                    <div id="header-bottom-content">
-                        <h4>Applying geoscience to Australia's most important challenges </h4>
-                        <div id="header-nav">
-                            <a href="#"><i class="fas fa-home"></i></a>
-                            <a href="#">About</a>
-                            <a href="#">Scientific Topics</a>
-                            <a href="#">Education</a>
-                            <a href="#">Data & Publications</a>
-                            <a href="#">News & Events</a>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-        </header>
+        {% if header is not none %}
+            {% include "header.html" %}
+        {% else %}
+            <header>OGC API header</header>
+        {% endif %}
         <div id="header-band"></div>
         <div id="gap-container">
             <nav id="top-nav">
@@ -66,67 +35,10 @@
                 {% block content %}{% endblock %}
             </div>
         </div>
-        {% if theme != "abs" %}
-            <footer>
-                <div id="footer-top">
-                    <div class="footer-content-col">
-                        <h5>Quicklinks</h5>
-                        <a href="#">Home</a>
-                        <a href="#">About</a>
-                        <a href="#">Scientific Topics</a>
-                        <a href="#">Data & Publications</a>
-                        <a href="#">Education</a>
-                        <a href="#">News & Events</a>
-                    </div>
-                    <div class="footer-content-col">
-                        <h5>Connect with Us</h5>
-                        <a class="footer-social-link" href="#"><i class="fab fa-twitter"></i></a>
-                        <a class="footer-social-link" href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a class="footer-social-link" href="#"><i class="fab fa-youtube"></i></a>
-                        <a class="footer-social-link" href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                    <div class="footer-content-col">
-                        <h5>Our Address</h5>
-                        <address>
-                            <b>Geoscience Australia</b>
-                            <br/>
-                            Cnr Jerrabomberra Ave and
-                            <br/>
-                            Hindmarsh Drive
-                            <br/>
-                            Symonston ACT 2609 
-                        </address>
-                        <a href="#">View Google Map</a>
-                    </div>
-                    <div class="footer-content-col">
-                        <h5>Important Numbers</h5>
-                        <address>
-                            General Enquiries: 1800 800 173
-                            <br/>
-                            Switchboard: +61 2 6249 9111
-                            <br/>
-                            Earthquake information: 1800 655 739
-                            <br/>
-                            Media Hotline: 1800 882 035
-                        </address>
-                        <a class="contact-us-btn" href="#" type="button"><span>Contact us </span><i class="far fa-chevron-right"></i></a>
-                    </div>
-                </div>
-                <hr/>
-                <div id="footer-bottom">
-                    <div id="footer-bottom-links">
-                        <a href="#">Copyright</a>
-                        <a href="#">Privacy</a>
-                        <a href="#">Accessibility</a>
-                        <a href="#">Sitemap</a>
-                        <a href="#">Information Publication Scheme</a>
-                        <a href="#">Freedom of Information</a>
-                    </div>
-                    <div>
-                        We acknowledge the Traditional Owners of the country where we work throughout Australia. We acknowledge Aboriginal and Torres Strait Islander people’s continuing connection to land, sea and community. We pay our respects to their elders past and present and emerging.
-                    </div>
-                </div>
-            </footer>
+        {% if footer is not none %}
+            {% include "footer.html" %}
+        {% else %}
+            <footer>OGC API footer</footer>
         {% endif %}
     </div>
 </body>

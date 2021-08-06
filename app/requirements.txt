@@ -11,4 +11,4 @@ geojson-rewind==0.2.0
 python-json-logger==2.0.1
 requests
 rdflib
-git+https://github.com/RDFLib/pyLDAPI.git@feature/fastapi#egg=pyldapi
+pyldapi
