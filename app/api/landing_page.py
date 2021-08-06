@@ -9,7 +9,7 @@ from geomet import wkt
 from fastapi import Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi import Renderer
+from pyldapi import Renderer, RDF_MEDIATYPES
 
 from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCAT, DCTERMS, RDF, RDFS
@@ -192,7 +192,7 @@ class LandingPageRenderer(Renderer):
             else:
                 return self._render_oai_html()
         elif self.profile == "dcat":
-            if self.mediatype in Renderer.RDF_SERIALIZER_TYPES_MAP:
+            if self.mediatype in RDF_MEDIATYPES:
                 return self._render_dcat_rdf()
             else:
                 return self._render_dcat_html()
@@ -408,13 +408,23 @@ class LandingPageRenderer(Renderer):
             )
 
     def _render_dcat_html(self):
+        # _template_context = {
+        #     "uri": self.dataset.uri,
+        #     "label": self.dataset.label,
+        #     "description": markdown.markdown(self.dataset.description),
+        #     "parts": self.dataset.parts,
+        #     "distributions": self.dataset.distributions,
+        #     "request": self.request,
+        # }
+
         _template_context = {
-            "uri": self.dataset.uri,
-            "label": self.dataset.label,
-            "description": markdown.markdown(self.dataset.description),
-            "parts": self.dataset.parts,
-            "distributions": self.dataset.distributions,
+            "uri": self.landing_page.uri,
+            "title": self.landing_page.title,
+            "description": self.landing_page.description,
             "request": self.request,
+            "stylesheet": STYLESHEET,
+            "header": HEADER,
+            "footer": FOOTER
         }
 
         return templates.TemplateResponse(

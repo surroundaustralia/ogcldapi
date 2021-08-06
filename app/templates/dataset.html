@@ -1,0 +1,10 @@
+{% extends "page.html" %}
+{% set active_page = "home" %}
+{% block content %}
+<div id="maincontent">
+  <h1>{{ title }}</h1>
+  <h3>{{ uri }}</h3>
+  {{ description | safe }}
+</div>
+{% include 'page_altprofiles.html' %}
+{% endblock %}
