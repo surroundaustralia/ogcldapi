@@ -1,13 +1,15 @@
 from typing import List
+import json
 from config import *
 from api.link import *
 from api.profiles import *
 from utils import utils
 
+from geomet import wkt
 from fastapi import Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import Renderer
+from pyldapi import Renderer, RDF_MEDIATYPES
 
 from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCAT, DCTERMS, RDF, RDFS
@@ -51,14 +53,38 @@ class LandingPage:
   				FILTER(?p1=?feature)
                 }}"""
         )
-        self.properties = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
+        non_bnode_results = [{str(k): v for k, v in i.items()} for i in non_bnode_query.bindings]
 
-        for property in self.properties:
-            for k, v in property.copy().items():
-                if isinstance(v, URIRef):
-                    property[f"{k}Prefixed"] = v.n3(
-                        dataset_triples.namespace_manager
-                    )
+        bnode_query = g.query(
+            f"""
+            PREFIX dcterms: <http://purl.org/dc/terms/> 
+            PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+            SELECT ?p1 ?p1Label ?p2 ?p2Label ?o2 ?o2Label ?o1 {{
+                <{self.dataset_uri}> ?p1 ?o1 .
+                ?o1 ?p2 ?o2
+                OPTIONAL {{ 
+                    {{?p1 rdfs:label ?p1Label}} FILTER(lang(?p1Label) = "" || lang(?p1Label) = "en") }}
+                OPTIONAL {{
+                    {{?p2 rdfs:label ?p2Label}} FILTER(lang(?p2Label) = "" || lang(?p2Label) = "en") }}
+                OPTIONAL {{ 
+                    {{?o2 rdfs:label ?o2Label}} FILTER(lang(?o2Label) = "" || lang(?o2Label) = "en") }}
+                FILTER(ISBLANK(?o1))
+                }}"""
+        )
+        bnode_results = [
+            {str(k): v for k, v in i.items()} for i in bnode_query.bindings
+        ]
+
+        for result_set in [non_bnode_results, bnode_results]:
+            for property in result_set:
+                for k, v in property.copy().items():
+                    if isinstance(v, URIRef):
+                        property[f"{k}Prefixed"] = v.n3(
+                            dataset_triples.namespace_manager
+                        )
+        
+        self.properties = [i for i in non_bnode_results]
+        self.bnode_properties = [i for i in bnode_results]
 
         logging.debug("LandingPage() RDF loops")
 
@@ -121,16 +147,12 @@ class LandingPageRenderer(Renderer):
     ):
         logging.debug("LandingPageRenderer()")
         self.landing_page = LandingPage(other_links=other_links)
-
         super().__init__(
             request,
             self.landing_page.uri,
             {"oai": profile_openapi, "dcat": profile_dcat},
-            "oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
-            LOCAL_URIS=LOCAL_URIS,
+            "oai"
         )
-
         # add OGC API Link headers to pyLDAPI Link headers
         self.headers["Link"] = self.headers["Link"] + ", ".join(
             [link.render_as_http_header() for link in self.landing_page.links]
@@ -148,7 +170,12 @@ class LandingPageRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": API_TITLE
+        }
+        response = super().render(
+            additional_alt_template_context=template_context
+        )
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -161,7 +188,7 @@ class LandingPageRenderer(Renderer):
             else:
                 return self._render_oai_html()
         elif self.profile == "dcat":
-            if self.mediatype in Renderer.RDF_SERIALIZER_TYPES_MAP:
+            if self.mediatype in RDF_MEDIATYPES:
                 return self._render_dcat_rdf()
             else:
                 return self._render_dcat_html()
@@ -198,8 +225,6 @@ class LandingPageRenderer(Renderer):
         )
 
     def _render_oai_html(self):
-        # print(self.landing_page.properties)
-
         # property dicts
         type = {}
         properties = {}
@@ -216,6 +241,8 @@ class LandingPageRenderer(Renderer):
         def add_property(prop: dict, dict: dict, mode: str) -> None:
             """Adds a property to a group dict"""
             object = None
+            bnode = None
+            geometry = None
             prop_name = "p1"
 
             if mode == "prop":
@@ -225,17 +252,36 @@ class LandingPageRenderer(Renderer):
                     "label": prop.get("o1Label"),
                     "system_url": prop.get("system_url")
                 }
-            
+            elif mode == "bnode":
+                bnode = {
+                    "pUri": prop["p2"],
+                    "pPrefix": prop.get("p2Prefixed"),
+                    "pLabel": prop.get("p2Label"),
+                    "oValue": prop["o2"],
+                    "oPrefix": prop.get("o2Prefixed"),
+                    "oLabel": prop.get("o2Label"),
+                }
+            else:  # geom
+                prop_name = "p2"
+                geometry = prop["o2"]
+
             if dict.get(prop[prop_name]):  # if prop exists, append child
                 if mode == "prop":
                     dict[prop[prop_name]]["objects"].append(object)
-                
+                elif mode == "bnode":
+                    bnode_list = dict[prop[prop_name]]["bnodes"].get(prop["o1"])
+                    if bnode_list:  # if bnode exists
+                        bnode_list.append(bnode)
+                    else:
+                        dict[prop[prop_name]]["bnodes"][prop["o1"]] = [bnode]
             else:  # create prop
                 dict[prop[prop_name]] = {
                     "uri": prop[prop_name],
                     "prefix": prop.get(f"{prop_name}Prefixed"),
                     "label": prop.get(f"{prop_name}Label"),
                     "objects": [object] if object is not None else None,
+                    "bnodes": {prop["o1"]: [bnode]} if bnode is not None else None,
+                    "geometry": geometry if geometry is not None else None
                 }
 
         # dicts to match keys of order list in switch statement
@@ -270,6 +316,22 @@ class LandingPageRenderer(Renderer):
             if not matched:
                 switch("other", property, "prop")
 
+        # bnode properties loop
+        for property in self.landing_page.bnode_properties:
+            # omit SpatialMeasure from hasArea
+            # if property["p1"] == GEO.hasArea and property["o2"] == GEO.SpatialMeasure:
+            #     continue
+            if property["p2"] == DCAT.bbox:
+                geometry = json.dumps(wkt.loads(property["o2"]))
+            matched = False
+            for key, value in dicts.items():
+                if property["p1"] in value:
+                    switch(key, property, "bnode")
+                    matched = True
+                    break
+            if not matched:
+                switch("other", property, "bnode")
+
         def order_properties(key: str, dict: dict, order_list: List[URIRef]) -> int:
             """Orders the properties of a group dict according to the corresponding order list"""
             if key in order_list:
@@ -298,8 +360,8 @@ class LandingPageRenderer(Renderer):
                 type.values(),
                 key=lambda p: order_properties(p["uri"], type, type_order),
             ),
-            "geometry": None,
-            "api_title": API_TITLE,
+            "geometry": geometry,
+            "api_title": API_TITLE
         }
 
         return templates.TemplateResponse(
@@ -338,13 +400,23 @@ class LandingPageRenderer(Renderer):
             )
 
     def _render_dcat_html(self):
+        # _template_context = {
+        #     "uri": self.dataset.uri,
+        #     "label": self.dataset.label,
+        #     "description": markdown.markdown(self.dataset.description),
+        #     "parts": self.dataset.parts,
+        #     "distributions": self.dataset.distributions,
+        #     "request": self.request,
+        # }
+
         _template_context = {
-            "uri": self.dataset.uri,
-            "label": self.dataset.label,
-            "description": markdown.markdown(self.dataset.description),
-            "parts": self.dataset.parts,
-            "distributions": self.dataset.distributions,
+            "uri": self.landing_page.uri,
+            "title": self.landing_page.title,
+            "description": self.landing_page.description,
             "request": self.request,
+            "stylesheet": STYLESHEET,
+            "header": HEADER,
+            "footer": FOOTER
         }
 
         return templates.TemplateResponse(

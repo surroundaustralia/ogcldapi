@@ -8,6 +8,7 @@ from geomet import wkt
 from rdflib import Graph
 from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS
+from pyldapi import Renderer, RDF_MEDIATYPES
 
 from api.link import *
 from api.profiles import *
@@ -15,7 +16,6 @@ from config import *
 from utils.sparql_queries import feature_class_label_sparql
 
 templates = Jinja2Templates(directory="templates")
-
 
 class GeometryRole(Enum):
     Boundary = "https://linked.data.gov.au/def/geometry-roles/boundary"
@@ -284,7 +284,6 @@ class FeatureRenderer(Renderer):
             + self.feature.identifier,
             profiles={"oai": profile_openapi, "geosp": profile_geosparql},
             default_profile_token="oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "version"]
@@ -298,7 +297,15 @@ class FeatureRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"{self.feature.title} - {API_TITLE}",
+            # "stylesheet": STYLESHEET,
+            # "header": HEADER,
+            # "footer": FOOTER
+        }
+        response = super().render(
+            additional_alt_template_context=template_context
+        )
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -506,7 +513,7 @@ class FeatureRenderer(Renderer):
                 type.values(),
                 key=lambda p: order_properties(p["uri"], type, type_order),
             ),
-            "feature_properties": feature_properties,
+            "feature_properties": feature_properties
         }
 
         return templates.TemplateResponse(
@@ -523,7 +530,7 @@ class FeatureRenderer(Renderer):
                 media_type=self.mediatype,
                 headers=self.headers,
             )
-        elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
+        elif self.mediatype in RDF_MEDIATYPES:
             return PlainTextResponse(
                 g.serialize(format=self.mediatype),
                 media_type=self.mediatype,

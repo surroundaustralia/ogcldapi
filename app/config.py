@@ -19,7 +19,7 @@ CACHE_FILE = os.getenv("CACHE_DIR", os.path.join(APP_DIR, "cache", "DATA.pickle"
 CACHE_HOURS = os.getenv("CACHE_HOURS", 1)
 LOCAL_URIS = os.getenv("LOCAL_URIS", True)
 VERSION = os.getenv("VERSION", __version__)
-API_TITLE = os.getenv("API_TITLE", "OGC API")
+API_TITLE = os.getenv("API_TITLE", "OGC LD API")
 LANDING_PAGE_URL = os.getenv("LANDING_PAGE_URL", f"http://localhost:{PORT}")
 DATASET_URI = os.getenv("DATASET_URI", "https://linked.data.gov.au/dataset/floods")
 SPARQL_ENDPOINT = os.getenv(
@@ -28,6 +28,9 @@ SPARQL_ENDPOINT = os.getenv(
 SPARQL_USERNAME = os.getenv("SPARQL_USERNAME", None)
 SPARQL_PASSWORD = os.getenv("SPARQL_PASSWORD", None)
 TEST_GRAPH = os.getenv("TEST_GRAPH", None)
+HEADER = os.getenv("HEADER", None)
+FOOTER = os.getenv("FOOTER", None)
+STYLESHEET = os.getenv("STYLESHEET", None)
 
 MEDIATYPE_NAMES = {
     "text/html": "HTML",

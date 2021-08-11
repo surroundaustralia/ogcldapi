@@ -29,11 +29,11 @@
         {% for f in profile['mediatypes']|sort() %}
         {% if "cell" in uri %}
         <a href="{{ uri }}?_profile={{ token }}&_mediatype={{ f }}">
-          {{ MEDIATYPE_NAMES[f] if MEDIATYPE_NAMES.get(f) is not none else f }}
+          {{ mediatype_names[f] if mediatype_names.get(f) is not none else f }}
         </a><br style="margin-bottom: 6px;"/>
         {% else %}
         <a href="{{ uri }}?_profile={{ token }}&_mediatype={{ f }}">
-          {{ MEDIATYPE_NAMES[f] if MEDIATYPE_NAMES.get(f) is not none else f }}
+          {{ mediatype_names[f] if mediatype_names.get(f) is not none else f }}
         </a><br style="margin-bottom: 6px;"/>
         {% endif %}
         {% endfor %}

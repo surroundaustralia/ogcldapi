@@ -5,7 +5,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import ContainerRenderer
+from pyldapi import ContainerRenderer, RDF_MEDIATYPES
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import DCTERMS, XSD, RDF
 
@@ -356,7 +356,12 @@ class FeaturesRenderer(ContainerRenderer):
             )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}"
+        }
+        response = super().render(
+            additional_alt_template_context=template_context
+        )
         if response is not None:
             return response
 
@@ -418,7 +423,7 @@ class FeaturesRenderer(ContainerRenderer):
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page,
-            "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}",
+            "api_title": f"Features in {self.feature_list.collection.title} - {API_TITLE}"
         }
 
         if (
@@ -443,14 +448,14 @@ class FeaturesRenderer(ContainerRenderer):
         g.bind("xhv", XHV)
 
         page_uri_str = (
-            self.request.uri
+            self.request.url.path
             + "?per_page="
             + str(self.per_page)
             + "&page="
             + str(self.page)
         )
         page_uri_str_nonum = (
-            self.request.uri + "?per_page=" + str(self.per_page) + "&page="
+            self.request.url.path + "?per_page=" + str(self.per_page) + "&page="
         )
         page_uri = URIRef(page_uri_str)
 
@@ -495,7 +500,7 @@ class FeaturesRenderer(ContainerRenderer):
                 media_type=self.mediatype,
                 headers=self.headers,
             )
-        elif self.mediatype in Renderer.RDF_MEDIA_TYPES:
+        elif self.mediatype in RDF_MEDIATYPES:
             return Response(
                 g.serialize(format=self.mediatype),
                 media_type=self.mediatype,

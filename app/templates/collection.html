@@ -61,10 +61,6 @@
     <div id="map"></div>
   {% endif %}
   <table class="props">
-    <tr>
-      <td>Members</td>
-      <td><a href="{{uri}}/items">Items</a></td>
-    </tr>
     {% for property in properties %}
       <tr>
         <td>
@@ -94,7 +90,7 @@
           {% if property.objects is not none %}
             {% for object in property.objects %}
               {% if object.label is not none %}
-                <span class="tooltip">
+                <span class="tooltip {% if loop.index > 10 %}collapse{% endif %}">
                   {% if object.system_url is not none %}
                     <a href="{{ object.system_url }}">{{ object.label }}</a>
                   {% else %}
@@ -112,23 +108,33 @@
                 </span>
               {% else %}
                 {% if object.system_url is not none %}
-                  <a href="{{ object.system_url }}">{{ object.value }}</a>
+                  <a href="{{ object.system_url }}" class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</a>
                 {% else %}
                   {% if object.value.startswith("http") %}
-                    <a href="{{ object.value }}">{{ object.value }}</a>
+                    <a href="{{ object.value }}" class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</a>
                   {% elif object.value.startswith("{") or object.value.startswith("POLYGON") %}
-                    <code>{{ object.value }}</code>
+                    <code class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</code>
                   {% else %}
-                    {{ object.value }}
+                    <span class="{% if loop.index > 10 %}collapse{% endif %}">{{ object.value }}</span>
                   {% endif %}
                 {% endif %}
               {% endif %}
-              <br/>
+              <br class="{% if loop.index > 10 %}collapse{% endif %}"/>
             {% endfor %}
+            {% if property.objects | length > 10 %}
+                <button class="collapse-button">...</button>
+            {% endif %}
           {% endif %}
         </td>
       </tr>
     {% endfor %}
+    <tr>
+      <td>Members</td>
+      <td>
+        <a href="{{uri}}/items" class="btn">Items</a>
+        <span class="items-btn-caption">Click to view list of features</span>
+      </td>
+    </tr>
   </table>
   {% if geometry is not none %}
     <script>
@@ -150,6 +156,15 @@
       map.fitBounds(geojsonLayer.getBounds());
     </script>
   {% endif %}
+  <script>
+    const collapseBtns = document.querySelectorAll(".collapse-button");
+    collapseBtns.forEach(btn => {
+      btn.addEventListener("click", e => {
+        const collapsibles = Array.from(btn.parentNode.children).filter(child => child.classList.contains("collapse"));
+        collapsibles.forEach(item => item.classList.toggle("show"));
+      });
+    });
+  </script>
 </div>
 {% include 'page_altprofiles.html' %}
 {% endblock %}

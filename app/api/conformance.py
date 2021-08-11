@@ -1,7 +1,7 @@
 from fastapi import Response
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
-from pyldapi.fastapi_framework import Renderer
+from pyldapi import Renderer
 
 from api.link import *
 from api.profiles import *
@@ -20,9 +20,7 @@ class ConformanceRenderer(Renderer):
             request,
             LANDING_PAGE_URL + "/conformance",
             {"oai": profile_openapi},
-            "oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
-            LOCAL_URIS=LOCAL_URIS,
+            "oai"
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_view", "_mediatype", "_format", "version"]
@@ -36,7 +34,12 @@ class ConformanceRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"Conformance - {API_TITLE}"
+        }
+        response = super().render(
+            additional_alt_template_context=template_context
+        )
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -63,7 +66,7 @@ class ConformanceRenderer(Renderer):
             "uri": LANDING_PAGE_URL + "/conformance",
             "conformance_classes": self.conformance_classes,
             "request": self.request,
-            "api_title": f"Conformance - {API_TITLE}",
+            "api_title": f"Conformance - {API_TITLE}"
         }
 
         return templates.TemplateResponse(

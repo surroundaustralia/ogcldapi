@@ -3,7 +3,7 @@ from api.link import *
 from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 
-from pyldapi.fastapi_framework import Renderer
+from pyldapi import Renderer
 from api.profiles import *
 from config import *
 

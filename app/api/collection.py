@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from geomet import wkt
 from rdflib import URIRef, Literal, Graph
 from rdflib.namespace import DCTERMS, RDF, DCAT, RDFS
+from pyldapi import Renderer
 
 from api.link import *
 from api.profiles import *
@@ -118,7 +119,7 @@ class Collection(object):
 
         c = URIRef(self.uri)
 
-        g.add((c, RDF.type, DCTERMS.Collection))
+        g.add((c, RDF.type, DCTERMS.Collection)) # "DCTERMS.Collection not in namespace"
 
         g.add((c, DCTERMS.identifier, Literal(self.identifier)))
 
@@ -157,7 +158,6 @@ class CollectionRenderer(Renderer):
                 "mem": profile_mem
             },
             default_profile_token="oai",
-            MEDIATYPE_NAMES=MEDIATYPE_NAMES,
         )
 
         self.ALLOWED_PARAMS = ["_profile", "_mediatype", "version"]
@@ -171,7 +171,12 @@ class CollectionRenderer(Renderer):
                 )
 
         # try returning alt profile
-        response = super().render()
+        template_context = {
+            "api_title": f"{self.collection.title} - {API_TITLE}"
+        }
+        response = super().render(
+            additional_alt_template_context=template_context
+        )
         if response is not None:
             return response
         elif self.profile == "oai":
@@ -255,10 +260,6 @@ class CollectionRenderer(Renderer):
             if property["p1"] == RDFS.label or property["p1"] == DCTERMS.description:
                 continue
             elif property["p1"] == DCAT.bbox:
-                # is dcat:bbox what we should be using for a bounding box? (vs geo:bbox if that's a thing)
-                # does bounding box have wkt AND geojson formats? (i.e. asWKT & asGeoJSON)
-                # dcat:bbox seems to be only WKT, but the map expects geoJSON
-                # locn:geometry is also a bounding box in geoJSON, but unsure if we're using that
                 geometry = json.dumps(wkt.loads(property["o1"]))
             matched = False
             for key, value in dicts.items():
@@ -298,7 +299,7 @@ class CollectionRenderer(Renderer):
             ),
             "properties": collection_properties,
             "geometry": geometry,
-            "api_title": f"{self.collection.title} - {API_TITLE}",
+            "api_title": f"{self.collection.title} - {API_TITLE}"
         }
 
         return templates.TemplateResponse(

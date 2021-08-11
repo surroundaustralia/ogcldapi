@@ -1,5 +1,4 @@
-from pyldapi.profile import Profile
-from pyldapi.fastapi_framework import Renderer
+from pyldapi import Profile, RDF_MEDIATYPES
 
 
 profile_openapi = Profile(
@@ -25,7 +24,7 @@ profile_dcat = Profile(
     comment="Dataset Catalogue Vocabulary (DCAT) is a W3C-authored RDF vocabulary designed to "
     "facilitate interoperability between data catalogs "
     "published on the Web.",
-    mediatypes=["text/html", "application/json"] + Renderer.RDF_MEDIA_TYPES,
+    mediatypes=["text/html", "application/json"] + RDF_MEDIATYPES,
     default_mediatype="text/html",
     languages=["en"],  # default 'en' only for now
     default_language="en",
@@ -35,7 +34,7 @@ profile_geosparql = Profile(
     "http://www.opengis.net/ont/geosparql",
     label="GeoSPARQL",
     comment="An RDF/OWL vocabulary for representing spatial information",
-    mediatypes=Renderer.RDF_MEDIA_TYPES,
+    mediatypes=RDF_MEDIATYPES,
     default_mediatype="text/turtle",
     languages=["en"],  # default 'en' only for now
     default_language="en",
