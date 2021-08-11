@@ -160,11 +160,7 @@ class CollectionsRenderer(ContainerRenderer):
 
         # try returning alt profile
         template_context = {
-            "api_title": f"Collections - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"Collections - {API_TITLE}"
         }
         response = super().render(
             additional_alt_template_context=template_context
@@ -217,11 +213,7 @@ class CollectionsRenderer(ContainerRenderer):
             "request": self.request,
             "pageSize": self.per_page,
             "pageNumber": self.page,
-            "api_title": f"Collections - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"Collections - {API_TITLE}"
         }
 
         return templates.TemplateResponse(

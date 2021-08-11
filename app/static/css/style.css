@@ -1,7 +1,7 @@
 :root {
     /* colours */
-    --link-colour: #0f68ff;
-    --btn-hover-colour: #0c53cc;
+    --link-colour: #053b96;
+    --btn-hover-colour: #042f78;
     --header-band-colour: black;
     --table-bg: #eeeeee;
     --subtable-bg: #f6f6f6;
@@ -24,6 +24,15 @@ body, html {
     display: flex;
     flex-direction: column;
     height: 100%;
+}
+
+/* header */
+#header-content {
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    display: flex;
+    padding: 20px;
 }
 
 #header-band {
@@ -50,6 +59,19 @@ body, html {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+}
+
+/* footer */
+#footer-content {
+    width: 100%;
+    max-width: var(--page-max-width);
+    margin: 0 auto;
+    display: flex;
+    padding: 20px;
+}
+
+#footer-text {
+    margin: auto;
 }
 
 a {

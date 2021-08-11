@@ -119,7 +119,7 @@ class Collection(object):
 
         c = URIRef(self.uri)
 
-        g.add((c, RDF.type, DCTERMS.Collection))
+        g.add((c, RDF.type, DCTERMS.Collection)) # "DCTERMS.Collection not in namespace"
 
         g.add((c, DCTERMS.identifier, Literal(self.identifier)))
 
@@ -172,11 +172,7 @@ class CollectionRenderer(Renderer):
 
         # try returning alt profile
         template_context = {
-            "api_title": f"{self.collection.title} - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"{self.collection.title} - {API_TITLE}"
         }
         response = super().render(
             additional_alt_template_context=template_context
@@ -264,10 +260,6 @@ class CollectionRenderer(Renderer):
             if property["p1"] == RDFS.label or property["p1"] == DCTERMS.description:
                 continue
             elif property["p1"] == DCAT.bbox:
-                # is dcat:bbox what we should be using for a bounding box? (vs geo:bbox if that's a thing)
-                # does bounding box have wkt AND geojson formats? (i.e. asWKT & asGeoJSON)
-                # dcat:bbox seems to be only WKT, but the map expects geoJSON
-                # locn:geometry is also a bounding box in geoJSON, but unsure if we're using that
                 geometry = json.dumps(wkt.loads(property["o1"]))
             matched = False
             for key, value in dicts.items():
@@ -307,11 +299,7 @@ class CollectionRenderer(Renderer):
             ),
             "properties": collection_properties,
             "geometry": geometry,
-            "api_title": f"{self.collection.title} - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"{self.collection.title} - {API_TITLE}"
         }
 
         return templates.TemplateResponse(

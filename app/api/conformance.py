@@ -35,11 +35,7 @@ class ConformanceRenderer(Renderer):
 
         # try returning alt profile
         template_context = {
-            "api_title": f"Conformance - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"Conformance - {API_TITLE}"
         }
         response = super().render(
             additional_alt_template_context=template_context
@@ -70,11 +66,7 @@ class ConformanceRenderer(Renderer):
             "uri": LANDING_PAGE_URL + "/conformance",
             "conformance_classes": self.conformance_classes,
             "request": self.request,
-            "api_title": f"Conformance - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"Conformance - {API_TITLE}"
         }
 
         return templates.TemplateResponse(

@@ -8,7 +8,7 @@ from geomet import wkt
 from rdflib import Graph
 from rdflib import URIRef, Literal, BNode
 from rdflib.namespace import DCTERMS, RDF, RDFS
-from pyldapi import Renderer
+from pyldapi import Renderer, RDF_MEDIATYPES
 
 from api.link import *
 from api.profiles import *
@@ -299,10 +299,9 @@ class FeatureRenderer(Renderer):
         # try returning alt profile
         template_context = {
             "api_title": f"{self.feature.title} - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            # "stylesheet": STYLESHEET,
+            # "header": HEADER,
+            # "footer": FOOTER
         }
         response = super().render(
             additional_alt_template_context=template_context
@@ -514,11 +513,7 @@ class FeatureRenderer(Renderer):
                 type.values(),
                 key=lambda p: order_properties(p["uri"], type, type_order),
             ),
-            "feature_properties": feature_properties,
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "feature_properties": feature_properties
         }
 
         return templates.TemplateResponse(
@@ -535,7 +530,7 @@ class FeatureRenderer(Renderer):
                 media_type=self.mediatype,
                 headers=self.headers,
             )
-        elif self.mediatype in Renderer.RDF_MEDIATYPES:
+        elif self.mediatype in RDF_MEDIATYPES:
             return PlainTextResponse(
                 g.serialize(format=self.mediatype),
                 media_type=self.mediatype,

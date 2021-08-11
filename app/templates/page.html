@@ -6,9 +6,7 @@
     <link rel="shortcut icon" href="{{ url_for('static', path='img/favicon.ico') }}">
     <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
     <link href="{{ url_for('static', path='css/style.css') }}" rel="stylesheet" type="text/css">
-    {% if stylesheet is not none %}
-        <link href="{{ url_for('static', path='css/stylesheet.css') }}" rel="stylesheet" type="text/css">
-    {% endif %}
+    <link href="{{ url_for('static', path='css/stylesheet.css') }}" rel="stylesheet" type="text/css">
     <script src="https://kit.fontawesome.com/c112c4b9c0.js" crossorigin="anonymous"></script>
     <title>{% if api_title|length > 0 %}{{ api_title }}{% else %}{{ API_TITLE }}{% endif %}</title>
 </head>
@@ -16,11 +14,7 @@
 <body>
     {% set active_page = active_page -%}
     <div id="main-container">
-        {% if header is not none %}
-            {% include "header.html" %}
-        {% else %}
-            <header>OGC API header</header>
-        {% endif %}
+        {% include "header.html" %}
         <div id="header-band"></div>
         <div id="gap-container">
             <nav id="top-nav">
@@ -35,11 +29,7 @@
                 {% block content %}{% endblock %}
             </div>
         </div>
-        {% if footer is not none %}
-            {% include "footer.html" %}
-        {% else %}
-            <footer>OGC API footer</footer>
-        {% endif %}
+        {% include "footer.html" %}
     </div>
 </body>
 

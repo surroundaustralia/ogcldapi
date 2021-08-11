@@ -32,11 +32,7 @@ class SparqlRenderer(Renderer):
 
         # try returning alt profile
         template_context = {
-            "api_title": f"SPARQL - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"SPARQL - {API_TITLE}"
         }
         response = super().render(
             additional_alt_template_context=template_context
@@ -66,11 +62,7 @@ class SparqlRenderer(Renderer):
         _template_context = {
             "uri": LANDING_PAGE_URL + "/sparql",
             "request": self.request,
-            "api_title": f"SPARQL - {API_TITLE}",
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": f"SPARQL - {API_TITLE}"
         }
 
         return templates.TemplateResponse(

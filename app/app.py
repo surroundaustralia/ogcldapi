@@ -4,6 +4,7 @@ import uvicorn
 import httpx
 import uuid
 import logging
+from typing import Union
 from config import *
 # from pyldapi import renderer, renderer_container
 from utils import utils
@@ -27,7 +28,7 @@ api = FastAPI(
     description=f"Open API Documentation for this {API_TITLE}",
 )
 
-LOGGING = False
+LOGGING = True # toggles logging, set to false for proper error messages
 
 if LOGGING:
     logging_config.configure_logging(level='INFO', service='ogc-api', instance=str(uuid.uuid4()))
@@ -93,28 +94,49 @@ def configure_routing():
     api.include_router(conformance.router)
     api.include_router(collections.router)
     api.include_router(sparql.router)
-    get_theming()
+    set_theme()
 
-def get_theming():
+def set_theme():
     """
-    Gets and downloads theming files to disk using links as env variables
+    Gets theming files to disk using URLs from env variables
     
     Theming files are currently stored in S3, with a folder
     for each theme, i.e. ga-theme/, abs-theme/, etc.
     """
-    if HEADER:
-        r = httpx.get(HEADER)
-        with open("templates/header.html", "w") as f:
-            f.write(r.text)
-    if FOOTER:
-        r = httpx.get(FOOTER)
-        with open("templates/footer.html", "w") as f:
-            f.write(r.text)
-    if STYLESHEET:
-        r = httpx.get(STYLESHEET)
-        with open("static/css/stylesheet.css", "w") as f:
-            f.write(r.text)
+    get_theming_file(HEADER, "header")
+    get_theming_file(FOOTER, "footer")
+    get_theming_file(STYLESHEET, "stylesheet", is_html=False)
 
+def get_theming_file(env_var: Union[str, None], var_name: str, is_html: bool = True) -> None:
+    """Attempts to get theming file, defaults to template file if unsuccessful"""
+    default_template = f"templates/{var_name}_template.html" if is_html else ""
+    new_file = f"templates/{var_name}.html" if is_html else f"static/css/{var_name}.css"
+    if env_var:
+        try:
+            r = httpx.get(env_var)
+            if not 200 <= r.status_code < 300:
+                logging.error(f"Broken {var_name} URL")
+                raise Exception(f"Broken {var_name} URL")
+            with open(new_file, "w") as f:
+                f.write(r.text)
+        except:
+            if is_html:
+                with open(default_template) as f:
+                    base_content = f.read()
+                with open(new_file, "w") as f:
+                    f.write(base_content)
+            else:
+                with open(new_file, "w") as f:
+                    f.write("")
+    else:
+        if is_html:
+            with open(default_template) as f:
+                base_content = f.read()
+            with open(new_file, "w") as f:
+                f.write(base_content)
+        else:
+            with open(new_file, "w") as f:
+                f.write("")
 
 if __name__ == "__main__":
     logging.info("Running main function")

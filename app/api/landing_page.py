@@ -171,11 +171,7 @@ class LandingPageRenderer(Renderer):
 
         # try returning alt profile
         template_context = {
-            "api_title": API_TITLE,
-            # "theme": THEME
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": API_TITLE
         }
         response = super().render(
             additional_alt_template_context=template_context
@@ -365,11 +361,7 @@ class LandingPageRenderer(Renderer):
                 key=lambda p: order_properties(p["uri"], type, type_order),
             ),
             "geometry": geometry,
-            "api_title": API_TITLE,
-            # "theme": THEME,
-            "stylesheet": STYLESHEET,
-            "header": HEADER,
-            "footer": FOOTER
+            "api_title": API_TITLE
         }
 
         return templates.TemplateResponse(
