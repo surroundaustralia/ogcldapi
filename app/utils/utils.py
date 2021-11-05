@@ -24,10 +24,15 @@ def get_graph():
     prefix_graph = Graph().parse('static/query_prefixes.ttl', format='turtle')
     # add any dataset specific preferred prefixes from the "preferred-prefixes" graph
     sparql_prefixes = """DESCRIBE * {GRAPH <https://preferred-prefixes> {?s ?p ?o}}"""
-    prefix_graph += g.query(sparql_prefixes).graph
+
+    try:
+        prefixes = g.query(sparql_prefixes)
+        prefix_graph += prefixes.graph
+    except Exception as ex:
+        logging.info("Could not obtain preferred prefixes: {}".format(ex))
 
     prefixes = {}
     for s, p, o in prefix_graph:
         prefixes[str(o)] = URIRef(s)
-
+        
     return g, prefixes
