@@ -21,18 +21,18 @@ def get_graph():
         g.open(SPARQL_ENDPOINT)
 
     # get the API set of preferred prefixes (rdfs, skos, owl, geo, etc.)
-    prefix_graph = Graph().parse('static/query_prefixes.ttl', format='turtle')
+    static_prefixes = Graph().parse('static/query_prefixes.ttl', format='turtle')
     # add any dataset specific preferred prefixes from the "preferred-prefixes" graph
     sparql_prefixes = """DESCRIBE * {GRAPH <https://preferred-prefixes> {?s ?p ?o}}"""
 
     try:
-        prefixes = g.query(sparql_prefixes)
-        prefix_graph += prefixes.graph
+        dataset_prefixes = g.query(sparql_prefixes).graph
+        static_prefixes += dataset_prefixes
     except Exception as ex:
-        logging.info("Could not obtain preferred prefixes: {}".format(ex))
+        logging.info(f"No preferred prefixes found for dataset. {ex}")
 
     prefixes = {}
-    for s, p, o in prefix_graph:
+    for s, p, o in static_prefixes:
         prefixes[str(o)] = URIRef(s)
         
     return g, prefixes
